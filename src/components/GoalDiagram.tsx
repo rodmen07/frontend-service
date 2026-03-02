@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import mermaid from 'mermaid'
 import type { GoalPlan } from '../types'
+
+let mermaidInitialized = false
 
 interface GoalDiagramProps {
   plan: GoalPlan
@@ -42,22 +43,29 @@ function buildDefinition(plan: GoalPlan): string {
 
 export function GoalDiagram({ plan }: GoalDiagramProps) {
   const [svg, setSvg] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
 
   const definition = useMemo(() => buildDefinition(plan), [plan])
-
-  useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: 'loose',
-      theme: 'default',
-    })
-  }, [])
 
   useEffect(() => {
     let active = true
 
     const render = async () => {
+      setIsLoading(true)
+
       try {
+        const mermaidModule = await import('mermaid')
+        const mermaid = mermaidModule.default
+
+        if (!mermaidInitialized) {
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'default',
+          })
+          mermaidInitialized = true
+        }
+
         const { svg: renderedSvg } = await mermaid.render(
           `goal-diagram-${plan.id}`,
           definition,
@@ -65,10 +73,12 @@ export function GoalDiagram({ plan }: GoalDiagramProps) {
 
         if (active) {
           setSvg(renderedSvg)
+          setIsLoading(false)
         }
       } catch {
         if (active) {
           setSvg('')
+          setIsLoading(false)
         }
       }
     }
@@ -79,6 +89,14 @@ export function GoalDiagram({ plan }: GoalDiagramProps) {
       active = false
     }
   }, [definition, plan.id])
+
+  if (isLoading) {
+    return (
+      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        Loading diagram…
+      </p>
+    )
+  }
 
   if (!svg) {
     return (
