@@ -1,0 +1,21 @@
+backend:
+  name: github
+  repo: rodmen07/frontend-service
+  branch: main
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "site"
+    label: "Site Content"
+    files:
+      - file: "public/content/site.json"
+        label: "Homepage"
+        name: "homepage"
+        format: "json"
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Subtitle", name: "subtitle", widget: "text" }
+          - { label: "CTA Label", name: "ctaLabel", widget: "string" }
+          - { label: "CTA Href", name: "ctaHref", widget: "string" }
