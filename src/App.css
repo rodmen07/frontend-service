@@ -51,6 +51,36 @@
   margin-bottom: 1rem;
 }
 
+.goal-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.goal-form textarea {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #888;
+  border-radius: 8px;
+  background: transparent;
+  resize: vertical;
+}
+
+.plan-preview {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #888;
+  border-radius: 8px;
+}
+
+.plan-preview h3 {
+  margin-top: 0;
+}
+
+.plan-preview ol {
+  margin: 0 0 0.75rem 1.2rem;
+  text-align: left;
+}
+
 .task-form input {
   padding: 0.65rem 0.75rem;
   border: 1px solid #888;

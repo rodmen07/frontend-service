@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { API_BASE_URL } from './config'
-import { createTask, deleteTask, listTasks, updateTask } from './api/tasks'
+import {
+  createTask,
+  deleteTask,
+  listTasks,
+  planTasksFromGoal,
+  updateTask,
+} from './api/tasks'
 
 function toBaseAwareHref(href, baseUrl) {
   if (!href) {
@@ -32,6 +38,10 @@ function App() {
   const [taskError, setTaskError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [workingTaskId, setWorkingTaskId] = useState(null)
+  const [goalInput, setGoalInput] = useState('')
+  const [plannedTasks, setPlannedTasks] = useState([])
+  const [planning, setPlanning] = useState(false)
+  const [creatingPlanTasks, setCreatingPlanTasks] = useState(false)
 
   const pendingCount = useMemo(
     () => tasks.filter((task) => !task.completed).length,
@@ -126,6 +136,57 @@ function App() {
     }
   }
 
+  const handleGeneratePlan = async (event) => {
+    event.preventDefault()
+
+    const goal = goalInput.trim()
+    if (!goal) {
+      setTaskError('A long-term goal is required')
+      return
+    }
+
+    setPlanning(true)
+    setTaskError('')
+
+    try {
+      const plan = await planTasksFromGoal(goal)
+      setPlannedTasks(Array.isArray(plan.tasks) ? plan.tasks : [])
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to generate plan')
+    } finally {
+      setPlanning(false)
+    }
+  }
+
+  const handleCreatePlannedTasks = async () => {
+    if (plannedTasks.length === 0) {
+      return
+    }
+
+    setCreatingPlanTasks(true)
+    setTaskError('')
+
+    try {
+      const created = []
+      for (const plannedTitle of plannedTasks) {
+        const title = plannedTitle.trim()
+        if (!title) {
+          continue
+        }
+        const task = await createTask(title)
+        created.push(task)
+      }
+
+      setTasks((current) => [...current, ...created])
+      setPlannedTasks([])
+      setGoalInput('')
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to create planned tasks')
+    } finally {
+      setCreatingPlanTasks(false)
+    }
+  }
+
   return (
     <main className="container">
       <h1>{content.title}</h1>
@@ -143,6 +204,37 @@ function App() {
         </div>
 
         <p className="hint">Pending tasks: <strong>{pendingCount}</strong></p>
+
+        <form className="goal-form" onSubmit={handleGeneratePlan}>
+          <textarea
+            placeholder="Describe your long-term goal..."
+            value={goalInput}
+            onChange={(event) => setGoalInput(event.target.value)}
+            rows={4}
+            disabled={planning || creatingPlanTasks}
+          />
+          <button type="submit" disabled={planning || creatingPlanTasks}>
+            {planning ? 'Generating plan…' : 'Generate Composite Tasks'}
+          </button>
+        </form>
+
+        {plannedTasks.length > 0 && (
+          <div className="plan-preview">
+            <h3>Generated Plan</h3>
+            <ol>
+              {plannedTasks.map((task, index) => (
+                <li key={`${task}-${index}`}>{task}</li>
+              ))}
+            </ol>
+            <button
+              type="button"
+              onClick={handleCreatePlannedTasks}
+              disabled={creatingPlanTasks}
+            >
+              {creatingPlanTasks ? 'Creating tasks…' : 'Create All Planned Tasks'}
+            </button>
+          </div>
+        )}
 
         <form className="task-form" onSubmit={handleCreateTask}>
           <input

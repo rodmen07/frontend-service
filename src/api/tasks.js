@@ -59,3 +59,10 @@ export async function deleteTask(id) {
     method: 'DELETE',
   })
 }
+
+export async function planTasksFromGoal(goal) {
+  return request('/api/v1/tasks/plan', {
+    method: 'POST',
+    body: JSON.stringify({ goal }),
+  })
+}
