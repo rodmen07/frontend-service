@@ -15,9 +15,46 @@ npm run dev
 npm run build
 ```
 
+## API base URL strategy
+
+Frontend reads API base URL from `VITE_API_BASE_URL`.
+
+- Local default: `http://localhost:3000`
+- Production default fallback: `https://backend-service.example.com`
+
+Create a local env file from `.env.example` when needed:
+
+```bash
+cp .env.example .env.local
+```
+
+Then set:
+
+```bash
+VITE_API_BASE_URL=https://your-backend-host
+```
+
+## GitHub Pages deployment
+
+This repo includes a workflow at `.github/workflows/deploy-pages.yml`.
+
+- Trigger: push to `main`
+- Build output: `dist/`
+- Deploy target: GitHub Pages
+
+### Required repo settings
+
+In GitHub repo settings:
+
+1. Go to **Pages**.
+2. Set **Build and deployment** source to **GitHub Actions**.
+
+Vite production base path is configured for this repo path (`/frontend-service/`) in `vite.config.js`.
+
 ## CMS integration (Decap CMS)
 
-- Admin URL: `/admin/`
+- Admin URL (dev): `/admin/`
+- Admin URL (Pages): `/frontend-service/admin/`
 - CMS config: `public/admin/config.yml`
 - Editable homepage content source: `public/content/site.json`
 
