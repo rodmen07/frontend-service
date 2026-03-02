@@ -1,0 +1,76 @@
+import { API_BASE_URL } from '../config'
+import type { Task } from '../types'
+
+interface PlanResponse {
+  tasks: string[]
+}
+
+function buildUrl(path: string): string {
+  const normalizedBase = API_BASE_URL.endsWith('/')
+    ? API_BASE_URL.slice(0, -1)
+    : API_BASE_URL
+  return `${normalizedBase}${path}`
+}
+
+async function parseError(response: Response): Promise<string> {
+  try {
+    const payload = (await response.json()) as { message?: string; code?: string }
+    return payload?.message || payload?.code || `Request failed (${response.status})`
+  } catch {
+    return `Request failed (${response.status})`
+  }
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(buildUrl(path), {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    ...options,
+  })
+
+  if (!response.ok) {
+    throw new Error(await parseError(response))
+  }
+
+  if (response.status === 204) {
+    return null as T
+  }
+
+  return (await response.json()) as T
+}
+
+export async function listTasks(): Promise<Task[]> {
+  return request<Task[]>('/api/v1/tasks?limit=100&offset=0')
+}
+
+export async function createTask(title: string): Promise<Task> {
+  return request<Task>('/api/v1/tasks', {
+    method: 'POST',
+    body: JSON.stringify({ title }),
+  })
+}
+
+export async function updateTask(
+  id: number,
+  updates: Partial<Pick<Task, 'title' | 'completed'>>,
+): Promise<Task> {
+  return request<Task>(`/api/v1/tasks/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  })
+}
+
+export async function deleteTask(id: number): Promise<void> {
+  await request<void>(`/api/v1/tasks/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function planTasksFromGoal(goal: string): Promise<PlanResponse> {
+  return request<PlanResponse>('/api/v1/tasks/plan', {
+    method: 'POST',
+    body: JSON.stringify({ goal }),
+  })
+}

@@ -1,6 +1,13 @@
 # Frontend Service
 
-Frontend project for the tutorial ecosystem, built with React + Vite and integrated with a free open-source CMS (Decap CMS).
+Frontend project for the tutorial ecosystem, built with React + Vite + TypeScript, styled with Tailwind CSS, and integrated with a free open-source CMS (Decap CMS).
+
+## Tech stack
+
+- React 19 + Vite 5
+- TypeScript (strict mode)
+- Tailwind CSS (utility-first styling)
+- Mermaid (goal/task visual diagrams)
 
 ## Run locally
 
@@ -14,6 +21,12 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Goal planner and diagrams
+
+- Enter a long-term goal in the planner form and generate composite tasks.
+- Create generated tasks in bulk and manage them from the task list.
+- Every generated plan is visualized as a Goal → Tasks diagram in the **Goal Diagrams** section.
 
 ## API base URL strategy
 
