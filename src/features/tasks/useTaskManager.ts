@@ -1,0 +1,258 @@
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  createTask,
+  deleteTask,
+  listTasks,
+  planTasksFromGoal,
+  updateTask,
+} from '../../api/tasks'
+import type { GoalPlan, PlannerTone, Task } from '../../types'
+
+export interface PlannerStatus {
+  tone: PlannerTone
+  message: string
+}
+
+const INITIAL_PLANNER_STATUS: PlannerStatus = {
+  tone: 'info',
+  message: 'Planner ready. Enter a long-term goal to generate task breakdowns.',
+}
+
+function normalizePlanTask(task: string): string {
+  return task
+    .replace(/^\s*(?:\d+[\).:-]\s*|[-*•]\s*)+/, '')
+    .trim()
+}
+
+function normalizePlanTasks(tasks: string[]): string[] {
+  return tasks
+    .map(normalizePlanTask)
+    .filter((task) => task.length > 0)
+}
+
+export function useTaskManager() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [taskTitle, setTaskTitle] = useState('')
+  const [tasksLoading, setTasksLoading] = useState(true)
+  const [taskError, setTaskError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [workingTaskId, setWorkingTaskId] = useState<number | null>(null)
+  const [goalInput, setGoalInput] = useState('')
+  const [plannedTasks, setPlannedTasks] = useState<string[]>([])
+  const [planning, setPlanning] = useState(false)
+  const [creatingPlanTasks, setCreatingPlanTasks] = useState(false)
+  const [plannerStatus, setPlannerStatus] = useState<PlannerStatus>(INITIAL_PLANNER_STATUS)
+  const [goalPlans, setGoalPlans] = useState<GoalPlan[]>([])
+
+  const pendingCount = useMemo(
+    () => tasks.filter((task) => !task.completed).length,
+    [tasks],
+  )
+
+  const loadTasks = useCallback(async () => {
+    setTasksLoading(true)
+    setTaskError('')
+
+    try {
+      const payload = await listTasks()
+      setTasks(Array.isArray(payload) ? payload : [])
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to load tasks')
+    } finally {
+      setTasksLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadTasks()
+  }, [loadTasks])
+
+  const handleCreateTask = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const normalizedTitle = taskTitle.trim()
+    if (!normalizedTitle) {
+      setTaskError('Title is required')
+      return
+    }
+
+    setSubmitting(true)
+    setTaskError('')
+
+    try {
+      const createdTask = await createTask(normalizedTitle)
+      setTasks((current) => [...current, createdTask])
+      setTaskTitle('')
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to create task')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleToggleTask = async (task: Task) => {
+    setWorkingTaskId(task.id)
+    setTaskError('')
+
+    try {
+      const updatedTask = await updateTask(task.id, { completed: !task.completed })
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? updatedTask : item)),
+      )
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to update task')
+    } finally {
+      setWorkingTaskId(null)
+    }
+  }
+
+  const handleDeleteTask = async (task: Task) => {
+    setWorkingTaskId(task.id)
+    setTaskError('')
+
+    try {
+      await deleteTask(task.id)
+      setTasks((current) => current.filter((item) => item.id !== task.id))
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to delete task')
+    } finally {
+      setWorkingTaskId(null)
+    }
+  }
+
+  const handleGeneratePlan = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const goal = goalInput.trim()
+    if (!goal) {
+      setTaskError('A long-term goal is required')
+      setPlannerStatus({
+        tone: 'warning',
+        message: 'Enter a long-term goal before generating a plan.',
+      })
+      return
+    }
+
+    setPlanning(true)
+    setTaskError('')
+    setPlannerStatus({ tone: 'info', message: 'Generating task plan…' })
+
+    try {
+      const plan = await planTasksFromGoal(goal)
+      const generated = normalizePlanTasks(
+        Array.isArray(plan.tasks) ? plan.tasks : [],
+      )
+      setPlannedTasks(generated)
+
+      if (generated.length > 0) {
+        const nextPlan: GoalPlan = {
+          id: Date.now(),
+          goal,
+          tasks: generated,
+          createdAt: new Date().toISOString(),
+        }
+        setGoalPlans((current) => [nextPlan, ...current].slice(0, 8))
+
+        setPlannerStatus({
+          tone: 'success',
+          message: `Generated ${generated.length} tasks. Review and create them when ready.`,
+        })
+      } else {
+        setPlannerStatus({
+          tone: 'warning',
+          message: 'No tasks were generated. Try a more specific goal.',
+        })
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate plan'
+      setTaskError(message)
+
+      if (message.includes('LLM_API_KEY_MISSING')) {
+        setPlannerStatus({
+          tone: 'warning',
+          message: 'Planner is not configured yet on backend (missing LLM key).',
+        })
+      } else if (
+        message.includes('LLM_UPSTREAM_RESPONSE_FAILED') ||
+        message.includes('429') ||
+        message.toLowerCase().includes('rate')
+      ) {
+        setPlannerStatus({
+          tone: 'warning',
+          message: 'Planner provider is temporarily rate-limited. Retry in a minute.',
+        })
+      } else {
+        setPlannerStatus({
+          tone: 'warning',
+          message: 'Planner is temporarily unavailable. Please try again shortly.',
+        })
+      }
+    } finally {
+      setPlanning(false)
+    }
+  }
+
+  const handleCreatePlannedTasks = async () => {
+    if (plannedTasks.length === 0) {
+      return
+    }
+
+    setCreatingPlanTasks(true)
+    setTaskError('')
+    setPlannerStatus({ tone: 'info', message: 'Creating planned tasks…' })
+
+    try {
+      const created: Task[] = []
+      for (const plannedTitle of plannedTasks) {
+        const title = plannedTitle.trim()
+        if (!title) {
+          continue
+        }
+
+        const task = await createTask(title)
+        created.push(task)
+      }
+
+      setTasks((current) => [...current, ...created])
+      setPlannedTasks([])
+      setGoalInput('')
+      setPlannerStatus({
+        tone: 'success',
+        message: `Created ${created.length} tasks from your plan.`,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create planned tasks'
+      setTaskError(message)
+      setPlannerStatus({
+        tone: 'warning',
+        message: 'Could not create all planned tasks. You can retry.',
+      })
+    } finally {
+      setCreatingPlanTasks(false)
+    }
+  }
+
+  return {
+    tasks,
+    taskTitle,
+    tasksLoading,
+    taskError,
+    submitting,
+    workingTaskId,
+    goalInput,
+    plannedTasks,
+    planning,
+    creatingPlanTasks,
+    plannerStatus,
+    goalPlans,
+    pendingCount,
+    setTaskTitle,
+    setGoalInput,
+    loadTasks,
+    handleCreateTask,
+    handleToggleTask,
+    handleDeleteTask,
+    handleGeneratePlan,
+    handleCreatePlannedTasks,
+  }
+}
