@@ -28,11 +28,11 @@ interface TaskManagerSectionProps {
 function plannerToneClass(tone: PlannerTone): string {
   switch (tone) {
     case 'success':
-      return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      return 'border-emerald-300/40 bg-emerald-400/10 text-emerald-200'
     case 'warning':
-      return 'border-amber-200 bg-amber-50 text-amber-700'
+      return 'border-amber-300/40 bg-amber-400/10 text-amber-200'
     default:
-      return 'border-blue-200 bg-blue-50 text-blue-700'
+      return 'border-blue-300/40 bg-blue-400/10 text-blue-200'
   }
 }
 
@@ -59,12 +59,12 @@ export function TaskManagerSection({
   onDeleteTask,
 }: TaskManagerSectionProps) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-3xl border border-white/15 bg-slate-900/70 p-6 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold">Task Manager</h2>
+        <h2 className="text-xl font-semibold text-white">Task Manager</h2>
         <button
           type="button"
-          className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl border border-white/15 bg-slate-800/80 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
           onClick={onRefresh}
           disabled={tasksLoading}
         >
@@ -72,13 +72,13 @@ export function TaskManagerSection({
         </button>
       </div>
 
-      <p className="mb-4 text-sm text-slate-600">
+      <p className="mb-4 text-sm text-slate-300">
         Pending tasks: <strong>{pendingCount}</strong>
       </p>
 
       <form className="mb-3 space-y-3" onSubmit={onGeneratePlan}>
         <textarea
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 placeholder:text-slate-400 focus:ring"
+          className="w-full rounded-xl border border-white/15 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none ring-indigo-400 placeholder:text-slate-500 focus:ring"
           placeholder="Describe your long-term goal..."
           value={goalInput}
           onChange={(event) => onGoalInputChange(event.target.value)}
@@ -87,7 +87,7 @@ export function TaskManagerSection({
         />
         <button
           type="submit"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           disabled={planning || creatingPlanTasks}
         >
           {planning ? 'Generating plan…' : 'Generate Composite Tasks'}
@@ -99,16 +99,16 @@ export function TaskManagerSection({
       </p>
 
       {plannedTasks.length > 0 && (
-        <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h3 className="mb-2 text-base font-semibold">Generated Plan</h3>
-          <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm text-slate-700">
+        <div className="mb-4 rounded-2xl border border-white/15 bg-slate-800/50 p-4">
+          <h3 className="mb-2 text-base font-semibold text-white">Generated Plan</h3>
+          <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm text-slate-200">
             {plannedTasks.map((task, index) => (
               <li key={`${task}-${index}`}>{task}</li>
             ))}
           </ol>
           <button
             type="button"
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={() => {
               void onCreatePlannedTasks()
             }}
@@ -122,7 +122,7 @@ export function TaskManagerSection({
       <form className="mb-4 flex flex-col gap-2 sm:flex-row" onSubmit={onCreateTask}>
         <input
           type="text"
-          className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-slate-300 placeholder:text-slate-400 focus:ring"
+          className="flex-1 rounded-xl border border-white/15 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none ring-indigo-400 placeholder:text-slate-500 focus:ring"
           placeholder="Add a task title"
           value={taskTitle}
           onChange={(event) => onTaskTitleChange(event.target.value)}
@@ -131,7 +131,7 @@ export function TaskManagerSection({
         />
         <button
           type="submit"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           disabled={submitting}
         >
           {submitting ? 'Adding…' : 'Add Task'}
@@ -139,15 +139,15 @@ export function TaskManagerSection({
       </form>
 
       {taskError && (
-        <p className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <p className="mb-4 rounded-xl border border-rose-300/40 bg-rose-400/10 px-3 py-2 text-sm text-rose-200">
           {taskError}
         </p>
       )}
 
       {tasksLoading ? (
-        <p className="text-sm text-slate-600">Loading tasks…</p>
+        <p className="text-sm text-slate-300">Loading tasks…</p>
       ) : tasks.length === 0 ? (
-        <p className="text-sm text-slate-600">No tasks yet. Create your first one.</p>
+        <p className="text-sm text-slate-300">No tasks yet. Create your first one.</p>
       ) : (
         <ul className="space-y-2">
           {tasks.map((task) => {
@@ -155,9 +155,9 @@ export function TaskManagerSection({
             return (
               <li
                 key={task.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3"
+                className="flex items-center justify-between gap-3 rounded-xl border border-white/15 bg-slate-900/70 p-3"
               >
-                <label className="flex items-center gap-2 text-sm text-slate-700">
+                <label className="flex items-center gap-2 text-sm text-slate-100">
                   <input
                     type="checkbox"
                     className="h-4 w-4"
@@ -167,13 +167,13 @@ export function TaskManagerSection({
                       void onToggleTask(task)
                     }}
                   />
-                  <span className={task.completed ? 'line-through text-slate-400' : ''}>
+                  <span className={task.completed ? 'line-through text-slate-500' : ''}>
                     {task.title}
                   </span>
                 </label>
                 <button
                   type="button"
-                  className="rounded-lg border border-rose-200 px-3 py-1.5 text-sm text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-rose-300/40 bg-rose-400/10 px-3 py-1.5 text-sm text-rose-200 transition hover:bg-rose-400/20 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={isWorking}
                   onClick={() => {
                     void onDeleteTask(task)

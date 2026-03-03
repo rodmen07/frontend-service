@@ -32,8 +32,11 @@ function App() {
   } = useTaskManager()
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    <main className="relative min-h-screen overflow-hidden bg-slate-950 px-4 py-8 text-slate-100 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-indigo-500/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 right-8 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl" />
+
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
         <SiteHeader content={content} />
 
         <TaskManagerSection

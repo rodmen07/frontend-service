@@ -17,7 +17,7 @@ function toBaseAwareHref(href: string, baseUrl: string): string {
 
 export function useSiteContent(baseUrl: string): SiteContent {
   const [content, setContent] = useState<SiteContent>({
-    title: 'Frontend Service',
+    title: 'TaskForge',
     subtitle: 'Loading content from CMS…',
     ctaLabel: 'Open CMS',
     ctaHref: `${baseUrl}admin/`,

@@ -18,10 +18,19 @@ const INITIAL_PLANNER_STATUS: PlannerStatus = {
   message: 'Planner ready. Enter a long-term goal to generate task breakdowns.',
 }
 
+const TITLE_MAX_LENGTH = 120
+
 function normalizePlanTask(task: string): string {
-  return task
+  const cleaned = task
     .replace(/^\s*(?:\d+[\).:-]\s*|[-*•]\s*)+/, '')
     .trim()
+
+  const characters = Array.from(cleaned)
+  if (characters.length <= TITLE_MAX_LENGTH) {
+    return cleaned
+  }
+
+  return characters.slice(0, TITLE_MAX_LENGTH).join('').trimEnd()
 }
 
 function normalizePlanTasks(tasks: string[]): string[] {
@@ -201,35 +210,49 @@ export function useTaskManager() {
     setTaskError('')
     setPlannerStatus({ tone: 'info', message: 'Creating planned tasks…' })
 
-    try {
-      const created: Task[] = []
-      for (const plannedTitle of plannedTasks) {
-        const title = plannedTitle.trim()
-        if (!title) {
-          continue
-        }
+    const created: Task[] = []
+    const failed: string[] = []
+    let firstErrorMessage = ''
 
-        const task = await createTask(title)
-        created.push(task)
+    for (const plannedTitle of plannedTasks) {
+      const title = normalizePlanTask(plannedTitle)
+      if (!title) {
+        continue
       }
 
+      try {
+        const task = await createTask(title)
+        created.push(task)
+      } catch (error) {
+        failed.push(title)
+        if (!firstErrorMessage) {
+          firstErrorMessage =
+            error instanceof Error ? error.message : 'Failed to create planned tasks'
+        }
+      }
+    }
+
+    if (created.length > 0) {
       setTasks((current) => [...current, ...created])
+    }
+
+    if (failed.length === 0) {
       setPlannedTasks([])
       setGoalInput('')
       setPlannerStatus({
         tone: 'success',
         message: `Created ${created.length} tasks from your plan.`,
       })
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create planned tasks'
-      setTaskError(message)
+    } else {
+      setPlannedTasks(failed)
+      setTaskError(firstErrorMessage)
       setPlannerStatus({
         tone: 'warning',
-        message: 'Could not create all planned tasks. You can retry.',
+        message: `Created ${created.length} tasks. ${failed.length} could not be created. You can retry.`,
       })
-    } finally {
-      setCreatingPlanTasks(false)
     }
+
+    setCreatingPlanTasks(false)
   }
 
   return {

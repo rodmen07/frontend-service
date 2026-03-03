@@ -1,115 +1,176 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { GoalPlan } from '../types'
-
-let mermaidInitialized = false
 
 interface GoalDiagramProps {
   plan: GoalPlan
 }
 
-function escapeLabel(value: string): string {
-  return value
-    .replace(/"/g, "'")
-    .replace(/\[/g, '(')
-    .replace(/\]/g, ')')
-    .replace(/[{}]/g, '')
+const BOARD_COLUMNS = 3
+const LABEL_MAX_LENGTH = 72
+
+interface BoardTile {
+  step: number
+  label: string
 }
 
-function buildDefinition(plan: GoalPlan): string {
-  const goal = escapeLabel(plan.goal)
-  const lines = [`flowchart LR`, `goal["🎯 ${goal}"]`]
-
-  if (plan.tasks.length === 0) {
-    return lines.join('\n')
+function normalizeLabel(value: string): string {
+  const compact = value.replace(/\s+/g, ' ').trim()
+  if (compact.length <= LABEL_MAX_LENGTH) {
+    return compact
   }
 
-  plan.tasks.forEach((task, index) => {
-    const key = `task${index + 1}`
-    const label = escapeLabel(task)
-    lines.push(`${key}["${index + 1}. ${label}"]`)
-  })
+  return `${compact.slice(0, LABEL_MAX_LENGTH - 1).trimEnd()}…`
+}
 
-  lines.push(`goal --> task1`)
+function toTiles(tasks: string[]): BoardTile[] {
+  return tasks.map((task, index) => ({
+    step: index + 1,
+    label: normalizeLabel(task),
+  }))
+}
 
-  for (let index = 1; index < plan.tasks.length; index += 1) {
-    lines.push(`task${index} --> task${index + 1}`)
+function toRows(tiles: BoardTile[]): BoardTile[][] {
+  const rows: BoardTile[][] = []
+
+  for (let index = 0; index < tiles.length; index += BOARD_COLUMNS) {
+    const row = tiles.slice(index, index + BOARD_COLUMNS)
+    const rowIndex = rows.length
+    rows.push(rowIndex % 2 === 0 ? row : [...row].reverse())
   }
 
-  lines.push(`done["✅ Goal achieved"]`)
-  lines.push(`task${plan.tasks.length} --> done`)
+  return rows
+}
+
+function buildExportText(plan: GoalPlan, tiles: BoardTile[]): string {
+  const lines: string[] = []
+  lines.push(`TaskForge Gameboard Plan`)
+  lines.push(`Goal: ${normalizeLabel(plan.goal)}`)
+  lines.push('')
+
+  for (const tile of tiles) {
+    lines.push(`${tile.step}. ${tile.label}`)
+  }
+
+  lines.push('')
+  lines.push('Finish: Goal achieved')
 
   return lines.join('\n')
 }
 
-export function GoalDiagram({ plan }: GoalDiagramProps) {
-  const [svg, setSvg] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-
-  const definition = useMemo(() => buildDefinition(plan), [plan])
-
-  useEffect(() => {
-    let active = true
-
-    const render = async () => {
-      setIsLoading(true)
-
-      try {
-        const mermaidModule = await import('mermaid')
-        const mermaid = mermaidModule.default
-
-        if (!mermaidInitialized) {
-          mermaid.initialize({
-            startOnLoad: false,
-            securityLevel: 'loose',
-            theme: 'default',
-          })
-          mermaidInitialized = true
-        }
-
-        const { svg: renderedSvg } = await mermaid.render(
-          `goal-diagram-${plan.id}`,
-          definition,
-        )
-
-        if (active) {
-          setSvg(renderedSvg)
-          setIsLoading(false)
-        }
-      } catch {
-        if (active) {
-          setSvg('')
-          setIsLoading(false)
-        }
-      }
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
     }
-
-    render()
-
-    return () => {
-      active = false
-    }
-  }, [definition, plan.id])
-
-  if (isLoading) {
-    return (
-      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-        Loading diagram…
-      </p>
-    )
+  } catch {
   }
 
-  if (!svg) {
+  return false
+}
+
+function downloadTextFile(filename: string, text: string): void {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+  const objectUrl = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = objectUrl
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(objectUrl)
+}
+
+function safeFilename(input: string): string {
+  const normalized = input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  return normalized || 'gameboard-plan'
+}
+
+export function GoalDiagram({ plan }: GoalDiagramProps) {
+  const [exportStatus, setExportStatus] = useState('')
+  const tiles = toTiles(plan.tasks)
+  const rows = toRows(tiles)
+  const exportText = buildExportText(plan, tiles)
+
+  const handleCopy = async () => {
+    const copied = await copyToClipboard(exportText)
+    setExportStatus(copied ? 'Copied board to clipboard.' : 'Clipboard unavailable in this browser.')
+  }
+
+  const handleDownload = () => {
+    downloadTextFile(`${safeFilename(plan.goal)}-taskforge-board.txt`, exportText)
+    setExportStatus('Downloaded board as text file.')
+  }
+
+  if (tiles.length === 0) {
     return (
-      <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Diagram could not be rendered for this plan.
+      <p className="rounded-xl border border-white/15 bg-slate-900/60 px-3 py-2 text-sm text-slate-300">
+        Add a generated task list to render your gameboard path.
       </p>
     )
   }
 
   return (
-    <div
-      className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-3"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <div className="goal-diagram rounded-2xl border border-white/15 bg-slate-950/80 p-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          className="rounded-lg border border-white/20 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-slate-700"
+          onClick={() => {
+            void handleCopy()
+          }}
+        >
+          Copy Board
+        </button>
+        <button
+          type="button"
+          className="rounded-lg border border-white/20 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-slate-700"
+          onClick={handleDownload}
+        >
+          Export .txt
+        </button>
+        {exportStatus && <span className="text-xs text-slate-300">{exportStatus}</span>}
+      </div>
+
+      <div className="mb-4 rounded-xl border border-indigo-300/30 bg-indigo-500/10 px-4 py-3 text-sm font-semibold text-indigo-100">
+        🎯 Start: {normalizeLabel(plan.goal)}
+      </div>
+
+      <div className="space-y-3">
+        {rows.map((row, rowIndex) => (
+          <div key={`row-${rowIndex}`} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {row.map((tile) => (
+                <div
+                  key={`tile-${tile.step}`}
+                  className={`aspect-square rounded-2xl border p-3 shadow-lg ${
+                    tile.step % 2 === 0
+                      ? 'border-cyan-300/40 bg-cyan-500/10 text-cyan-100'
+                      : 'border-violet-300/40 bg-violet-500/10 text-violet-100'
+                  }`}
+                >
+                  <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-slate-900/70 text-sm font-semibold text-white">
+                    {tile.step}
+                  </div>
+                  <p className="text-sm font-medium leading-snug">{tile.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {rowIndex < rows.length - 1 && (
+              <p className="text-center text-xs font-semibold tracking-wide text-slate-400">
+                ↓ continue to next row
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 rounded-xl border border-emerald-300/40 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+        🏁 Finish: Goal achieved
+      </div>
+    </div>
   )
 }
