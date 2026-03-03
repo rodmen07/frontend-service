@@ -11,6 +11,7 @@ export interface Task {
   id: number
   title: string
   completed: boolean
+  difficulty: number
 }
 
 export interface GoalPlan {

@@ -5,23 +5,30 @@ import type { PlannerStatus } from './useTaskManager'
 interface TaskManagerSectionProps {
   authLocked: boolean
   pendingCount: number
+  forgedPoints: number
+  rubies: number
   tasksLoading: boolean
   taskError: string
   goalInput: string
+  plannedTaskDifficulty: number
   planning: boolean
   creatingPlanTasks: boolean
   plannerStatus: PlannerStatus
   plannedTasks: string[]
   taskTitle: string
+  taskDifficulty: number
   submitting: boolean
   tasks: Task[]
   workingTaskId: number | null
   onRefresh: () => void
   onGoalInputChange: (value: string) => void
+  onPlannedTaskDifficultyChange: (value: number) => void
   onGeneratePlan: (event: FormEvent<HTMLFormElement>) => Promise<void>
   onCreatePlannedTasks: () => Promise<void>
   onTaskTitleChange: (value: string) => void
+  onTaskDifficultyChange: (value: number) => void
   onCreateTask: (event: FormEvent<HTMLFormElement>) => Promise<void>
+  onSetTaskDifficulty: (task: Task, difficulty: number) => Promise<void>
   onToggleTask: (task: Task) => Promise<void>
   onDeleteTask: (task: Task) => Promise<void>
 }
@@ -40,23 +47,30 @@ function plannerToneClass(tone: PlannerTone): string {
 export function TaskManagerSection({
   authLocked,
   pendingCount,
+  forgedPoints,
+  rubies,
   tasksLoading,
   taskError,
   goalInput,
+  plannedTaskDifficulty,
   planning,
   creatingPlanTasks,
   plannerStatus,
   plannedTasks,
   taskTitle,
+  taskDifficulty,
   submitting,
   tasks,
   workingTaskId,
   onRefresh,
   onGoalInputChange,
+  onPlannedTaskDifficultyChange,
   onGeneratePlan,
   onCreatePlannedTasks,
   onTaskTitleChange,
+  onTaskDifficultyChange,
   onCreateTask,
+  onSetTaskDifficulty,
   onToggleTask,
   onDeleteTask,
 }: TaskManagerSectionProps) {
@@ -77,6 +91,15 @@ export function TaskManagerSection({
       <p className="mb-4 text-sm text-zinc-300">
         Pending tasks: <strong>{pendingCount}</strong>
       </p>
+
+      <div className="mb-4 grid gap-2 sm:grid-cols-2">
+        <p className="rounded-xl border border-orange-300/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
+          Forged Rings (points): <strong>{forgedPoints}</strong>
+        </p>
+        <p className="rounded-xl border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
+          Rubies earned: <strong>{rubies}</strong>
+        </p>
+      </div>
 
       {authLocked && (
         <p className="mb-4 rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
@@ -114,6 +137,22 @@ export function TaskManagerSection({
               <li key={`${task}-${index}`}>{task}</li>
             ))}
           </ol>
+          <div className="mb-3 flex items-center gap-2 text-sm text-zinc-200">
+            <label htmlFor="planned-task-difficulty">Difficulty:</label>
+            <select
+              id="planned-task-difficulty"
+              className="rounded-lg border border-zinc-500/40 bg-zinc-900/80 px-2 py-1 text-sm text-zinc-100"
+              value={plannedTaskDifficulty}
+              onChange={(event) => onPlannedTaskDifficultyChange(Number(event.target.value))}
+              disabled={authLocked || creatingPlanTasks}
+            >
+              {[1, 2, 3, 4, 5].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             type="button"
             className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
@@ -137,6 +176,19 @@ export function TaskManagerSection({
           maxLength={120}
           disabled={authLocked || submitting}
         />
+        <select
+          className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 focus:ring"
+          value={taskDifficulty}
+          onChange={(event) => onTaskDifficultyChange(Number(event.target.value))}
+          disabled={authLocked || submitting}
+          aria-label="Task difficulty"
+        >
+          {[1, 2, 3, 4, 5].map((value) => (
+            <option key={value} value={value}>
+              D{value}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -182,6 +234,23 @@ export function TaskManagerSection({
                     {task.title}
                   </span>
                 </label>
+                <div className="flex items-center gap-2">
+                  <select
+                    className="rounded-lg border border-zinc-500/40 bg-zinc-900/80 px-2 py-1 text-xs text-zinc-100"
+                    value={task.difficulty}
+                    disabled={authLocked || isWorking}
+                    onChange={(event) => {
+                      void onSetTaskDifficulty(task, Number(event.target.value))
+                    }}
+                    aria-label="Update task difficulty"
+                  >
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <option key={value} value={value}>
+                        D{value}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-amber-200">+{task.difficulty} ring{task.difficulty === 1 ? '' : 's'}</span>
                 <button
                   type="button"
                   className="rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
@@ -192,6 +261,7 @@ export function TaskManagerSection({
                 >
                   Delete
                 </button>
+                </div>
               </li>
             )
           })}

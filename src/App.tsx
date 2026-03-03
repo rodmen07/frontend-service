@@ -24,22 +24,29 @@ function App() {
   const {
     tasks,
     taskTitle,
+    taskDifficulty,
     tasksLoading,
     taskError,
     submitting,
     workingTaskId,
     goalInput,
+    plannedTaskDifficulty,
     plannedTasks,
     planning,
     creatingPlanTasks,
     plannerStatus,
     goalPlans,
     celebrationToken,
+    forgedPoints,
+    rubies,
     pendingCount,
     setTaskTitle,
+    setTaskDifficulty,
     setGoalInput,
+    setPlannedTaskDifficulty,
     loadTasks,
     handleCreateTask,
+    handleSetTaskDifficulty,
     handleToggleTask,
     handleDeleteTask,
     handleGeneratePlan,
@@ -73,23 +80,30 @@ function App() {
         <TaskManagerSection
           authLocked={!isAuthenticated}
           pendingCount={pendingCount}
+          forgedPoints={forgedPoints}
+          rubies={rubies}
           tasksLoading={tasksLoading}
           taskError={taskError}
           goalInput={goalInput}
+          plannedTaskDifficulty={plannedTaskDifficulty}
           planning={planning}
           creatingPlanTasks={creatingPlanTasks}
           plannerStatus={plannerStatus}
           plannedTasks={plannedTasks}
           taskTitle={taskTitle}
+          taskDifficulty={taskDifficulty}
           submitting={submitting}
           tasks={tasks}
           workingTaskId={workingTaskId}
           onRefresh={loadTasks}
           onGoalInputChange={setGoalInput}
+          onPlannedTaskDifficultyChange={setPlannedTaskDifficulty}
           onGeneratePlan={handleGeneratePlan}
           onCreatePlannedTasks={handleCreatePlannedTasks}
           onTaskTitleChange={setTaskTitle}
+          onTaskDifficultyChange={setTaskDifficulty}
           onCreateTask={handleCreateTask}
+          onSetTaskDifficulty={handleSetTaskDifficulty}
           onToggleTask={handleToggleTask}
           onDeleteTask={handleDeleteTask}
         />

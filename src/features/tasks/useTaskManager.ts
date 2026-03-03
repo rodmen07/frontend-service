@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  createTask,
+  createTaskWithDifficulty,
   deleteTask,
   listTasks,
   planTasksFromGoal,
@@ -20,9 +20,55 @@ const INITIAL_PLANNER_STATUS: PlannerStatus = {
   message: 'Planner ready. Enter a long-term goal to generate task breakdowns.',
 }
 
+const PROGRESSION_STORAGE_KEY = 'taskforge.gamification.progress'
+
+interface ProgressState {
+  forgedPoints: number
+  rubies: number
+  completedTaskIds: number[]
+  rewardedPlanIds: number[]
+}
+
+function normalizeDifficulty(value: number): number {
+  const rounded = Math.round(value)
+  if (rounded < 1) {
+    return 1
+  }
+
+  if (rounded > 5) {
+    return 5
+  }
+
+  return rounded
+}
+
+function readProgressState(): ProgressState {
+  try {
+    const raw = window.localStorage.getItem(PROGRESSION_STORAGE_KEY)
+    if (!raw) {
+      return { forgedPoints: 0, rubies: 0, completedTaskIds: [], rewardedPlanIds: [] }
+    }
+
+    const parsed = JSON.parse(raw) as ProgressState
+    return {
+      forgedPoints: Number(parsed.forgedPoints) || 0,
+      rubies: Number(parsed.rubies) || 0,
+      completedTaskIds: Array.isArray(parsed.completedTaskIds)
+        ? parsed.completedTaskIds.filter((value): value is number => Number.isInteger(value))
+        : [],
+      rewardedPlanIds: Array.isArray(parsed.rewardedPlanIds)
+        ? parsed.rewardedPlanIds.filter((value): value is number => Number.isInteger(value))
+        : [],
+    }
+  } catch {
+    return { forgedPoints: 0, rubies: 0, completedTaskIds: [], rewardedPlanIds: [] }
+  }
+}
+
 export function useTaskManager(isAuthenticated: boolean) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [taskTitle, setTaskTitle] = useState('')
+  const [taskDifficulty, setTaskDifficulty] = useState(1)
   const [tasksLoading, setTasksLoading] = useState(true)
   const [taskError, setTaskError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -30,11 +76,34 @@ export function useTaskManager(isAuthenticated: boolean) {
   const [goalInput, setGoalInput] = useState('')
   const [plannedTasks, setPlannedTasks] = useState<string[]>([])
   const [planning, setPlanning] = useState(false)
+  const [plannedTaskDifficulty, setPlannedTaskDifficulty] = useState(2)
   const [creatingPlanTasks, setCreatingPlanTasks] = useState(false)
   const [plannerStatus, setPlannerStatus] = useState<PlannerStatus>(INITIAL_PLANNER_STATUS)
   const [goalPlans, setGoalPlans] = useState<GoalPlan[]>([])
   const [celebrationToken, setCelebrationToken] = useState(0)
+  const [forgedPoints, setForgedPoints] = useState(0)
+  const [rubies, setRubies] = useState(0)
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<number>>(new Set())
+  const [rewardedPlanIds, setRewardedPlanIds] = useState<Set<number>>(new Set())
   const previousPendingRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const progress = readProgressState()
+    setForgedPoints(progress.forgedPoints)
+    setRubies(progress.rubies)
+    setCompletedTaskIds(new Set(progress.completedTaskIds))
+    setRewardedPlanIds(new Set(progress.rewardedPlanIds))
+  }, [])
+
+  useEffect(() => {
+    const serializable: ProgressState = {
+      forgedPoints,
+      rubies,
+      completedTaskIds: Array.from(completedTaskIds),
+      rewardedPlanIds: Array.from(rewardedPlanIds),
+    }
+    window.localStorage.setItem(PROGRESSION_STORAGE_KEY, JSON.stringify(serializable))
+  }, [completedTaskIds, forgedPoints, rewardedPlanIds, rubies])
 
   const pendingCount = useMemo(
     () => tasks.filter((task) => !task.completed).length,
@@ -103,7 +172,10 @@ export function useTaskManager(isAuthenticated: boolean) {
     setTaskError('')
 
     try {
-      const createdTask = await createTask(normalizedTitle)
+      const createdTask = await createTaskWithDifficulty(
+        normalizedTitle,
+        normalizeDifficulty(taskDifficulty),
+      )
       setTasks((current) => [...current, createdTask])
       setTaskTitle('')
     } catch (error) {
@@ -128,6 +200,10 @@ export function useTaskManager(isAuthenticated: boolean) {
         current.map((item) => (item.id === task.id ? updatedTask : item)),
       )
       if (!task.completed && updatedTask.completed) {
+        if (!completedTaskIds.has(task.id)) {
+          setForgedPoints((current) => current + normalizeDifficulty(updatedTask.difficulty))
+          setCompletedTaskIds((current) => new Set(current).add(task.id))
+        }
         playTaskCompletionSound()
       }
     } catch (error) {
@@ -262,7 +338,10 @@ export function useTaskManager(isAuthenticated: boolean) {
       }
 
       try {
-        const task = await createTask(title)
+        const task = await createTaskWithDifficulty(
+          title,
+          normalizeDifficulty(plannedTaskDifficulty),
+        )
         created.push(task)
       } catch (error) {
         failed.push(title)
@@ -296,25 +375,91 @@ export function useTaskManager(isAuthenticated: boolean) {
     setCreatingPlanTasks(false)
   }
 
+  useEffect(() => {
+    if (goalPlans.length === 0 || tasks.length === 0) {
+      return
+    }
+
+    const completedTitles = new Set(
+      tasks
+        .filter((task) => task.completed)
+        .map((task) => task.title.trim().toLowerCase()),
+    )
+
+    const newlyCompletedPlans = goalPlans.filter((plan) => {
+      if (rewardedPlanIds.has(plan.id)) {
+        return false
+      }
+
+      return plan.tasks.every((task) => completedTitles.has(task.trim().toLowerCase()))
+    })
+
+    if (newlyCompletedPlans.length === 0) {
+      return
+    }
+
+    const nextRewarded = new Set(rewardedPlanIds)
+    for (const plan of newlyCompletedPlans) {
+      nextRewarded.add(plan.id)
+    }
+
+    setRewardedPlanIds(nextRewarded)
+    setRubies((current) => current + newlyCompletedPlans.length)
+    setPlannerStatus({
+      tone: 'success',
+      message: `Plan completed! You forged ${newlyCompletedPlans.length} ruby reward${newlyCompletedPlans.length > 1 ? 's' : ''}.`,
+    })
+  }, [goalPlans, rewardedPlanIds, tasks])
+
+  const handleSetTaskDifficulty = async (task: Task, difficulty: number) => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to update task difficulty')
+      return
+    }
+
+    setWorkingTaskId(task.id)
+    setTaskError('')
+
+    try {
+      const updatedTask = await updateTask(task.id, {
+        difficulty: normalizeDifficulty(difficulty),
+      })
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? updatedTask : item)),
+      )
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to update task')
+    } finally {
+      setWorkingTaskId(null)
+    }
+  }
+
   return {
     tasks,
     taskTitle,
+    taskDifficulty,
     tasksLoading,
     taskError,
     submitting,
     workingTaskId,
     goalInput,
+    plannedTaskDifficulty,
     plannedTasks,
     planning,
     creatingPlanTasks,
     plannerStatus,
     goalPlans,
     celebrationToken,
+    forgedPoints,
+    rubies,
     pendingCount,
     setTaskTitle,
+    setTaskDifficulty,
     setGoalInput,
+    setPlannedTaskDifficulty,
     loadTasks,
     handleCreateTask,
+    handleSetTaskDifficulty,
     handleToggleTask,
     handleDeleteTask,
     handleGeneratePlan,
