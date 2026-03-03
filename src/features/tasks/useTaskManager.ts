@@ -101,7 +101,7 @@ function playCelebrationSound(): void {
   ])
 }
 
-export function useTaskManager() {
+export function useTaskManager(isAuthenticated: boolean) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [taskTitle, setTaskTitle] = useState('')
   const [tasksLoading, setTasksLoading] = useState(true)
@@ -123,6 +123,12 @@ export function useTaskManager() {
   )
 
   const loadTasks = useCallback(async () => {
+    if (!isAuthenticated) {
+      setTasks([])
+      setTasksLoading(false)
+      return
+    }
+
     setTasksLoading(true)
     setTaskError('')
 
@@ -134,11 +140,17 @@ export function useTaskManager() {
     } finally {
       setTasksLoading(false)
     }
-  }, [])
+  }, [isAuthenticated])
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setTasks([])
+      setTasksLoading(false)
+      return
+    }
+
     loadTasks()
-  }, [loadTasks])
+  }, [isAuthenticated, loadTasks])
 
   useEffect(() => {
     const previousPending = previousPendingRef.current
@@ -156,6 +168,11 @@ export function useTaskManager() {
 
   const handleCreateTask = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to create tasks')
+      return
+    }
 
     const normalizedTitle = taskTitle.trim()
     if (!normalizedTitle) {
@@ -178,6 +195,11 @@ export function useTaskManager() {
   }
 
   const handleToggleTask = async (task: Task) => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to update tasks')
+      return
+    }
+
     setWorkingTaskId(task.id)
     setTaskError('')
 
@@ -197,6 +219,11 @@ export function useTaskManager() {
   }
 
   const handleDeleteTask = async (task: Task) => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to delete tasks')
+      return
+    }
+
     setWorkingTaskId(task.id)
     setTaskError('')
 
@@ -212,6 +239,15 @@ export function useTaskManager() {
 
   const handleGeneratePlan = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to generate plans')
+      setPlannerStatus({
+        tone: 'warning',
+        message: 'Sign in before generating a plan.',
+      })
+      return
+    }
 
     const goal = goalInput.trim()
     if (!goal) {
@@ -283,6 +319,11 @@ export function useTaskManager() {
   }
 
   const handleCreatePlannedTasks = async () => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to create planned tasks')
+      return
+    }
+
     if (plannedTasks.length === 0) {
       return
     }

@@ -19,3 +19,24 @@ export interface GoalPlan {
   tasks: string[]
   createdAt: string
 }
+
+export interface AuthSession {
+  subject: string
+  accessToken: string
+  roles: string[]
+  expiresAt: number
+}
+
+export interface TokenIssueResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+}
+
+export interface TokenVerifyResponse {
+  active: boolean
+  subject: string | null
+  roles: string[] | null
+  exp: number | null
+  issuer: string | null
+}

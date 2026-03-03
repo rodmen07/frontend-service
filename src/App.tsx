@@ -1,4 +1,5 @@
 import { CelebrationOverlay } from './components/CelebrationOverlay'
+import { useAuthSession } from './features/auth/useAuthSession'
 import { GoalDiagramsSection } from './features/plans/GoalDiagramsSection'
 import { SiteHeader } from './features/site/SiteHeader'
 import { useSiteContent } from './features/site/useSiteContent'
@@ -8,6 +9,17 @@ import { useTaskManager } from './features/tasks/useTaskManager'
 function App() {
   const baseUrl = import.meta.env.BASE_URL
   const content = useSiteContent(baseUrl)
+  const {
+    session,
+    isAuthenticated,
+    authLoading,
+    authBusy,
+    authError,
+    subjectInput,
+    setSubjectInput,
+    signIn,
+    signOut,
+  } = useAuthSession()
   const {
     tasks,
     taskTitle,
@@ -31,7 +43,7 @@ function App() {
     handleDeleteTask,
     handleGeneratePlan,
     handleCreatePlannedTasks,
-  } = useTaskManager()
+  } = useTaskManager(isAuthenticated)
 
   const boardGoal = goalPlans[0]?.goal || 'Current Task Path'
 
@@ -43,9 +55,21 @@ function App() {
       <CelebrationOverlay trigger={celebrationToken} />
 
       <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <SiteHeader content={content} />
+        <SiteHeader
+          content={content}
+          isAuthenticated={isAuthenticated}
+          authLoading={authLoading}
+          authBusy={authBusy}
+          authError={authError}
+          subjectInput={subjectInput}
+          currentSubject={session?.subject || ''}
+          onSubjectInputChange={setSubjectInput}
+          onSignIn={signIn}
+          onSignOut={signOut}
+        />
 
         <TaskManagerSection
+          authLocked={!isAuthenticated}
           pendingCount={pendingCount}
           tasksLoading={tasksLoading}
           taskError={taskError}

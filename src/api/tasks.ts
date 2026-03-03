@@ -5,6 +5,12 @@ interface PlanResponse {
   tasks: string[]
 }
 
+let currentAccessToken = ''
+
+export function setApiAccessToken(token: string): void {
+  currentAccessToken = token.trim()
+}
+
 function buildUrl(path: string): string {
   const normalizedBase = API_BASE_URL.endsWith('/')
     ? API_BASE_URL.slice(0, -1)
@@ -32,6 +38,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...(currentAccessToken ? { Authorization: `Bearer ${currentAccessToken}` } : {}),
         ...(options.headers || {}),
       },
       signal: timeoutController.signal,

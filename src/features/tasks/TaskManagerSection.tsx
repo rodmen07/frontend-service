@@ -3,6 +3,7 @@ import type { PlannerTone, Task } from '../../types'
 import type { PlannerStatus } from './useTaskManager'
 
 interface TaskManagerSectionProps {
+  authLocked: boolean
   pendingCount: number
   tasksLoading: boolean
   taskError: string
@@ -37,6 +38,7 @@ function plannerToneClass(tone: PlannerTone): string {
 }
 
 export function TaskManagerSection({
+  authLocked,
   pendingCount,
   tasksLoading,
   taskError,
@@ -66,7 +68,7 @@ export function TaskManagerSection({
           type="button"
           className="rounded-xl border border-zinc-500/40 bg-zinc-800/80 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60"
           onClick={onRefresh}
-          disabled={tasksLoading}
+          disabled={authLocked || tasksLoading}
         >
           Refresh
         </button>
@@ -76,6 +78,12 @@ export function TaskManagerSection({
         Pending tasks: <strong>{pendingCount}</strong>
       </p>
 
+      {authLocked && (
+        <p className="mb-4 rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+          Sign in to manage tasks and persist your session.
+        </p>
+      )}
+
       <form className="mb-3 space-y-3" onSubmit={onGeneratePlan}>
         <textarea
           className="w-full rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 placeholder:text-zinc-500 focus:ring"
@@ -83,12 +91,12 @@ export function TaskManagerSection({
           value={goalInput}
           onChange={(event) => onGoalInputChange(event.target.value)}
           rows={4}
-          disabled={planning || creatingPlanTasks}
+          disabled={authLocked || planning || creatingPlanTasks}
         />
         <button
           type="submit"
           className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={planning || creatingPlanTasks}
+          disabled={authLocked || planning || creatingPlanTasks}
         >
           {planning ? 'Generating plan…' : 'Generate Composite Tasks'}
         </button>
@@ -112,7 +120,7 @@ export function TaskManagerSection({
             onClick={() => {
               void onCreatePlannedTasks()
             }}
-            disabled={creatingPlanTasks}
+            disabled={authLocked || creatingPlanTasks}
           >
             {creatingPlanTasks ? 'Creating tasks…' : 'Create All Planned Tasks'}
           </button>
@@ -127,12 +135,12 @@ export function TaskManagerSection({
           value={taskTitle}
           onChange={(event) => onTaskTitleChange(event.target.value)}
           maxLength={120}
-          disabled={submitting}
+          disabled={authLocked || submitting}
         />
         <button
           type="submit"
           className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={submitting}
+          disabled={authLocked || submitting}
         >
           {submitting ? 'Adding…' : 'Add Task'}
         </button>
@@ -165,7 +173,7 @@ export function TaskManagerSection({
                     type="checkbox"
                     className="h-4 w-4"
                     checked={task.completed}
-                    disabled={isWorking}
+                    disabled={authLocked || isWorking}
                     onChange={() => {
                       void onToggleTask(task)
                     }}
@@ -177,7 +185,7 @@ export function TaskManagerSection({
                 <button
                   type="button"
                   className="rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isWorking}
+                  disabled={authLocked || isWorking}
                   onClick={() => {
                     void onDeleteTask(task)
                   }}
