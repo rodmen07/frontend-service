@@ -80,12 +80,18 @@ Vite production base path is configured for this repo path (`/frontend-service/`
 ### Notes for GitHub-backed CMS auth
 
 Decap CMS is free/open-source, but GitHub backend editing requires an OAuth flow provider.
-Typical options:
 
-- Netlify Identity + Git Gateway (if hosted via Netlify)
-- Self-hosted OAuth proxy for GitHub (if hosted elsewhere, including GitHub Pages)
+This project is wired to a self-hosted OAuth provider in `auth-service`:
 
-The current config is ready for GitHub repo wiring and content structure, and can be finalized once your auth flow choice is made.
+- `backend.base_url`: `https://auth-service-rodmen07-v2.fly.dev`
+- `backend.auth_endpoint`: `cms/auth`
+
+To make admin login work, `auth-service` must have:
+
+- `CMS_GITHUB_CLIENT_ID`
+- `CMS_GITHUB_CLIENT_SECRET`
+
+Set these in Fly secrets for `auth-service`, then use `/frontend-service/admin/` on Pages.
 
 ## Working context from current code
 

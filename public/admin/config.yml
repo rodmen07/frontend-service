@@ -2,6 +2,8 @@ backend:
   name: github
   repo: rodmen07/frontend-service
   branch: main
+  base_url: https://auth-service-rodmen07-v2.fly.dev
+  auth_endpoint: cms/auth
 
 media_folder: "public/uploads"
 public_folder: "/uploads"
