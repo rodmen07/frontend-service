@@ -34,7 +34,8 @@ collections:
               fields:
                 [
                   { label: "Heading", name: "heading", widget: "string" },
-                  { label: "Body", name: "body", widget: "text" }
+                  { label: "Body", name: "body", widget: "text" },
+                  { label: "Image", name: "image", widget: "image", required: false }
                 ]
             }
       - file: "public/content/faq.json"

@@ -10,6 +10,7 @@ export interface SiteContent {
 export interface HomeSectionCard {
   heading: string
   body: string
+  image?: string
 }
 
 export interface HomeSectionsContent {

@@ -26,7 +26,13 @@ export function useHomeSectionsContent(baseUrl: string): HomeSectionsContent {
         setContent({
           title: payload.title || DEFAULT_HOME_SECTIONS.title,
           cards: Array.isArray(payload.cards)
-            ? payload.cards.filter((card) => card && card.heading && card.body)
+            ? payload.cards
+                .filter((card) => card && card.heading && card.body)
+                .map((card) => ({
+                  heading: card.heading,
+                  body: card.body,
+                  image: card.image,
+                }))
             : DEFAULT_HOME_SECTIONS.cards,
         })
       } catch {

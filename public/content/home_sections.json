@@ -3,15 +3,18 @@
   "cards": [
     {
       "heading": "AI-assisted planning",
-      "body": "Generate practical short-term task plans from your goals in seconds."
+      "body": "Generate practical short-term task plans from your goals in seconds.",
+      "image": "/uploads/planning-orb.svg"
     },
     {
       "heading": "Execution visibility",
-      "body": "Track completion progress, difficulty, and momentum from one workflow."
+      "body": "Track completion progress, difficulty, and momentum from one workflow.",
+      "image": "/uploads/progress-grid.svg"
     },
     {
       "heading": "Admin observability",
-      "body": "Review usage signals and activity with role-gated admin insights."
+      "body": "Review usage signals and activity with role-gated admin insights.",
+      "image": "/uploads/admin-insights.svg"
     }
   ]
 }

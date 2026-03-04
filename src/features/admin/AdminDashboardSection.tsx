@@ -27,7 +27,10 @@ export function AdminDashboardSection({
   onRefresh,
 }: AdminDashboardSectionProps) {
   return (
-    <section className="forge-panel rounded-3xl border border-indigo-300/20 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+    <section
+      id="admin-dashboard"
+      className="forge-panel rounded-3xl border border-indigo-300/20 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl"
+    >
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold text-white">Admin Dashboard</h2>
         <button

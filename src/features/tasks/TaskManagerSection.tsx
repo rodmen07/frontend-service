@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import type { PlannerTone, Task } from '../../types'
 import type { GemCounts, GoalProgress, PlannerStatus } from './useTaskManager'
 
@@ -14,6 +14,7 @@ interface TaskManagerSectionProps {
   plannedTaskDifficulty: number
   planning: boolean
   creatingPlanTasks: boolean
+  deletingAllTasks: boolean
   plannerStatus: PlannerStatus
   plannedTasks: string[]
   taskTitle: string
@@ -34,7 +35,11 @@ interface TaskManagerSectionProps {
   onSetTaskDifficulty: (task: Task, difficulty: number) => Promise<void>
   onToggleTask: (task: Task) => Promise<void>
   onDeleteTask: (task: Task) => Promise<void>
+  onDeleteAllTasks: () => Promise<void>
+  onResetGeneratedPlan: () => void
 }
+
+type ConfirmAction = 'delete-all' | 'reset-generated' | null
 
 function plannerToneClass(tone: PlannerTone): string {
   switch (tone) {
@@ -59,6 +64,7 @@ export function TaskManagerSection({
   plannedTaskDifficulty,
   planning,
   creatingPlanTasks,
+  deletingAllTasks,
   plannerStatus,
   plannedTasks,
   taskTitle,
@@ -79,19 +85,75 @@ export function TaskManagerSection({
   onSetTaskDifficulty,
   onToggleTask,
   onDeleteTask,
+  onDeleteAllTasks,
+  onResetGeneratedPlan,
 }: TaskManagerSectionProps) {
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
+
+  const confirmDialog = useMemo(() => {
+    if (confirmAction === 'delete-all') {
+      return {
+        title: 'Remove all tasks?',
+        message: `This will permanently remove all ${tasks.length} current task${tasks.length === 1 ? '' : 's'}. This action cannot be undone.`,
+        confirmLabel: deletingAllTasks ? 'Removing…' : 'Remove All',
+      }
+    }
+
+    if (confirmAction === 'reset-generated') {
+      return {
+        title: 'Reset generated tasks?',
+        message: 'This will clear the AI-generated task list and current goal input.',
+        confirmLabel: 'Reset',
+      }
+    }
+
+    return null
+  }, [confirmAction, deletingAllTasks, tasks.length])
+
+  const closeConfirmDialog = () => {
+    if (deletingAllTasks) {
+      return
+    }
+    setConfirmAction(null)
+  }
+
+  const handleConfirmAction = async () => {
+    if (confirmAction === 'delete-all') {
+      await onDeleteAllTasks()
+      setConfirmAction(null)
+      return
+    }
+
+    if (confirmAction === 'reset-generated') {
+      onResetGeneratedPlan()
+      setConfirmAction(null)
+    }
+  }
+
   return (
-    <section className="forge-panel rounded-3xl border border-amber-300/20 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+    <section className="forge-panel relative rounded-3xl border border-amber-300/20 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold text-white">Task Manager</h2>
-        <button
-          type="button"
-          className="rounded-xl border border-zinc-500/40 bg-zinc-800/80 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60"
-          onClick={onRefresh}
-          disabled={authLocked || tasksLoading}
-        >
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-xl border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => {
+              setConfirmAction('delete-all')
+            }}
+            disabled={authLocked || tasksLoading || deletingAllTasks || tasks.length === 0}
+          >
+            {deletingAllTasks ? 'Removing…' : 'Remove All Tasks'}
+          </button>
+          <button
+            type="button"
+            className="rounded-xl border border-zinc-500/40 bg-zinc-800/80 px-3 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={onRefresh}
+            disabled={authLocked || tasksLoading || deletingAllTasks}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       <p className="mb-4 text-sm text-zinc-300">
@@ -181,6 +243,16 @@ export function TaskManagerSection({
             disabled={authLocked || creatingPlanTasks}
           >
             {creatingPlanTasks ? 'Creating tasks…' : 'Create All Planned Tasks'}
+          </button>
+          <button
+            type="button"
+            className="ml-2 rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => {
+              setConfirmAction('reset-generated')
+            }}
+            disabled={authLocked || creatingPlanTasks}
+          >
+            Reset Generated Tasks
           </button>
         </div>
       )}
@@ -299,6 +371,35 @@ export function TaskManagerSection({
             )
           })}
         </ul>
+      )}
+
+      {confirmDialog && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-zinc-950/80 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-500/40 bg-zinc-900/95 p-4 shadow-xl">
+            <h3 className="text-base font-semibold text-white">{confirmDialog.title}</h3>
+            <p className="mt-2 text-sm text-zinc-200">{confirmDialog.message}</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-xl border border-zinc-500/40 bg-zinc-800/80 px-3 py-2 text-sm font-medium text-zinc-100 transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={closeConfirmDialog}
+                disabled={deletingAllTasks}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rounded-xl border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => {
+                  void handleConfirmAction()
+                }}
+                disabled={deletingAllTasks && confirmAction === 'delete-all'}
+              >
+                {confirmDialog.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   )

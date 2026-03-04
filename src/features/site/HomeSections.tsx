@@ -15,6 +15,14 @@ export function HomeSections({ content }: HomeSectionsProps) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {content.cards.map((card) => (
           <article key={card.heading} className="rounded-xl border border-zinc-500/35 bg-zinc-800/70 p-4">
+            {card.image && (
+              <img
+                src={card.image}
+                alt={card.heading}
+                className="mb-3 h-28 w-full rounded-lg border border-zinc-500/35 object-cover"
+                loading="lazy"
+              />
+            )}
             <h3 className="text-sm font-semibold text-amber-200">{card.heading}</h3>
             <p className="mt-2 text-sm text-zinc-300">{card.body}</p>
           </article>

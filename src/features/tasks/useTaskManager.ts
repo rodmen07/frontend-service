@@ -123,6 +123,7 @@ export function useTaskManager(isAuthenticated: boolean) {
   const [planning, setPlanning] = useState(false)
   const [plannedTaskDifficulty, setPlannedTaskDifficulty] = useState(2)
   const [creatingPlanTasks, setCreatingPlanTasks] = useState(false)
+  const [deletingAllTasks, setDeletingAllTasks] = useState(false)
   const [plannerStatus, setPlannerStatus] = useState<PlannerStatus>(INITIAL_PLANNER_STATUS)
   const [goalPlans, setGoalPlans] = useState<GoalPlan[]>([])
   const [celebrationToken, setCelebrationToken] = useState(0)
@@ -288,6 +289,33 @@ export function useTaskManager(isAuthenticated: boolean) {
     }
   }
 
+  const handleDeleteAllTasks = async () => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to delete tasks')
+      return
+    }
+
+    if (tasks.length === 0) {
+      return
+    }
+
+    setDeletingAllTasks(true)
+    setTaskError('')
+
+    try {
+      await Promise.all(tasks.map((task) => deleteTask(task.id)))
+      setTasks([])
+      setPlannerStatus({
+        tone: 'success',
+        message: 'All current tasks were removed.',
+      })
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to delete all tasks')
+    } finally {
+      setDeletingAllTasks(false)
+    }
+  }
+
   const handleGeneratePlan = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
@@ -432,6 +460,19 @@ export function useTaskManager(isAuthenticated: boolean) {
     setCreatingPlanTasks(false)
   }
 
+  const handleResetGeneratedPlan = () => {
+    if (plannedTasks.length === 0 && goalInput.trim().length === 0) {
+      return
+    }
+
+    setPlannedTasks([])
+    setGoalInput('')
+    setPlannerStatus({
+      tone: 'info',
+      message: 'AI-generated tasks were reset.',
+    })
+  }
+
   useEffect(() => {
     if (goalPlans.length === 0 || tasks.length === 0) {
       return
@@ -550,6 +591,7 @@ export function useTaskManager(isAuthenticated: boolean) {
     plannedTasks,
     planning,
     creatingPlanTasks,
+    deletingAllTasks,
     plannerStatus,
     goalPlans,
     celebrationToken,
@@ -567,7 +609,9 @@ export function useTaskManager(isAuthenticated: boolean) {
     handleSetTaskDifficulty,
     handleToggleTask,
     handleDeleteTask,
+    handleDeleteAllTasks,
     handleGeneratePlan,
     handleCreatePlannedTasks,
+    handleResetGeneratedPlan,
   }
 }
