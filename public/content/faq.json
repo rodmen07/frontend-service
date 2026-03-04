@@ -1,0 +1,17 @@
+{
+  "title": "Frequently asked questions",
+  "items": [
+    {
+      "question": "How do I sign in as admin?",
+      "answer": "Enter your allowlisted username and use the Admin sign in button in the session panel."
+    },
+    {
+      "question": "Where do CMS edits appear?",
+      "answer": "Edits in /admin update the JSON content files and are reflected after deployment."
+    },
+    {
+      "question": "Can I clear generated tasks?",
+      "answer": "Yes. Use Reset Generated Tasks and confirm in the modal."
+    }
+  ]
+}

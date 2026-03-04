@@ -1,0 +1,17 @@
+{
+  "title": "Why teams use TaskForge",
+  "cards": [
+    {
+      "heading": "AI-assisted planning",
+      "body": "Generate practical short-term task plans from your goals in seconds."
+    },
+    {
+      "heading": "Execution visibility",
+      "body": "Track completion progress, difficulty, and momentum from one workflow."
+    },
+    {
+      "heading": "Admin observability",
+      "body": "Review usage signals and activity with role-gated admin insights."
+    }
+  ]
+}

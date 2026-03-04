@@ -21,3 +21,35 @@ collections:
           - { label: "Subtitle", name: "subtitle", widget: "text" }
           - { label: "CTA Label", name: "ctaLabel", widget: "string" }
           - { label: "CTA Href", name: "ctaHref", widget: "string" }
+      - file: "public/content/home_sections.json"
+        label: "Home Sections"
+        name: "home_sections"
+        format: "json"
+        fields:
+          - { label: "Section Title", name: "title", widget: "string" }
+          - {
+              label: "Cards",
+              name: "cards",
+              widget: "list",
+              fields:
+                [
+                  { label: "Heading", name: "heading", widget: "string" },
+                  { label: "Body", name: "body", widget: "text" }
+                ]
+            }
+      - file: "public/content/faq.json"
+        label: "FAQ"
+        name: "faq"
+        format: "json"
+        fields:
+          - { label: "Section Title", name: "title", widget: "string" }
+          - {
+              label: "Items",
+              name: "items",
+              widget: "list",
+              fields:
+                [
+                  { label: "Question", name: "question", widget: "string" },
+                  { label: "Answer", name: "answer", widget: "text" }
+                ]
+            }

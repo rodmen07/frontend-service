@@ -7,6 +7,26 @@ export interface SiteContent {
   ctaHref: string
 }
 
+export interface HomeSectionCard {
+  heading: string
+  body: string
+}
+
+export interface HomeSectionsContent {
+  title: string
+  cards: HomeSectionCard[]
+}
+
+export interface FaqItem {
+  question: string
+  answer: string
+}
+
+export interface FaqContent {
+  title: string
+  items: FaqItem[]
+}
+
 export interface Task {
   id: number
   title: string

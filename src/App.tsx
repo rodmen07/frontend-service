@@ -1,9 +1,14 @@
 import { AdminDashboardSection } from './features/admin/AdminDashboardSection'
 import { CelebrationOverlay } from './components/CelebrationOverlay'
 import { useAdminDashboard } from './features/admin/useAdminDashboard'
+import { SessionPanel } from './features/auth/SessionPanel'
 import { useAuthSession } from './features/auth/useAuthSession'
 import { GoalDiagramsSection } from './features/plans/GoalDiagramsSection'
+import { FaqSection } from './features/site/FaqSection'
+import { HomeSections } from './features/site/HomeSections'
 import { SiteHeader } from './features/site/SiteHeader'
+import { useFaqContent } from './features/site/useFaqContent'
+import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
 import { useSiteContent } from './features/site/useSiteContent'
 import { TaskManagerSection } from './features/tasks/TaskManagerSection'
 import { useTaskManager } from './features/tasks/useTaskManager'
@@ -11,6 +16,8 @@ import { useTaskManager } from './features/tasks/useTaskManager'
 function App() {
   const baseUrl = import.meta.env.BASE_URL
   const content = useSiteContent(baseUrl)
+  const homeSections = useHomeSectionsContent(baseUrl)
+  const faqContent = useFaqContent(baseUrl)
   const {
     session,
     isAuthenticated,
@@ -84,19 +91,9 @@ function App() {
       <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
         <SiteHeader
           content={content}
-          isAuthenticated={isAuthenticated}
-          authLoading={authLoading}
-          authBusy={authBusy}
-          authError={authError}
-          subjectInput={subjectInput}
-          currentSubject={session?.subject || ''}
-          currentRoles={session?.roles || []}
-          onSubjectInputChange={setSubjectInput}
-          onSignIn={signIn}
-          onSignInAdmin={signInAdmin}
-          onCreateUsername={createUsername}
-          onSignOut={signOut}
         />
+
+        <HomeSections content={homeSections} />
 
         {isAuthenticated && isAdmin && (
           <AdminDashboardSection
@@ -149,6 +146,23 @@ function App() {
         />
 
         <GoalDiagramsSection goal={boardGoal} tasks={tasks} />
+
+        <FaqSection content={faqContent} />
+
+        <SessionPanel
+          isAuthenticated={isAuthenticated}
+          authLoading={authLoading}
+          authBusy={authBusy}
+          authError={authError}
+          subjectInput={subjectInput}
+          currentSubject={session?.subject || ''}
+          currentRoles={session?.roles || []}
+          onSubjectInputChange={setSubjectInput}
+          onSignIn={signIn}
+          onSignInAdmin={signInAdmin}
+          onCreateUsername={createUsername}
+          onSignOut={signOut}
+        />
       </div>
     </main>
   )
