@@ -11,6 +11,25 @@ const DEFAULT_HOME_SECTIONS: HomeSectionsContent = {
   ],
 }
 
+function resolveMediaUrl(baseUrl: string, value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return undefined
+  }
+
+  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('data:')) {
+    return trimmed
+  }
+
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+  const normalizedPath = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed
+  return `${normalizedBase}${normalizedPath}`
+}
+
 export function useHomeSectionsContent(baseUrl: string): HomeSectionsContent {
   const [content, setContent] = useState<HomeSectionsContent>(DEFAULT_HOME_SECTIONS)
 
@@ -31,7 +50,7 @@ export function useHomeSectionsContent(baseUrl: string): HomeSectionsContent {
                 .map((card) => ({
                   heading: card.heading,
                   body: card.body,
-                  image: card.image,
+                  image: resolveMediaUrl(baseUrl, card.image),
                 }))
             : DEFAULT_HOME_SECTIONS.cards,
         })
