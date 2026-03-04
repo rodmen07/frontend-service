@@ -185,6 +185,20 @@ function App() {
         {isAuthenticated && isAdmin && (
           <section className="forge-panel rounded-3xl border border-indigo-300/20 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">Admin Navigation</p>
+            <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <p className="rounded-xl border border-zinc-500/35 bg-zinc-800/70 px-3 py-2 text-sm text-zinc-100">
+                Total Tasks: <strong>{metrics?.total_tasks ?? '—'}</strong>
+              </p>
+              <p className="rounded-xl border border-zinc-500/35 bg-zinc-800/70 px-3 py-2 text-sm text-zinc-100">
+                Completed: <strong>{metrics?.completed_tasks ?? '—'}</strong>
+              </p>
+              <p className="rounded-xl border border-zinc-500/35 bg-zinc-800/70 px-3 py-2 text-sm text-zinc-100">
+                API Requests: <strong>{metrics?.total_requests ?? '—'}</strong>
+              </p>
+              <p className="rounded-xl border border-zinc-500/35 bg-zinc-800/70 px-3 py-2 text-sm text-zinc-100">
+                Unique Users: <strong>{metrics?.unique_subjects ?? '—'}</strong>
+              </p>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {currentHash !== dashboardHash && (
                 <a
