@@ -80,8 +80,8 @@ function App() {
     plannerStatus,
     goalPlans,
     celebrationToken,
-    forgedPoints,
-    gemCounts,
+    coins,
+    barCounts,
     goalProgress,
     pendingCount,
     setTaskTitle,
@@ -173,8 +173,8 @@ function App() {
             <TaskManagerSection
               authLocked={!isAuthenticated}
               pendingCount={pendingCount}
-              forgedPoints={forgedPoints}
-              gemCounts={gemCounts}
+              coins={coins}
+              barCounts={barCounts}
               goalProgress={goalProgress}
               tasksLoading={tasksLoading}
               taskError={taskError}

@@ -1,12 +1,21 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import type { PlannerTone, Task } from '../../types'
-import type { GemCounts, GoalProgress, PlannerStatus } from './useTaskManager'
+import type { BarCounts, GoalProgress, PlannerStatus } from './useTaskManager'
+
+const DIFFICULTY_TIERS = [
+  { value: 1, label: 'Wood' },
+  { value: 2, label: 'Stone' },
+  { value: 3, label: 'Iron' },
+  { value: 4, label: 'Silver' },
+  { value: 5, label: 'Gold' },
+  { value: 6, label: 'Diamond' },
+] as const
 
 interface TaskManagerSectionProps {
   authLocked: boolean
   pendingCount: number
-  forgedPoints: number
-  gemCounts: GemCounts
+  coins: number
+  barCounts: BarCounts
   goalProgress: GoalProgress[]
   tasksLoading: boolean
   taskError: string
@@ -57,8 +66,8 @@ function plannerToneClass(tone: PlannerTone): string {
 export function TaskManagerSection({
   authLocked,
   pendingCount,
-  forgedPoints,
-  gemCounts,
+  coins,
+  barCounts,
   goalProgress,
   tasksLoading,
   taskError,
@@ -200,10 +209,10 @@ export function TaskManagerSection({
 
       <div className="mb-4 grid gap-2 sm:grid-cols-2">
         <p className="rounded-xl border border-orange-300/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
-          Forged Rings (points): <strong>{forgedPoints}</strong>
+          Coins: <strong>{coins}</strong>
         </p>
         <div className="rounded-xl border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
-          Gems — Ruby: <strong>{gemCounts.ruby}</strong>, Sapphire: <strong>{gemCounts.sapphire}</strong>, Emerald: <strong>{gemCounts.emerald}</strong>
+          Bars — Wood: <strong>{barCounts.wood}</strong>, Stone: <strong>{barCounts.stone}</strong>, Iron: <strong>{barCounts.iron}</strong>, Silver: <strong>{barCounts.silver}</strong>, Gold: <strong>{barCounts.gold}</strong>, Diamond: <strong>{barCounts.diamond}</strong>
         </div>
       </div>
 
@@ -278,9 +287,9 @@ export function TaskManagerSection({
               onChange={(event) => onPlannedTaskDifficultyChange(Number(event.target.value))}
               disabled={authLocked || creatingPlanTasks}
             >
-              {[1, 2, 3, 4, 5].map((value) => (
-                <option key={value} value={value}>
-                  {value}
+              {DIFFICULTY_TIERS.map((tier) => (
+                <option key={tier.value} value={tier.value}>
+                  {tier.label} ({tier.value})
                 </option>
               ))}
             </select>
@@ -324,9 +333,9 @@ export function TaskManagerSection({
           disabled={authLocked || submitting}
           aria-label="Task difficulty"
         >
-          {[1, 2, 3, 4, 5].map((value) => (
-            <option key={value} value={value}>
-              D{value}
+          {DIFFICULTY_TIERS.map((tier) => (
+            <option key={tier.value} value={tier.value}>
+              {tier.label}
             </option>
           ))}
         </select>
@@ -430,13 +439,13 @@ export function TaskManagerSection({
                     }}
                     aria-label="Update task difficulty"
                   >
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <option key={value} value={value}>
-                        D{value}
+                    {DIFFICULTY_TIERS.map((tier) => (
+                      <option key={tier.value} value={tier.value}>
+                        {tier.label}
                       </option>
                     ))}
                   </select>
-                  <span className="text-xs text-amber-200">+{task.difficulty} ring{task.difficulty === 1 ? '' : 's'}</span>
+                  <span className="text-xs text-amber-200">+{task.difficulty} coin{task.difficulty === 1 ? '' : 's'}</span>
                 <button
                   type="button"
                   className="rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"

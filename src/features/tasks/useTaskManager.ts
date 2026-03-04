@@ -15,10 +15,13 @@ export interface PlannerStatus {
   message: string
 }
 
-export interface GemCounts {
-  ruby: number
-  sapphire: number
-  emerald: number
+export interface BarCounts {
+  wood: number
+  stone: number
+  iron: number
+  silver: number
+  gold: number
+  diamond: number
 }
 
 export interface GoalProgress {
@@ -35,15 +38,15 @@ const INITIAL_PLANNER_STATUS: PlannerStatus = {
 const PROGRESSION_STORAGE_KEY_PREFIX = 'taskforge.gamification.progress'
 
 const EMPTY_PROGRESS_STATE: ProgressState = {
-  forgedPoints: 0,
-  gemCounts: { ruby: 0, sapphire: 0, emerald: 0 },
+  coins: 0,
+  barCounts: { wood: 0, stone: 0, iron: 0, silver: 0, gold: 0, diamond: 0 },
   completedTaskIds: [],
   rewardedPlanIds: [],
 }
 
 interface ProgressState {
-  forgedPoints: number
-  gemCounts: GemCounts
+  coins: number
+  barCounts: BarCounts
   completedTaskIds: number[]
   rewardedPlanIds: number[]
 }
@@ -54,8 +57,8 @@ function normalizeDifficulty(value: number): number {
     return 1
   }
 
-  if (rounded > 5) {
-    return 5
+  if (rounded > 6) {
+    return 6
   }
 
   return rounded
@@ -72,19 +75,39 @@ function readProgressState(storageKey: string): ProgressState {
       return EMPTY_PROGRESS_STATE
     }
 
-    const parsed = JSON.parse(raw) as ProgressState & { rubies?: number }
-    const gemCounts = parsed.gemCounts || {
+    const parsed = JSON.parse(raw) as ProgressState & {
+      forgedPoints?: number
+      gemCounts?: {
+        ruby?: number
+        sapphire?: number
+        emerald?: number
+      }
+      rubies?: number
+    }
+    const legacyGemCounts = parsed.gemCounts || {
       ruby: Number(parsed.rubies) || 0,
       sapphire: 0,
       emerald: 0,
     }
 
+    const bars = parsed.barCounts || {
+      wood: Number(legacyGemCounts.ruby) || 0,
+      stone: 0,
+      iron: Number(legacyGemCounts.sapphire) || 0,
+      silver: 0,
+      gold: Number(legacyGemCounts.emerald) || 0,
+      diamond: 0,
+    }
+
     return {
-      forgedPoints: Number(parsed.forgedPoints) || 0,
-      gemCounts: {
-        ruby: Number(gemCounts.ruby) || 0,
-        sapphire: Number(gemCounts.sapphire) || 0,
-        emerald: Number(gemCounts.emerald) || 0,
+      coins: Number(parsed.coins) || Number(parsed.forgedPoints) || 0,
+      barCounts: {
+        wood: Number(bars.wood) || 0,
+        stone: Number(bars.stone) || 0,
+        iron: Number(bars.iron) || 0,
+        silver: Number(bars.silver) || 0,
+        gold: Number(bars.gold) || 0,
+        diamond: Number(bars.diamond) || 0,
       },
       completedTaskIds: Array.isArray(parsed.completedTaskIds)
         ? parsed.completedTaskIds.filter((value): value is number => Number.isInteger(value))
@@ -98,16 +121,26 @@ function readProgressState(storageKey: string): ProgressState {
   }
 }
 
-function gemTierForPlanDifficulty(totalDifficulty: number): keyof GemCounts {
-  if (totalDifficulty <= 8) {
-    return 'ruby'
+function barTierForPlanDifficulty(totalDifficulty: number, taskCount: number): keyof BarCounts {
+  if (taskCount <= 0) {
+    return 'wood'
   }
 
-  if (totalDifficulty <= 16) {
-    return 'sapphire'
+  const averageDifficulty = normalizeDifficulty(totalDifficulty / taskCount)
+  switch (averageDifficulty) {
+    case 1:
+      return 'wood'
+    case 2:
+      return 'stone'
+    case 3:
+      return 'iron'
+    case 4:
+      return 'silver'
+    case 5:
+      return 'gold'
+    default:
+      return 'diamond'
   }
-
-  return 'emerald'
 }
 
 export function useTaskManager(isAuthenticated: boolean, subject: string | null) {
@@ -128,11 +161,14 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
   const [plannerStatus, setPlannerStatus] = useState<PlannerStatus>(INITIAL_PLANNER_STATUS)
   const [goalPlans, setGoalPlans] = useState<GoalPlan[]>([])
   const [celebrationToken, setCelebrationToken] = useState(0)
-  const [forgedPoints, setForgedPoints] = useState(0)
-  const [gemCounts, setGemCounts] = useState<GemCounts>({
-    ruby: 0,
-    sapphire: 0,
-    emerald: 0,
+  const [coins, setCoins] = useState(0)
+  const [barCounts, setBarCounts] = useState<BarCounts>({
+    wood: 0,
+    stone: 0,
+    iron: 0,
+    silver: 0,
+    gold: 0,
+    diamond: 0,
   })
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<number>>(new Set())
   const [rewardedPlanIds, setRewardedPlanIds] = useState<Set<number>>(new Set())
@@ -145,16 +181,16 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
 
   useEffect(() => {
     if (!progressStorageKey) {
-      setForgedPoints(0)
-      setGemCounts({ ruby: 0, sapphire: 0, emerald: 0 })
+      setCoins(0)
+      setBarCounts({ wood: 0, stone: 0, iron: 0, silver: 0, gold: 0, diamond: 0 })
       setCompletedTaskIds(new Set())
       setRewardedPlanIds(new Set())
       return
     }
 
     const progress = readProgressState(progressStorageKey)
-    setForgedPoints(progress.forgedPoints)
-    setGemCounts(progress.gemCounts)
+    setCoins(progress.coins)
+    setBarCounts(progress.barCounts)
     setCompletedTaskIds(new Set(progress.completedTaskIds))
     setRewardedPlanIds(new Set(progress.rewardedPlanIds))
   }, [progressStorageKey])
@@ -165,13 +201,13 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     }
 
     const serializable: ProgressState = {
-      forgedPoints,
-      gemCounts,
+      coins,
+      barCounts,
       completedTaskIds: Array.from(completedTaskIds),
       rewardedPlanIds: Array.from(rewardedPlanIds),
     }
     window.localStorage.setItem(progressStorageKey, JSON.stringify(serializable))
-  }, [completedTaskIds, forgedPoints, gemCounts, progressStorageKey, rewardedPlanIds])
+  }, [barCounts, coins, completedTaskIds, progressStorageKey, rewardedPlanIds])
 
   const pendingCount = useMemo(
     () => tasks.filter((task) => !task.completed).length,
@@ -276,7 +312,7 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
       )
       if (!task.completed && updatedTask.completed) {
         if (!completedTaskIds.has(task.id)) {
-          setForgedPoints((current) => current + normalizeDifficulty(updatedTask.difficulty))
+          setCoins((current) => current + normalizeDifficulty(updatedTask.difficulty))
           setCompletedTaskIds((current) => new Set(current).add(task.id))
         }
         playTaskCompletionSound()
@@ -517,7 +553,14 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     }
 
     const nextRewarded = new Set(rewardedPlanIds)
-    const tierIncrements: GemCounts = { ruby: 0, sapphire: 0, emerald: 0 }
+    const tierIncrements: BarCounts = {
+      wood: 0,
+      stone: 0,
+      iron: 0,
+      silver: 0,
+      gold: 0,
+      diamond: 0,
+    }
 
     for (const plan of newlyCompletedPlans) {
       nextRewarded.add(plan.id)
@@ -533,19 +576,22 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
         )
         .reduce((total, task) => total + normalizeDifficulty(task.difficulty), 0)
 
-      const tier = gemTierForPlanDifficulty(totalDifficulty)
+      const tier = barTierForPlanDifficulty(totalDifficulty, plan.tasks.length)
       tierIncrements[tier] += 1
     }
 
     setRewardedPlanIds(nextRewarded)
-    setGemCounts((current) => ({
-      ruby: current.ruby + tierIncrements.ruby,
-      sapphire: current.sapphire + tierIncrements.sapphire,
-      emerald: current.emerald + tierIncrements.emerald,
+    setBarCounts((current) => ({
+      wood: current.wood + tierIncrements.wood,
+      stone: current.stone + tierIncrements.stone,
+      iron: current.iron + tierIncrements.iron,
+      silver: current.silver + tierIncrements.silver,
+      gold: current.gold + tierIncrements.gold,
+      diamond: current.diamond + tierIncrements.diamond,
     }))
     setPlannerStatus({
       tone: 'success',
-      message: `Plan completed! Gems forged — Ruby: ${tierIncrements.ruby}, Sapphire: ${tierIncrements.sapphire}, Emerald: ${tierIncrements.emerald}.`,
+      message: `Plan completed! Bars forged — Wood: ${tierIncrements.wood}, Stone: ${tierIncrements.stone}, Iron: ${tierIncrements.iron}, Silver: ${tierIncrements.silver}, Gold: ${tierIncrements.gold}, Diamond: ${tierIncrements.diamond}.`,
     })
   }, [goalPlans, rewardedPlanIds, tasks])
 
@@ -613,8 +659,8 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     plannerStatus,
     goalPlans,
     celebrationToken,
-    forgedPoints,
-    gemCounts,
+    coins,
+    barCounts,
     goalProgress,
     pendingCount,
     setTaskTitle,
