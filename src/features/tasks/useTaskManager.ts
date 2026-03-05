@@ -77,6 +77,7 @@ function readProgressState(storageKey: string): ProgressState {
     }
 
     const parsed = JSON.parse(raw) as ProgressState & {
+      coins?: number
       forgedPoints?: number
       gemCounts?: {
         ruby?: number

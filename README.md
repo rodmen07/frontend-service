@@ -1,12 +1,52 @@
 # Task Portal Service
 
-Task portal project for the tutorial ecosystem, built with React + Vite + TypeScript, styled with Tailwind CSS, and integrated with a free open-source CMS (Decap CMS).
+Single-page task management portal built with React 19, Vite 5, TypeScript (strict), and Tailwind CSS. Integrates with a Rust/Axum REST API, a Python JWT auth service, and an AI orchestrator for goal-based task planning. Content is CMS-editable via Decap CMS with GitHub OAuth.
+
+## Features
+
+- **Kanban board** — drag-and-drop task cards across To Do / In Progress / Done columns
+- **AI goal planner** — describe a short-term goal and generate composite task breakdowns via an LLM orchestrator
+- **Story-point gamification** — earn story points for completing tasks; track your writing-tier progression (poem → paragraph → short story → novel → epic)
+- **Scroll-spy navigation** — sticky side nav with IntersectionObserver-driven active-section highlighting
+- **Progress HUD** — always-visible sticky bar showing completion %, done/pending counts, signed-in status
+- **Admin dashboard** — metrics, request logs, and user activity panels (admin role required)
+- **Decap CMS** — edit homepage content, FAQ, and highlight cards from a browser-based admin UI backed by GitHub
+- **JWT authentication** — sign in / sign out / create username with role-based access (user, planner, admin)
+- **Responsive design** — mobile-first layout with XL sidebar breakpoint
 
 ## Tech stack
 
-- React 19 + Vite 5
-- TypeScript (strict mode)
-- Tailwind CSS (utility-first styling)
+| Layer | Technology |
+|-------|-----------|
+| UI framework | React 19 |
+| Build tool | Vite 5 |
+| Language | TypeScript (strict mode) |
+| Styling | Tailwind CSS 3.4 |
+| Linting | ESLint 9 + typescript-eslint + react-hooks + react-refresh |
+| CMS | Decap CMS (GitHub backend) |
+| Deployment | GitHub Pages via Actions |
+
+## Project structure
+
+```
+src/
+├── api/              # HTTP clients for auth-service and task-api-service
+├── features/
+│   ├── admin/        # Admin dashboard section and hook
+│   ├── auth/         # Session panel and auth session hook
+│   ├── layout/       # ProgressHud, SideNav, useScrollSpy
+│   ├── site/         # SiteHeader, HomeSections, FaqSection, CMS content hooks
+│   └── tasks/
+│       ├── kanban/   # KanbanBoard, KanbanCard, KanbanColumnPanel, helpers
+│       ├── TaskManagerSection.tsx
+│       ├── useTaskManager.ts
+│       └── planNormalization.ts
+├── App.tsx           # Root layout wiring hooks and sections
+├── config.ts         # Runtime environment config with validation
+├── types.ts          # Shared TypeScript interfaces
+├── index.css         # Tailwind directives + custom animations
+└── main.tsx          # React DOM entrypoint
+```
 
 ## Run locally
 
@@ -19,6 +59,12 @@ npm run dev
 
 ```bash
 npm run build
+```
+
+## Lint
+
+```bash
+npm run lint
 ```
 
 ## Goal planner
