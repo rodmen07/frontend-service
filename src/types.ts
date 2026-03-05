@@ -29,6 +29,36 @@ export interface FaqContent {
   items: FaqItem[]
 }
 
+export type ChangelogEntryType = 'new' | 'improved' | 'fixed'
+
+export interface ChangelogChange {
+  type: ChangelogEntryType
+  text: string
+}
+
+export interface ChangelogEntry {
+  version: string
+  date: string
+  changes: ChangelogChange[]
+}
+
+export interface ChangelogContent {
+  entries: ChangelogEntry[]
+}
+
+export type RoadmapStatus = 'shipped' | 'in-progress' | 'planned'
+
+export interface RoadmapItem {
+  title: string
+  description: string
+  status: RoadmapStatus
+  category: string
+}
+
+export interface RoadmapContent {
+  items: RoadmapItem[]
+}
+
 export type TaskStatus = 'todo' | 'doing' | 'done'
 
 export interface Task {

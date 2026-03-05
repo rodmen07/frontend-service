@@ -7,13 +7,20 @@ import { ProgressHud } from './features/layout/ProgressHud'
 import { SideNav } from './features/layout/SideNav'
 import { useScrollSpy } from './features/layout/useScrollSpy'
 import type { ScrollMenuItem } from './features/layout/useScrollSpy'
+import { ChangelogSection } from './features/site/ChangelogSection'
 import { FaqSection } from './features/site/FaqSection'
 import { HomeSections } from './features/site/HomeSections'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
+import { IntegrationsSection } from './features/site/IntegrationsSection'
+import { KeyboardShortcutsSection } from './features/site/KeyboardShortcutsSection'
 import { QuickStartSection } from './features/site/QuickStartSection'
+import { RoadmapSection } from './features/site/RoadmapSection'
 import { SiteHeader } from './features/site/SiteHeader'
+import { StatsSection } from './features/site/StatsSection'
+import { useChangelogContent } from './features/site/useChangelogContent'
 import { useFaqContent } from './features/site/useFaqContent'
 import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
+import { useRoadmapContent } from './features/site/useRoadmapContent'
 import { useSiteContent } from './features/site/useSiteContent'
 import { TaskManagerSection } from './features/tasks/TaskManagerSection'
 import { useTaskManager } from './features/tasks/useTaskManager'
@@ -33,6 +40,8 @@ function App() {
   const content = useSiteContent(baseUrl)
   const homeSections = useHomeSectionsContent(baseUrl)
   const faqContent = useFaqContent(baseUrl)
+  const changelogContent = useChangelogContent(baseUrl)
+  const roadmapContent = useRoadmapContent(baseUrl)
   const {
     session,
     isAuthenticated,
@@ -114,6 +123,8 @@ function App() {
       { id: 'session', label: 'Session' },
       { id: 'how-it-works', label: 'How It Works' },
       { id: 'sections', label: 'Highlights' },
+      { id: 'integrations', label: 'Integrations' },
+      { id: 'roadmap', label: 'Roadmap' },
     ]
 
     if (isAuthenticated && isAdmin) {
@@ -121,6 +132,9 @@ function App() {
     }
 
     items.push({ id: 'task-manager', label: 'Task Manager' })
+    items.push({ id: 'stats', label: 'Stats' })
+    items.push({ id: 'changelog', label: 'Changelog' })
+    items.push({ id: 'shortcuts', label: 'Shortcuts' })
     items.push({ id: 'faq', label: 'FAQ' })
 
     if (isAuthenticated && isAdmin) {
@@ -191,6 +205,14 @@ function App() {
               <HomeSections content={homeSections} />
             </div>
 
+            <div id="integrations" className={sectionStateClass('integrations')}>
+              <IntegrationsSection />
+            </div>
+
+            <div id="roadmap" className={sectionStateClass('roadmap')}>
+              <RoadmapSection content={roadmapContent} />
+            </div>
+
             {isAuthenticated && isAdmin && (
               <div id="admin-dashboard" className={sectionStateClass('admin-dashboard')}>
                 <AdminDashboardSection
@@ -251,6 +273,25 @@ function App() {
                 onResetGeneratedPlan={handleResetGeneratedPlan}
                 onClearPlanTasks={handleClearPlanTasks}
               />
+            </div>
+
+            <div id="stats" className={sectionStateClass('stats')}>
+              <StatsSection
+                isAuthenticated={isAuthenticated}
+                isAdmin={isAdmin}
+                tasks={tasks}
+                storyPoints={storyPoints}
+                pendingCount={pendingCount}
+                metrics={metrics}
+              />
+            </div>
+
+            <div id="changelog" className={sectionStateClass('changelog')}>
+              <ChangelogSection content={changelogContent} />
+            </div>
+
+            <div id="shortcuts" className={sectionStateClass('shortcuts')}>
+              <KeyboardShortcutsSection />
             </div>
 
             <div id="faq" className={sectionStateClass('faq')}>

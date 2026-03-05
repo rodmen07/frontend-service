@@ -1,0 +1,76 @@
+{
+  "items": [
+    {
+      "title": "Kanban board view",
+      "description": "Drag-and-drop task management with To Do / In Progress / Done columns.",
+      "status": "shipped",
+      "category": "Core"
+    },
+    {
+      "title": "AI-assisted goal planning",
+      "description": "Generate focused task breakdowns from plain-text goals using Claude AI with iterative refinement.",
+      "status": "shipped",
+      "category": "AI"
+    },
+    {
+      "title": "Story points & writing tiers",
+      "description": "Gamification layer: earn points on task completion and climb from Poem to Epic.",
+      "status": "shipped",
+      "category": "Gamification"
+    },
+    {
+      "title": "Admin dashboard & audit log",
+      "description": "Platform-wide metrics, request logs, and user activity tracking for admins.",
+      "status": "shipped",
+      "category": "Admin"
+    },
+    {
+      "title": "Sub-page routing",
+      "description": "Dedicated pages for the tier ladder reference and the full feature guide.",
+      "status": "shipped",
+      "category": "Core"
+    },
+    {
+      "title": "Accounts integration",
+      "description": "Link tasks to user profiles with preferences and cross-service identity.",
+      "status": "in-progress",
+      "category": "Integrations"
+    },
+    {
+      "title": "Contacts & opportunities linking",
+      "description": "Associate tasks directly with CRM contacts and open opportunities.",
+      "status": "in-progress",
+      "category": "Integrations"
+    },
+    {
+      "title": "Activity feed",
+      "description": "Real-time feed of task completions, plan creations, and tier progressions.",
+      "status": "planned",
+      "category": "Core"
+    },
+    {
+      "title": "Automation rules",
+      "description": "Trigger task creation and status transitions from external events.",
+      "status": "planned",
+      "category": "Automation"
+    },
+    {
+      "title": "Cross-service search",
+      "description": "Full-text search across tasks, goals, and linked CRM records via the search service.",
+      "status": "planned",
+      "category": "Search"
+    },
+    {
+      "title": "Reporting & velocity charts",
+      "description": "Export story point history, sprint velocity, and goal completion rates.",
+      "status": "planned",
+      "category": "Reporting"
+    },
+    {
+      "title": "Keyboard shortcuts",
+      "description": "Full keyboard navigation for the task board, planner, and modals.",
+      "status": "planned",
+      "category": "Core"
+    }
+  ]
+}
