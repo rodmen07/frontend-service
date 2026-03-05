@@ -1,0 +1,53 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="24" fill="#0A0A0E"/>
+  <!-- Column 1: To Do -->
+  <rect x="44" y="48" width="170" height="270" rx="14" fill="#27272A"/>
+  <rect x="44" y="48" width="170" height="42" rx="14" fill="#3F3F46"/>
+  <rect x="44" y="76" width="170" height="14" fill="#3F3F46"/>
+  <rect x="60" y="62" width="66" height="10" rx="5" fill="#A1A1AA"/>
+  <!-- To Do cards -->
+  <rect x="60" y="106" width="138" height="52" rx="10" fill="#18181B" stroke="#3F3F46" stroke-width="1.5"/>
+  <rect x="72" y="118" width="84" height="8" rx="4" fill="#52525B"/>
+  <rect x="72" y="133" width="60" height="7" rx="3.5" fill="#3F3F46"/>
+  <rect x="60" y="170" width="138" height="52" rx="10" fill="#18181B" stroke="#3F3F46" stroke-width="1.5"/>
+  <rect x="72" y="182" width="100" height="8" rx="4" fill="#52525B"/>
+  <rect x="72" y="197" width="70" height="7" rx="3.5" fill="#3F3F46"/>
+  <rect x="60" y="234" width="138" height="52" rx="10" fill="#18181B" stroke="#3F3F46" stroke-width="1.5"/>
+  <rect x="72" y="246" width="72" height="8" rx="4" fill="#52525B"/>
+  <rect x="72" y="261" width="92" height="7" rx="3.5" fill="#3F3F46"/>
+  <!-- Column 2: In Progress -->
+  <rect x="235" y="48" width="170" height="270" rx="14" fill="#1C1409"/>
+  <rect x="235" y="48" width="170" height="42" rx="14" fill="#3D2C08"/>
+  <rect x="235" y="76" width="170" height="14" fill="#3D2C08"/>
+  <rect x="251" y="62" width="82" height="10" rx="5" fill="#F59E0B" fill-opacity="0.7"/>
+  <!-- In Progress cards -->
+  <rect x="251" y="106" width="138" height="52" rx="10" fill="#18181B" stroke="#F59E0B" stroke-opacity="0.35" stroke-width="1.5"/>
+  <rect x="263" y="118" width="76" height="8" rx="4" fill="#78716C"/>
+  <rect x="263" y="133" width="96" height="7" rx="3.5" fill="#3D2C08"/>
+  <circle cx="371" cy="122" r="5" fill="#F59E0B"/>
+  <rect x="251" y="170" width="138" height="52" rx="10" fill="#18181B" stroke="#F59E0B" stroke-opacity="0.35" stroke-width="1.5"/>
+  <rect x="263" y="182" width="92" height="8" rx="4" fill="#78716C"/>
+  <rect x="263" y="197" width="64" height="7" rx="3.5" fill="#3D2C08"/>
+  <circle cx="371" cy="186" r="5" fill="#F59E0B"/>
+  <!-- Column 3: Done -->
+  <rect x="426" y="48" width="170" height="270" rx="14" fill="#091811"/>
+  <rect x="426" y="48" width="170" height="42" rx="14" fill="#14522C"/>
+  <rect x="426" y="76" width="170" height="14" fill="#14522C"/>
+  <rect x="442" y="62" width="46" height="10" rx="5" fill="#22C55E" fill-opacity="0.7"/>
+  <!-- Done cards -->
+  <rect x="442" y="106" width="138" height="52" rx="10" fill="#18181B" stroke="#22C55E" stroke-opacity="0.35" stroke-width="1.5"/>
+  <rect x="454" y="118" width="88" height="8" rx="4" fill="#166534"/>
+  <rect x="454" y="133" width="64" height="7" rx="3.5" fill="#14522C"/>
+  <circle cx="562" cy="118" r="7" fill="#22C55E" fill-opacity="0.15" stroke="#22C55E" stroke-width="1.5" stroke-opacity="0.6"/>
+  <path d="M559 118L561.5 120.5L566 116" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="442" y="170" width="138" height="52" rx="10" fill="#18181B" stroke="#22C55E" stroke-opacity="0.35" stroke-width="1.5"/>
+  <rect x="454" y="182" width="104" height="8" rx="4" fill="#166534"/>
+  <rect x="454" y="197" width="56" height="7" rx="3.5" fill="#14522C"/>
+  <circle cx="562" cy="182" r="7" fill="#22C55E" fill-opacity="0.15" stroke="#22C55E" stroke-width="1.5" stroke-opacity="0.6"/>
+  <path d="M559 182L561.5 184.5L566 180" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="442" y="234" width="138" height="52" rx="10" fill="#18181B" stroke="#22C55E" stroke-opacity="0.35" stroke-width="1.5"/>
+  <rect x="454" y="246" width="76" height="8" rx="4" fill="#166534"/>
+  <rect x="454" y="261" width="88" height="7" rx="3.5" fill="#14522C"/>
+  <circle cx="562" cy="246" r="7" fill="#22C55E" fill-opacity="0.15" stroke="#22C55E" stroke-width="1.5" stroke-opacity="0.6"/>
+  <path d="M559 246L561.5 248.5L566 244" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

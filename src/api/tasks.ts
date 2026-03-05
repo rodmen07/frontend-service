@@ -116,10 +116,18 @@ export async function updateTaskStatus(id: number, status: TaskStatus): Promise<
   })
 }
 
-export async function planTasksFromGoal(goal: string): Promise<PlanResponse> {
+export async function planTasksFromGoal(
+  goal: string,
+  feedback?: string,
+  targetCount?: number,
+): Promise<PlanResponse> {
   return request<PlanResponse>('/api/v1/tasks/plan', {
     method: 'POST',
-    body: JSON.stringify({ goal }),
+    body: JSON.stringify({
+      goal,
+      ...(feedback?.trim() ? { feedback: feedback.trim() } : {}),
+      ...(targetCount !== undefined ? { target_count: targetCount } : {}),
+    }),
   })
 }
 

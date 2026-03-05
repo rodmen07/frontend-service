@@ -117,6 +117,8 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
   const [plannedTasks, setPlannedTasks] = useState<string[]>([])
   const [planning, setPlanning] = useState(false)
   const [plannedTaskDifficulty, setPlannedTaskDifficulty] = useState(2)
+  const [plannedTaskCount, setPlannedTaskCount] = useState(7)
+  const [plannedTaskFeedback, setPlannedTaskFeedback] = useState('')
   const [creatingPlanTasks, setCreatingPlanTasks] = useState(false)
   const [deletingAllTasks, setDeletingAllTasks] = useState(false)
   const [plannerStatus, setPlannerStatus] = useState<PlannerStatus>(INITIAL_PLANNER_STATUS)
@@ -331,7 +333,7 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     setPlannerStatus({ tone: 'info', message: 'Generating task plan…' })
 
     try {
-      const plan = await planTasksFromGoal(goal)
+      const plan = await planTasksFromGoal(goal, plannedTaskFeedback, plannedTaskCount)
       const generated = normalizePlanTasks(
         Array.isArray(plan.tasks) ? plan.tasks : [],
       )
@@ -467,10 +469,54 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
 
     setPlannedTasks([])
     setGoalInput('')
+    setPlannedTaskFeedback('')
     setPlannerStatus({
       tone: 'info',
       message: 'Plan reset. Enter a new goal when ready.',
     })
+  }
+
+  const handleRemovePlannedTask = (index: number) => {
+    setPlannedTasks((current) => current.filter((_, i) => i !== index))
+  }
+
+  const handleRegeneratePlan = async () => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to generate plans')
+      return
+    }
+
+    const goal = goalInput.trim()
+    if (!goal) {
+      setTaskError('A short-term goal is required')
+      return
+    }
+
+    setPlanning(true)
+    setTaskError('')
+    setPlannerStatus({ tone: 'info', message: 'Regenerating task plan with feedback…' })
+
+    try {
+      const plan = await planTasksFromGoal(goal, plannedTaskFeedback, plannedTaskCount)
+      const generated = normalizePlanTasks(Array.isArray(plan.tasks) ? plan.tasks : [])
+      setPlannedTasks(generated)
+      setPlannedTaskFeedback('')
+
+      if (generated.length > 0) {
+        setPlannerStatus({
+          tone: 'success',
+          message: `Regenerated ${generated.length} task${generated.length === 1 ? '' : 's'} with your feedback.`,
+        })
+      } else {
+        setPlannerStatus({ tone: 'warning', message: 'No tasks were generated. Try a more specific goal or feedback.' })
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to regenerate plan'
+      setTaskError(message)
+      setPlannerStatus({ tone: 'warning', message: 'Planner is temporarily unavailable. Please try again shortly.' })
+    } finally {
+      setPlanning(false)
+    }
   }
 
   const handleClearPlanTasks = async (goal: string) => {
@@ -641,6 +687,8 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     workingTaskId,
     goalInput,
     plannedTaskDifficulty,
+    plannedTaskCount,
+    plannedTaskFeedback,
     plannedTasks,
     planning,
     creatingPlanTasks,
@@ -655,6 +703,8 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     setTaskGoal,
     setGoalInput,
     setPlannedTaskDifficulty,
+    setPlannedTaskCount,
+    setPlannedTaskFeedback,
     loadTasks,
     handleCreateTask,
     handleSetTaskDifficulty,
@@ -665,6 +715,8 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     handleGeneratePlan,
     handleCreatePlannedTasks,
     handleResetGeneratedPlan,
+    handleRemovePlannedTask,
+    handleRegeneratePlan,
     handleClearPlanTasks,
   }
 }

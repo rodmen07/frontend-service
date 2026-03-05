@@ -10,7 +10,7 @@
     {
       "heading": "Goal-based organisation",
       "body": "Group tasks under goals and watch per-goal progress bars fill in real time. Clear AI-generated tasks for a goal with one click when priorities shift.",
-      "image": "/uploads/focus-rail.svg"
+      "image": "/uploads/goal-progress.svg"
     },
     {
       "heading": "Story points & tiers",
@@ -21,7 +21,7 @@
     {
       "heading": "Board and list views",
       "body": "Switch between a drag-and-drop Kanban board and a filterable list view. Status changes sync instantly with no page reload needed.",
-      "image": "/uploads/focus-rail.svg"
+      "image": "/uploads/board-columns.svg"
     }
   ]
 }

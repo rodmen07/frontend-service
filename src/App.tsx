@@ -67,6 +67,8 @@ function App() {
     workingTaskId,
     goalInput,
     plannedTaskDifficulty,
+    plannedTaskCount,
+    plannedTaskFeedback,
     plannedTasks,
     planning,
     creatingPlanTasks,
@@ -81,6 +83,8 @@ function App() {
     setTaskGoal,
     setGoalInput,
     setPlannedTaskDifficulty,
+    setPlannedTaskCount,
+    setPlannedTaskFeedback,
     loadTasks,
     handleCreateTask,
     handleSetTaskDifficulty,
@@ -91,6 +95,8 @@ function App() {
     handleGeneratePlan,
     handleCreatePlannedTasks,
     handleResetGeneratedPlan,
+    handleRemovePlannedTask,
+    handleRegeneratePlan,
     handleClearPlanTasks,
   } = useTaskManager(isAuthenticated, session?.subject ?? null)
 
@@ -210,6 +216,8 @@ function App() {
                 taskError={taskError}
                 goalInput={goalInput}
                 plannedTaskDifficulty={plannedTaskDifficulty}
+                plannedTaskCount={plannedTaskCount}
+                plannedTaskFeedback={plannedTaskFeedback}
                 planning={planning}
                 creatingPlanTasks={creatingPlanTasks}
                 deletingAllTasks={deletingAllTasks}
@@ -225,7 +233,11 @@ function App() {
                 onRefresh={loadTasks}
                 onGoalInputChange={setGoalInput}
                 onPlannedTaskDifficultyChange={setPlannedTaskDifficulty}
+                onPlannedTaskCountChange={setPlannedTaskCount}
+                onPlannedTaskFeedbackChange={setPlannedTaskFeedback}
                 onGeneratePlan={handleGeneratePlan}
+                onRegeneratePlan={handleRegeneratePlan}
+                onRemovePlannedTask={handleRemovePlannedTask}
                 onCreatePlannedTasks={handleCreatePlannedTasks}
                 onTaskTitleChange={setTaskTitle}
                 onTaskDifficultyChange={setTaskDifficulty}
