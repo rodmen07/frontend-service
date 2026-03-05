@@ -1,76 +1,142 @@
 {
   "items": [
     {
-      "title": "Kanban board view",
-      "description": "Drag-and-drop task management with To Do / In Progress / Done columns.",
+      "title": "Kanban board with drag-and-drop",
+      "description": "Drag-and-drop task management with To Do / In Progress / Done columns and visual drop targets.",
       "status": "shipped",
       "category": "Core"
     },
     {
       "title": "AI-assisted goal planning",
-      "description": "Generate focused task breakdowns from plain-text goals using Claude AI with iterative refinement.",
+      "description": "Generate focused task breakdowns from plain-text goals using Claude AI with iterative refinement and feedback loops.",
       "status": "shipped",
       "category": "AI"
     },
     {
       "title": "Story points & writing tiers",
-      "description": "Gamification layer: earn points on task completion and climb from Poem to Epic.",
+      "description": "Gamification layer: earn points on task completion and climb from Poem to Epic across five writing tiers.",
       "status": "shipped",
       "category": "Gamification"
     },
     {
       "title": "Admin dashboard & audit log",
-      "description": "Platform-wide metrics, request logs, and user activity tracking for admins.",
+      "description": "Platform-wide metrics, paginated request logs, and per-user activity tracking for admin accounts.",
       "status": "shipped",
       "category": "Admin"
     },
     {
       "title": "Sub-page routing",
-      "description": "Dedicated pages for the tier ladder reference and the full feature guide.",
+      "description": "Dedicated pages for the tier ladder, full feature guide, system architecture, and API reference.",
       "status": "shipped",
       "category": "Core"
     },
     {
-      "title": "Accounts integration",
-      "description": "Link tasks to user profiles with preferences and cross-service identity.",
+      "title": "Inline task editing",
+      "description": "Double-click any Kanban card title to edit it in place. Saves on Enter or blur; Esc cancels without committing.",
+      "status": "shipped",
+      "category": "Core"
+    },
+    {
+      "title": "Task due dates",
+      "description": "Optional due date per task stored in the backend. Overdue tasks surface a red warning badge on the Kanban card.",
+      "status": "shipped",
+      "category": "Core"
+    },
+    {
+      "title": "Bulk task operations",
+      "description": "Select mode in list view lets you pick multiple tasks and complete or delete them all in one action.",
+      "status": "shipped",
+      "category": "Core"
+    },
+    {
+      "title": "CSV export",
+      "description": "One-click client-side export of all tasks to a dated CSV file including title, goal, status, difficulty, and due date.",
+      "status": "shipped",
+      "category": "Core"
+    },
+    {
+      "title": "Celebration animations",
+      "description": "Canvas particle burst on task completion and tier-up events. Goal completion triggers a named celebration message.",
+      "status": "shipped",
+      "category": "Gamification"
+    },
+    {
+      "title": "Collapsible sections & filter chips",
+      "description": "Tech Summary domain cards collapse individually. Roadmap and Integrations sections have live status and category filters.",
+      "status": "shipped",
+      "category": "UX"
+    },
+    {
+      "title": "Accounts service",
+      "description": "Persistent user profiles, display names, preferences, and cross-service identity backed by a dedicated Rust service.",
       "status": "in-progress",
       "category": "Integrations"
     },
     {
-      "title": "Contacts & opportunities linking",
-      "description": "Associate tasks directly with CRM contacts and open opportunities.",
+      "title": "Contacts service",
+      "description": "CRM contact records that can be associated with tasks and goals, enabling person-level execution tracking.",
       "status": "in-progress",
       "category": "Integrations"
     },
     {
-      "title": "Activity feed",
-      "description": "Real-time feed of task completions, plan creations, and tier progressions.",
+      "title": "Task comments & notes",
+      "description": "Add freeform notes or threaded comments to individual tasks for context, blockers, and progress updates.",
       "status": "planned",
       "category": "Core"
     },
     {
+      "title": "Recurring tasks",
+      "description": "Define a repeat cadence (daily, weekly, monthly) for tasks that regenerate automatically on completion.",
+      "status": "planned",
+      "category": "Core"
+    },
+    {
+      "title": "Sprint planning mode",
+      "description": "Group tasks into time-boxed sprints with a capacity target in story points. Track burndown in real time.",
+      "status": "planned",
+      "category": "Planning"
+    },
+    {
+      "title": "Task dependencies",
+      "description": "Mark one task as blocked by another. Blocked tasks surface a visual indicator and cannot move to Done until resolved.",
+      "status": "planned",
+      "category": "Planning"
+    },
+    {
+      "title": "Opportunities service",
+      "description": "Sales pipeline with stage-level task tracking. Link tasks to open opportunities and track execution against deal progress.",
+      "status": "planned",
+      "category": "Integrations"
+    },
+    {
+      "title": "Activity feed",
+      "description": "Real-time timeline of task completions, plan creations, tier progressions, and linked CRM events across all services.",
+      "status": "planned",
+      "category": "Core"
+    },
+    {
+      "title": "Full keyboard navigation",
+      "description": "Global shortcuts for jumping to sections, opening the planner, focusing search, and performing common task actions.",
+      "status": "planned",
+      "category": "UX"
+    },
+    {
       "title": "Automation rules",
-      "description": "Trigger task creation and status transitions from external events.",
+      "description": "Event-driven rules that trigger task creation or status transitions from external webhooks and service events.",
       "status": "planned",
       "category": "Automation"
     },
     {
       "title": "Cross-service search",
-      "description": "Full-text search across tasks, goals, and linked CRM records via the search service.",
+      "description": "Full-text search across tasks, goals, contacts, and opportunities via a dedicated search service with ranked results.",
       "status": "planned",
       "category": "Search"
     },
     {
       "title": "Reporting & velocity charts",
-      "description": "Export story point history, sprint velocity, and goal completion rates.",
+      "description": "Story point history, sprint velocity graphs, goal completion rates, and exportable reports via the reporting service.",
       "status": "planned",
       "category": "Reporting"
-    },
-    {
-      "title": "Keyboard shortcuts",
-      "description": "Full keyboard navigation for the task board, planner, and modals.",
-      "status": "planned",
-      "category": "Core"
     }
   ]
 }

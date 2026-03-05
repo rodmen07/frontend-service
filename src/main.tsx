@@ -2,6 +2,8 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
+import { ArchitecturePage } from './pages/ArchitecturePage'
+import { ApiReferencePage } from './pages/ApiReferencePage'
 import { GuidePage } from './pages/GuidePage'
 import { TiersPage } from './pages/TiersPage'
 
@@ -16,6 +18,8 @@ function Root() {
 
   if (hash === '#/tiers') return <TiersPage />
   if (hash === '#/guide') return <GuidePage />
+  if (hash === '#/architecture') return <ArchitecturePage />
+  if (hash === '#/api') return <ApiReferencePage />
   return <App />
 }
 

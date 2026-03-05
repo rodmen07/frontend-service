@@ -188,6 +188,8 @@ function App() {
     items.push({ id: 'shortcuts', label: 'Shortcuts' })
     items.push({ id: 'tech-summary', label: 'Tech Summary' })
     items.push({ id: 'faq', label: 'FAQ' })
+    items.push({ id: 'architecture-link', label: 'Architecture', isExternal: true, href: '#/architecture' })
+    items.push({ id: 'api-link', label: 'API Reference', isExternal: true, href: '#/api' })
 
     if (isAuthenticated && isAdmin) {
       items.push({ id: 'cms-link', label: 'Open CMS', isExternal: true, href: cmsHref })
