@@ -107,11 +107,12 @@ function App() {
       items.push({ id: 'admin-dashboard', label: 'Admin Dashboard' })
     }
 
-    items.push(
-      { id: 'task-manager', label: 'Task Manager' },
-      { id: 'faq', label: 'FAQ' },
-      { id: 'cms-link', label: 'Open CMS', isExternal: true, href: cmsHref },
-    )
+    items.push({ id: 'task-manager', label: 'Task Manager' })
+    items.push({ id: 'faq', label: 'FAQ' })
+
+    if (isAuthenticated && isAdmin) {
+      items.push({ id: 'cms-link', label: 'Open CMS', isExternal: true, href: cmsHref })
+    }
 
     return items
   }, [cmsHref, isAdmin, isAuthenticated])

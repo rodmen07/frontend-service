@@ -3,23 +3,33 @@
   "cards": [
     {
       "heading": "AI-assisted planning",
-      "body": "Generate practical short-term task plans from your goals in seconds.",
+      "body": "Generate practical short-term task plans from your goals in seconds. Review suggestions before committing — nothing is created until you confirm.",
       "image": "/uploads/planning-orb.svg"
     },
     {
       "heading": "Execution visibility",
-      "body": "Track completion progress, difficulty, and momentum from one workflow.",
+      "body": "Track completion progress, difficulty, and momentum across every goal from a single workflow.",
       "image": "/uploads/progress-grid.svg"
     },
     {
-      "heading": "Admin observability",
-      "body": "Review usage signals and activity with role-gated admin insights.",
-      "image": "/uploads/admin-insights.svg"
+      "heading": "Goal-based organisation",
+      "body": "Group tasks under goals and watch per-goal progress bars fill in real time. Clear AI-generated tasks for a goal with one click when priorities shift.",
+      "image": "/uploads/focus-rail.svg"
     },
     {
-      "heading": "Focused delivery flow",
-      "body": "Keep the current module in focus as you scroll through a vertical carousel-like workspace.",
+      "heading": "Story points & tiers",
+      "body": "Earn story points as you complete tasks. Difficulty multiplies your score. Climb from Poem to Epic as momentum builds across sessions.",
+      "image": "/uploads/progress-grid.svg"
+    },
+    {
+      "heading": "Board and list views",
+      "body": "Switch between a drag-and-drop Kanban board and a filterable list view. Status changes sync instantly with no page reload needed.",
       "image": "/uploads/focus-rail.svg"
+    },
+    {
+      "heading": "Admin observability",
+      "body": "Role-gated admin dashboard surfaces request logs, unique active users, and task metrics so you can understand usage at a glance.",
+      "image": "/uploads/admin-insights.svg"
     }
   ]
 }
