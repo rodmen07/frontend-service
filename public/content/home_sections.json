@@ -7,16 +7,6 @@
       "image": "/uploads/planning-orb.svg"
     },
     {
-      "heading": "Context-aware suggestions",
-      "body": "The AI planner reads your existing tasks before suggesting new ones, eliminating duplicates and incorporating context from other active goals.",
-      "image": "/uploads/planning-orb.svg"
-    },
-    {
-      "heading": "Execution visibility",
-      "body": "Track completion progress, difficulty, and momentum across every goal from a single workflow.",
-      "image": "/uploads/progress-grid.svg"
-    },
-    {
       "heading": "Goal-based organisation",
       "body": "Group tasks under goals and watch per-goal progress bars fill in real time. Clear AI-generated tasks for a goal with one click when priorities shift.",
       "image": "/uploads/focus-rail.svg"
@@ -30,21 +20,6 @@
       "heading": "Board and list views",
       "body": "Switch between a drag-and-drop Kanban board and a filterable list view. Status changes sync instantly with no page reload needed.",
       "image": "/uploads/focus-rail.svg"
-    },
-    {
-      "heading": "Secure by design",
-      "body": "JWT-based sessions with short-lived tokens, per-endpoint rate limiting, and prompt guardrails on every AI request keep the platform reliable and abuse-resistant.",
-      "image": "/uploads/admin-insights.svg"
-    },
-    {
-      "heading": "Multi-goal management",
-      "body": "Maintain multiple concurrent goals without losing track. Each goal has its own task set, progress bar, and AI context so nothing bleeds across projects.",
-      "image": "/uploads/focus-rail.svg"
-    },
-    {
-      "heading": "Admin observability",
-      "body": "Role-gated admin dashboard surfaces request logs, unique active users, and task metrics so you can understand usage at a glance.",
-      "image": "/uploads/admin-insights.svg"
     }
   ]
 }

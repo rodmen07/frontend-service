@@ -9,6 +9,8 @@ import { useScrollSpy } from './features/layout/useScrollSpy'
 import type { ScrollMenuItem } from './features/layout/useScrollSpy'
 import { FaqSection } from './features/site/FaqSection'
 import { HomeSections } from './features/site/HomeSections'
+import { HowItWorksSection } from './features/site/HowItWorksSection'
+import { QuickStartSection } from './features/site/QuickStartSection'
 import { SiteHeader } from './features/site/SiteHeader'
 import { useFaqContent } from './features/site/useFaqContent'
 import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
@@ -93,13 +95,18 @@ function App() {
   } = useTaskManager(isAuthenticated, session?.subject ?? null)
 
   const completedCount = useMemo(() => tasks.filter((task) => task.completed).length, [tasks])
+  const hasAnyTask = tasks.length > 0
+  const hasAiTask = tasks.some((t) => t.source === 'ai_generated')
+  const hasCompletedTask = tasks.some((t) => t.completed)
   const completionPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
   const pendingLabel = Math.max(tasks.length - completedCount, 0)
 
   const menuItems = useMemo<ScrollMenuItem[]>(() => {
     const items: ScrollMenuItem[] = [
       { id: 'hero', label: 'Overview' },
+      { id: 'quick-start', label: 'Quick Start' },
       { id: 'session', label: 'Session' },
+      { id: 'how-it-works', label: 'How It Works' },
       { id: 'sections', label: 'Highlights' },
     ]
 
@@ -144,6 +151,15 @@ function App() {
               <SiteHeader content={content} />
             </div>
 
+            <div id="quick-start" className={sectionStateClass('quick-start')}>
+              <QuickStartSection
+                isAuthenticated={isAuthenticated}
+                hasAnyTask={hasAnyTask}
+                hasAiTask={hasAiTask}
+                hasCompletedTask={hasCompletedTask}
+              />
+            </div>
+
             <div id="session" className={sectionStateClass('session')}>
               <SessionPanel
                 isAuthenticated={isAuthenticated}
@@ -159,6 +175,10 @@ function App() {
                 onCreateUsername={createUsername}
                 onSignOut={signOut}
               />
+            </div>
+
+            <div id="how-it-works" className={sectionStateClass('how-it-works')}>
+              <HowItWorksSection />
             </div>
 
             <div id="sections" className={sectionStateClass('sections')}>
