@@ -17,6 +17,7 @@ import { QuickStartSection } from './features/site/QuickStartSection'
 import { RoadmapSection } from './features/site/RoadmapSection'
 import { SiteHeader } from './features/site/SiteHeader'
 import { StatsSection } from './features/site/StatsSection'
+import { TechSummarySection } from './features/site/TechSummarySection'
 import { useChangelogContent } from './features/site/useChangelogContent'
 import { useFaqContent } from './features/site/useFaqContent'
 import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
@@ -119,9 +120,11 @@ function App() {
   const menuItems = useMemo<ScrollMenuItem[]>(() => {
     const items: ScrollMenuItem[] = [
       { id: 'hero', label: 'Overview' },
-      { id: 'quick-start', label: 'Quick Start' },
       { id: 'session', label: 'Session' },
+      { id: 'quick-start', label: 'Quick Start' },
       { id: 'how-it-works', label: 'How It Works' },
+      { id: 'task-manager', label: 'Task Manager' },
+      { id: 'stats', label: 'Stats' },
       { id: 'sections', label: 'Highlights' },
       { id: 'integrations', label: 'Integrations' },
       { id: 'roadmap', label: 'Roadmap' },
@@ -131,10 +134,9 @@ function App() {
       items.push({ id: 'admin-dashboard', label: 'Admin Dashboard' })
     }
 
-    items.push({ id: 'task-manager', label: 'Task Manager' })
-    items.push({ id: 'stats', label: 'Stats' })
     items.push({ id: 'changelog', label: 'Changelog' })
     items.push({ id: 'shortcuts', label: 'Shortcuts' })
+    items.push({ id: 'tech-summary', label: 'Tech Summary' })
     items.push({ id: 'faq', label: 'FAQ' })
 
     if (isAuthenticated && isAdmin) {
@@ -171,15 +173,6 @@ function App() {
               <SiteHeader content={content} />
             </div>
 
-            <div id="quick-start" className={sectionStateClass('quick-start')}>
-              <QuickStartSection
-                isAuthenticated={isAuthenticated}
-                hasAnyTask={hasAnyTask}
-                hasAiTask={hasAiTask}
-                hasCompletedTask={hasCompletedTask}
-              />
-            </div>
-
             <div id="session" className={sectionStateClass('session')}>
               <SessionPanel
                 isAuthenticated={isAuthenticated}
@@ -197,36 +190,18 @@ function App() {
               />
             </div>
 
+            <div id="quick-start" className={sectionStateClass('quick-start')}>
+              <QuickStartSection
+                isAuthenticated={isAuthenticated}
+                hasAnyTask={hasAnyTask}
+                hasAiTask={hasAiTask}
+                hasCompletedTask={hasCompletedTask}
+              />
+            </div>
+
             <div id="how-it-works" className={sectionStateClass('how-it-works')}>
               <HowItWorksSection />
             </div>
-
-            <div id="sections" className={sectionStateClass('sections')}>
-              <HomeSections content={homeSections} />
-            </div>
-
-            <div id="integrations" className={sectionStateClass('integrations')}>
-              <IntegrationsSection />
-            </div>
-
-            <div id="roadmap" className={sectionStateClass('roadmap')}>
-              <RoadmapSection content={roadmapContent} />
-            </div>
-
-            {isAuthenticated && isAdmin && (
-              <div id="admin-dashboard" className={sectionStateClass('admin-dashboard')}>
-                <AdminDashboardSection
-                  loading={adminLoading}
-                  error={adminError}
-                  metrics={metrics}
-                  requestLogs={requestLogs}
-                  userActivity={userActivity}
-                  onRefresh={() => {
-                    void loadAdminData()
-                  }}
-                />
-              </div>
-            )}
 
             <div id="task-manager" className={sectionStateClass('task-manager')}>
               <TaskManagerSection
@@ -286,12 +261,43 @@ function App() {
               />
             </div>
 
+            <div id="sections" className={sectionStateClass('sections')}>
+              <HomeSections content={homeSections} />
+            </div>
+
+            <div id="integrations" className={sectionStateClass('integrations')}>
+              <IntegrationsSection />
+            </div>
+
+            <div id="roadmap" className={sectionStateClass('roadmap')}>
+              <RoadmapSection content={roadmapContent} />
+            </div>
+
+            {isAuthenticated && isAdmin && (
+              <div id="admin-dashboard" className={sectionStateClass('admin-dashboard')}>
+                <AdminDashboardSection
+                  loading={adminLoading}
+                  error={adminError}
+                  metrics={metrics}
+                  requestLogs={requestLogs}
+                  userActivity={userActivity}
+                  onRefresh={() => {
+                    void loadAdminData()
+                  }}
+                />
+              </div>
+            )}
+
             <div id="changelog" className={sectionStateClass('changelog')}>
               <ChangelogSection content={changelogContent} />
             </div>
 
             <div id="shortcuts" className={sectionStateClass('shortcuts')}>
               <KeyboardShortcutsSection />
+            </div>
+
+            <div id="tech-summary" className={sectionStateClass('tech-summary')}>
+              <TechSummarySection />
             </div>
 
             <div id="faq" className={sectionStateClass('faq')}>
