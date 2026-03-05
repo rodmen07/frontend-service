@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AdminDashboardSection } from './features/admin/AdminDashboardSection'
 import { useAdminDashboard } from './features/admin/useAdminDashboard'
 import { SessionPanel } from './features/auth/SessionPanel'
@@ -7,6 +7,8 @@ import { ProgressHud } from './features/layout/ProgressHud'
 import { SideNav } from './features/layout/SideNav'
 import { useScrollSpy } from './features/layout/useScrollSpy'
 import type { ScrollMenuItem } from './features/layout/useScrollSpy'
+import { CelebrationOverlay } from './features/tasks/CelebrationOverlay'
+import { writingTierForPoints } from './features/tasks/useTaskManager'
 import { ChangelogSection } from './features/site/ChangelogSection'
 import { FaqSection } from './features/site/FaqSection'
 import { HomeSections } from './features/site/HomeSections'
@@ -108,7 +110,16 @@ function App() {
     handleRemovePlannedTask,
     handleRegeneratePlan,
     handleClearPlanTasks,
+    handleUpdateTaskTitle,
+    handleUpdateTaskDueDate,
   } = useTaskManager(isAuthenticated)
+
+  // Celebration state
+  const [celebrationTrigger, setCelebrationTrigger] = useState(0)
+  const [celebrationMessage, setCelebrationMessage] = useState('')
+  const prevStoryPointsRef = useRef<number | null>(null)
+  const prevTierRef = useRef<string | null>(null)
+  const prevGoalProgressRef = useRef<string>('')
 
   const completedCount = useMemo(() => tasks.filter((task) => task.completed).length, [tasks])
   const hasAnyTask = tasks.length > 0
@@ -116,6 +127,45 @@ function App() {
   const hasCompletedTask = tasks.some((t) => t.completed)
   const completionPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
   const pendingLabel = Math.max(tasks.length - completedCount, 0)
+
+  // Fire celebration when tier increases or a goal reaches 100%
+  useEffect(() => {
+    if (tasksLoading) {
+      // Initialize refs on first load without celebrating
+      prevStoryPointsRef.current = storyPoints
+      prevTierRef.current = writingTierForPoints(storyPoints)
+      prevGoalProgressRef.current = JSON.stringify(goalProgress)
+      return
+    }
+
+    const currentTier = writingTierForPoints(storyPoints)
+
+    if (prevTierRef.current !== null && prevTierRef.current !== currentTier) {
+      setCelebrationMessage(`Tier up! You reached ${currentTier}!`)
+      setCelebrationTrigger((n) => n + 1)
+    } else if (prevStoryPointsRef.current !== null && storyPoints > prevStoryPointsRef.current) {
+      // Points increased but no tier change — still celebrate task completion
+      setCelebrationMessage('')
+      setCelebrationTrigger((n) => n + 1)
+    }
+
+    // Check for newly completed goals (100%)
+    const prevGoals: typeof goalProgress = JSON.parse(prevGoalProgressRef.current || '[]')
+    for (const current of goalProgress) {
+      if (current.total > 0 && current.completed === current.total) {
+        const prev = prevGoals.find((g) => g.goal === current.goal)
+        if (!prev || prev.completed < prev.total) {
+          setCelebrationMessage(`Goal complete: "${current.goal}"`)
+          setCelebrationTrigger((n) => n + 1)
+          break
+        }
+      }
+    }
+
+    prevStoryPointsRef.current = storyPoints
+    prevTierRef.current = currentTier
+    prevGoalProgressRef.current = JSON.stringify(goalProgress)
+  }, [storyPoints, goalProgress, tasksLoading])
 
   const menuItems = useMemo<ScrollMenuItem[]>(() => {
     const items: ScrollMenuItem[] = [
@@ -149,6 +199,8 @@ function App() {
   const { activeSectionId, sectionStateClass, handleMenuJump } = useScrollSpy(menuItems)
 
   return (
+    <>
+    <CelebrationOverlay trigger={celebrationTrigger} message={celebrationMessage} />
     <main className="forge-grid relative min-h-screen bg-zinc-950 px-2 py-6 text-zinc-100 sm:px-4 sm:py-8 lg:px-8 xl:px-10 2xl:px-14">
       <div className="pointer-events-none absolute inset-0 overflow-clip">
         <div className="absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-amber-500/20 blur-3xl" />
@@ -247,6 +299,8 @@ function App() {
                 onUpdateTaskStatus={handleUpdateTaskStatus}
                 onResetGeneratedPlan={handleResetGeneratedPlan}
                 onClearPlanTasks={handleClearPlanTasks}
+                onUpdateTaskTitle={handleUpdateTaskTitle}
+                onUpdateTaskDueDate={handleUpdateTaskDueDate}
               />
             </div>
 
@@ -319,6 +373,7 @@ function App() {
         )}
       </div>
     </main>
+    </>
   )
 }
 

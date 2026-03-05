@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useCallback, useState, type FormEvent } from 'react'
 import type { PlannerTone, Task, TaskStatus } from '../../types'
 import type { GoalProgress, PlannerStatus, WritingTier } from './useTaskManager'
 import { writingTierForPoints, WRITING_TIER_ORDER } from './useTaskManager'
@@ -66,9 +66,11 @@ interface TaskManagerSectionProps {
   onUpdateTaskStatus: (task: Task, status: TaskStatus) => Promise<void>
   onResetGeneratedPlan: () => void
   onClearPlanTasks: (goal: string) => Promise<void>
+  onUpdateTaskTitle: (task: Task, title: string) => Promise<void>
+  onUpdateTaskDueDate: (task: Task, due_date: string | null) => Promise<void>
 }
 
-type ConfirmAction = 'delete-all' | 'reset-generated' | null
+type ConfirmAction = 'delete-all' | 'reset-generated' | 'bulk-delete' | null
 type TaskVisibilityFilter = 'all' | 'active' | 'completed'
 type TaskSortMode = 'newest' | 'oldest' | 'difficulty-desc' | 'difficulty-asc'
 type TaskViewMode = 'kanban' | 'list'
@@ -127,12 +129,44 @@ export function TaskManagerSection({
   onUpdateTaskStatus,
   onResetGeneratedPlan,
   onClearPlanTasks,
+  onUpdateTaskTitle,
+  onUpdateTaskDueDate,
 }: TaskManagerSectionProps) {
+  const exportTasksAsCsv = useCallback(() => {
+    const header = ['ID', 'Title', 'Goal', 'Status', 'Difficulty', 'Source', 'Completed', 'Due Date']
+    const escape = (v: string | number | boolean | null | undefined) => {
+      const str = v == null ? '' : String(v)
+      return str.includes(',') || str.includes('"') || str.includes('\n')
+        ? `"${str.replace(/"/g, '""')}"`
+        : str
+    }
+    const rows = tasks.map((t) => [
+      t.id,
+      t.title,
+      t.goal ?? '',
+      t.status,
+      t.difficulty,
+      t.source,
+      t.completed,
+      t.due_date ?? '',
+    ].map(escape).join(','))
+    const csv = [header.join(','), ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tasks-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [tasks])
+
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [taskSearch, setTaskSearch] = useState('')
   const [visibilityFilter, setVisibilityFilter] = useState<TaskVisibilityFilter>('all')
   const [sortMode, setSortMode] = useState<TaskSortMode>('newest')
   const [viewMode, setViewMode] = useState<TaskViewMode>('kanban')
+  const [bulkMode, setBulkMode] = useState(false)
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set())
   const canResetGeneratedPlan = plannedTasks.length > 0 || goalInput.trim().length > 0
 
   const confirmDialog = useMemo(() => {
@@ -152,8 +186,16 @@ export function TaskManagerSection({
       }
     }
 
+    if (confirmAction === 'bulk-delete') {
+      return {
+        title: `Delete ${selectedTaskIds.size} selected task${selectedTaskIds.size === 1 ? '' : 's'}?`,
+        message: 'This action cannot be undone.',
+        confirmLabel: 'Delete Selected',
+      }
+    }
+
     return null
-  }, [confirmAction, deletingAllTasks, tasks.length])
+  }, [confirmAction, deletingAllTasks, selectedTaskIds.size, tasks.length])
 
   const closeConfirmDialog = () => {
     if (deletingAllTasks) {
@@ -171,6 +213,18 @@ export function TaskManagerSection({
 
     if (confirmAction === 'reset-generated') {
       onResetGeneratedPlan()
+      setConfirmAction(null)
+    }
+
+    if (confirmAction === 'bulk-delete') {
+      await Promise.all(
+        [...selectedTaskIds].map((id) => {
+          const task = tasks.find((t) => t.id === id)
+          return task ? onDeleteTask(task) : Promise.resolve()
+        }),
+      )
+      setSelectedTaskIds(new Set())
+      setBulkMode(false)
       setConfirmAction(null)
     }
   }
@@ -479,29 +533,44 @@ export function TaskManagerSection({
 
       {/* ── View mode toggle + destructive actions ── */}
       <div className="mb-4 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-1 rounded-xl border border-zinc-500/30 bg-zinc-800/50 p-1 w-fit">
-        <button
-          type="button"
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-            viewMode === 'kanban'
-              ? 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
-              : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-          }`}
-          onClick={() => setViewMode('kanban')}
-        >
-          Board
-        </button>
-        <button
-          type="button"
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-            viewMode === 'list'
-              ? 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
-              : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-          }`}
-          onClick={() => setViewMode('list')}
-        >
-          List
-        </button>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 rounded-xl border border-zinc-500/30 bg-zinc-800/50 p-1 w-fit">
+          <button
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              viewMode === 'kanban'
+                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
+                : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+            }`}
+            onClick={() => { setViewMode('kanban'); setBulkMode(false); setSelectedTaskIds(new Set()) }}
+          >
+            Board
+          </button>
+          <button
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              viewMode === 'list'
+                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/30'
+                : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+            }`}
+            onClick={() => setViewMode('list')}
+          >
+            List
+          </button>
+        </div>
+        {viewMode === 'list' && tasks.length > 0 && (
+          <button
+            type="button"
+            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+              bulkMode
+                ? 'border-amber-400/40 bg-amber-500/15 text-amber-300'
+                : 'border-zinc-600/40 bg-zinc-800/50 text-zinc-400 hover:text-zinc-200'
+            }`}
+            onClick={() => { setBulkMode((v) => !v); setSelectedTaskIds(new Set()) }}
+          >
+            {bulkMode ? 'Cancel select' : 'Select'}
+          </button>
+        )}
       </div>
 
         {tasks.length > 0 && (
@@ -528,6 +597,8 @@ export function TaskManagerSection({
               disabled={authLocked}
               onStatusChange={(task, status) => { void onUpdateTaskStatus(task, status) }}
               onDelete={(task) => { void onDeleteTask(task) }}
+              onTitleSave={(task, title) => { void onUpdateTaskTitle(task, title) }}
+              onDueDateChange={(task, due_date) => { void onUpdateTaskDueDate(task, due_date) }}
             />
           )
         ) : (
@@ -566,9 +637,63 @@ export function TaskManagerSection({
               </select>
             </div>
 
-            <p className="mb-3 text-xs text-zinc-400">
-              Showing {visibleTasks.length} of {tasks.length} tasks
-            </p>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="text-xs text-zinc-400">
+                Showing {visibleTasks.length} of {tasks.length} tasks
+              </p>
+              {tasks.length > 0 && (
+                <button
+                  type="button"
+                  className="rounded-lg border border-zinc-600/40 bg-zinc-800/50 px-2.5 py-1 text-xs font-semibold text-zinc-400 transition hover:text-zinc-200"
+                  onClick={exportTasksAsCsv}
+                  title="Export as CSV"
+                >
+                  Export CSV
+                </button>
+              )}
+            </div>
+
+            {/* Bulk action bar */}
+            {bulkMode && (
+              <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/20 bg-zinc-800/70 px-3 py-2">
+                <span className="text-xs text-zinc-400">{selectedTaskIds.size} selected</span>
+                <button
+                  type="button"
+                  className="rounded-lg border border-zinc-600/40 bg-zinc-800 px-2.5 py-1 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-700"
+                  onClick={() => {
+                    const allIds = new Set(visibleTasks.map((t) => t.id))
+                    setSelectedTaskIds(selectedTaskIds.size === visibleTasks.length ? new Set() : allIds)
+                  }}
+                >
+                  {selectedTaskIds.size === visibleTasks.length ? 'Deselect all' : 'Select all'}
+                </button>
+                {selectedTaskIds.size > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
+                      onClick={() => {
+                        void Promise.all(
+                          [...selectedTaskIds]
+                            .map((id) => tasks.find((t) => t.id === id))
+                            .filter((t) => t && !t.completed)
+                            .map((t) => t && onToggleTask(t)),
+                        ).then(() => { setSelectedTaskIds(new Set()); setBulkMode(false) })
+                      }}
+                    >
+                      Complete selected
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-300 transition hover:bg-red-500/20"
+                      onClick={() => setConfirmAction('bulk-delete')}
+                    >
+                      Delete selected
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
 
             {tasksLoading ? (
               <p className="text-sm text-zinc-300">Loading tasks…</p>
@@ -580,20 +705,50 @@ export function TaskManagerSection({
               <ul className="space-y-2">
                 {visibleTasks.map((task, index) => {
                   const isWorking = workingTaskId === task.id
+                  const isSelected = selectedTaskIds.has(task.id)
                   return (
                     <li
                       key={task.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-zinc-500/35 bg-zinc-900/70 p-3"
+                      className={`flex items-center justify-between gap-3 rounded-xl border bg-zinc-900/70 p-3 transition ${
+                        bulkMode && isSelected
+                          ? 'border-amber-400/40 bg-amber-500/5'
+                          : 'border-zinc-500/35'
+                      }`}
+                      onClick={bulkMode ? () => {
+                        setSelectedTaskIds((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(task.id)) next.delete(task.id)
+                          else next.add(task.id)
+                          return next
+                        })
+                      } : undefined}
+                      style={bulkMode ? { cursor: 'pointer' } : undefined}
                     >
-                      <label className="flex min-w-0 items-center gap-3 text-sm text-zinc-100">
-                        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-400/40 bg-zinc-800/80 text-xs font-semibold text-zinc-200">
-                          {index + 1}
-                        </span>
+                      <label className="flex min-w-0 items-center gap-3 text-sm text-zinc-100" onClick={bulkMode ? (e) => e.preventDefault() : undefined}>
+                        {bulkMode ? (
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 shrink-0 accent-amber-500"
+                            checked={isSelected}
+                            onChange={() => {
+                              setSelectedTaskIds((prev) => {
+                                const next = new Set(prev)
+                                if (next.has(task.id)) next.delete(task.id)
+                                else next.add(task.id)
+                                return next
+                              })
+                            }}
+                          />
+                        ) : (
+                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-400/40 bg-zinc-800/80 text-xs font-semibold text-zinc-200">
+                            {index + 1}
+                          </span>
+                        )}
                         <input
                           type="checkbox"
                           className="h-4 w-4 shrink-0"
                           checked={task.completed}
-                          disabled={authLocked || isWorking}
+                          disabled={authLocked || isWorking || bulkMode}
                           onChange={() => { void onToggleTask(task) }}
                         />
                         <span className={`truncate ${task.completed ? 'line-through text-zinc-500' : ''}`}>

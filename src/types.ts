@@ -69,6 +69,7 @@ export interface Task {
   goal: string | null
   status: TaskStatus
   source: string
+  due_date: string | null
 }
 
 export interface GoalPlan {

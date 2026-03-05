@@ -508,6 +508,44 @@ export function useTaskManager(isAuthenticated: boolean) {
     }
   }
 
+  const handleUpdateTaskDueDate = async (task: Task, due_date: string | null) => {
+    if (!isAuthenticated) return
+
+    setWorkingTaskId(task.id)
+    setTaskError('')
+
+    try {
+      const updatedTask = await updateTask(task.id, { due_date: due_date ?? '' })
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? updatedTask : item)),
+      )
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to update due date')
+    } finally {
+      setWorkingTaskId(null)
+    }
+  }
+
+  const handleUpdateTaskTitle = async (task: Task, title: string) => {
+    if (!isAuthenticated) return
+    const trimmed = title.trim()
+    if (!trimmed || trimmed === task.title) return
+
+    setWorkingTaskId(task.id)
+    setTaskError('')
+
+    try {
+      const updatedTask = await updateTask(task.id, { title: trimmed })
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? updatedTask : item)),
+      )
+    } catch (error) {
+      setTaskError(error instanceof Error ? error.message : 'Failed to update task title')
+    } finally {
+      setWorkingTaskId(null)
+    }
+  }
+
   const handleUpdateTaskStatus = async (task: Task, status: TaskStatus) => {
     if (!isAuthenticated) {
       setTaskError('Sign in is required to update task status')
@@ -571,5 +609,7 @@ export function useTaskManager(isAuthenticated: boolean) {
     handleRemovePlannedTask,
     handleRegeneratePlan,
     handleClearPlanTasks,
+    handleUpdateTaskTitle,
+    handleUpdateTaskDueDate,
   }
 }

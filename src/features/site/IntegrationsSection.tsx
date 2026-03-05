@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 type IntegrationStatus = 'live' | 'in-development' | 'coming-soon'
 
 interface Integration {
@@ -103,10 +105,20 @@ const CATEGORY_CLASS: Record<string, string> = {
   Connectors: 'text-zinc-400/70',
 }
 
+type FilterStatus = IntegrationStatus | 'all'
+
 export function IntegrationsSection() {
+  const [activeStatus, setActiveStatus] = useState<FilterStatus>('all')
+
+  const statusFilters: FilterStatus[] = ['all', 'live', 'in-development', 'coming-soon']
+
+  const filtered = activeStatus === 'all'
+    ? INTEGRATIONS
+    : INTEGRATIONS.filter((i) => i.status === activeStatus)
+
   return (
     <section className="forge-panel rounded-3xl border border-zinc-500/30 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
-      <div className="mb-6 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-white">Integrations</h2>
           <p className="mt-1 text-sm text-zinc-400">
@@ -129,8 +141,26 @@ export function IntegrationsSection() {
         </div>
       </div>
 
+      {/* Status filter chips */}
+      <div className="mb-5 flex flex-wrap gap-1.5">
+        {statusFilters.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setActiveStatus(s)}
+            className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+              activeStatus === s
+                ? 'border-amber-400/50 bg-amber-500/15 text-amber-300'
+                : 'border-zinc-700/40 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600/50 hover:text-zinc-300'
+            }`}
+          >
+            {s === 'all' ? `All (${INTEGRATIONS.length})` : STATUS_LABEL[s as IntegrationStatus]}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {INTEGRATIONS.map((integration) => (
+        {filtered.map((integration) => (
           <div
             key={integration.slug}
             className={`rounded-xl border border-zinc-700/40 bg-zinc-800/50 p-4 transition hover:border-zinc-600/50 ${

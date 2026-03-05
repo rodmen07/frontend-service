@@ -25,10 +25,14 @@ interface KanbanCardProps {
   disabled: boolean
   onDelete: (task: Task) => void
   onStatusChange: (task: Task, status: TaskStatus) => void
+  onTitleSave: (task: Task, title: string) => void
+  onDueDateChange: (task: Task, due_date: string | null) => void
 }
 
-export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange }: KanbanCardProps) {
+export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange, onTitleSave, onDueDateChange }: KanbanCardProps) {
   const [isDragging, setIsDragging] = useState(false)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState(task.title)
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     event.dataTransfer.setData('text/plain', String(task.id))
@@ -42,6 +46,9 @@ export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange
 
   const difficultyLabel = DIFFICULTY_LABELS[task.difficulty] ?? `Lvl ${task.difficulty}`
   const difficultyColor = DIFFICULTY_COLORS[task.difficulty] ?? DIFFICULTY_COLORS[1]
+
+  const today = new Date().toISOString().slice(0, 10)
+  const isOverdue = task.due_date && task.due_date < today && task.status !== 'done'
 
   const statusOptions: { value: TaskStatus; label: string }[] = [
     { value: 'todo', label: 'To Do' },
@@ -63,9 +70,41 @@ export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange
       }`}
     >
       {/* Title */}
-      <p className={`text-sm font-medium leading-snug ${task.status === 'done' ? 'text-zinc-500 line-through' : 'text-zinc-100'}`}>
-        {task.title}
-      </p>
+      {editingTitle ? (
+        <input
+          autoFocus
+          className="w-full rounded border border-amber-400/50 bg-zinc-800 px-1.5 py-0.5 text-sm font-medium text-zinc-100 outline-none ring-1 ring-amber-400/30"
+          value={titleDraft}
+          onChange={(e) => setTitleDraft(e.target.value)}
+          onBlur={() => {
+            onTitleSave(task, titleDraft)
+            setEditingTitle(false)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              onTitleSave(task, titleDraft)
+              setEditingTitle(false)
+            } else if (e.key === 'Escape') {
+              setTitleDraft(task.title)
+              setEditingTitle(false)
+            }
+          }}
+          maxLength={120}
+        />
+      ) : (
+        <p
+          className={`text-sm font-medium leading-snug ${task.status === 'done' ? 'text-zinc-500 line-through' : 'text-zinc-100'} ${!disabled && !isWorking ? 'cursor-text' : ''}`}
+          onDoubleClick={() => {
+            if (!disabled && !isWorking) {
+              setTitleDraft(task.title)
+              setEditingTitle(true)
+            }
+          }}
+          title={!disabled && !isWorking ? 'Double-click to edit' : undefined}
+        >
+          {task.title}
+        </p>
+      )}
 
       {/* Meta row */}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -82,6 +121,15 @@ export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange
             {task.goal}
           </span>
         )}
+        {task.due_date && (
+          <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${
+            isOverdue
+              ? 'border-rose-400/40 bg-rose-500/10 text-rose-300'
+              : 'border-zinc-600/40 bg-zinc-700/30 text-zinc-400'
+          }`}>
+            {isOverdue ? '⚠ ' : ''}{task.due_date}
+          </span>
+        )}
         <span className="ml-auto text-[10px] text-zinc-500">
           +{task.difficulty} SP
         </span>
@@ -89,6 +137,15 @@ export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange
 
       {/* Actions row — visible on hover */}
       <div className="mt-2 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+        <input
+          type="date"
+          className="rounded border border-zinc-600/50 bg-zinc-800/90 px-1.5 py-0.5 text-[11px] text-zinc-200 outline-none ring-amber-400 focus:ring"
+          value={task.due_date ?? ''}
+          disabled={disabled || isWorking}
+          onChange={(e) => onDueDateChange(task, e.target.value || null)}
+          aria-label="Set due date"
+          title="Due date"
+        />
         <select
           className="flex-1 rounded-lg border border-zinc-600/50 bg-zinc-800/90 px-2 py-1 text-[11px] text-zinc-200 outline-none ring-amber-400 focus:ring"
           value={task.status}
