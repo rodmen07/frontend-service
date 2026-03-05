@@ -31,9 +31,12 @@ interface TaskManagerSectionProps {
   tasksLoading: boolean
   taskError: string
   goalInput: string
+  plannedTaskDifficulty: number
   planning: boolean
+  creatingPlanTasks: boolean
   deletingAllTasks: boolean
   plannerStatus: PlannerStatus
+  plannedTasks: string[]
   taskTitle: string
   taskDifficulty: number
   taskGoal: string
@@ -43,7 +46,9 @@ interface TaskManagerSectionProps {
   clearingGoal: string | null
   onRefresh: () => void
   onGoalInputChange: (value: string) => void
+  onPlannedTaskDifficultyChange: (value: number) => void
   onGeneratePlan: (event: FormEvent<HTMLFormElement>) => Promise<void>
+  onCreatePlannedTasks: () => Promise<void>
   onTaskTitleChange: (value: string) => void
   onTaskDifficultyChange: (value: number) => void
   onTaskGoalChange: (value: string) => void
@@ -53,10 +58,11 @@ interface TaskManagerSectionProps {
   onDeleteTask: (task: Task) => Promise<void>
   onDeleteAllTasks: () => Promise<void>
   onUpdateTaskStatus: (task: Task, status: TaskStatus) => Promise<void>
+  onResetGeneratedPlan: () => void
   onClearPlanTasks: (goal: string) => Promise<void>
 }
 
-type ConfirmAction = 'delete-all' | null
+type ConfirmAction = 'delete-all' | 'reset-generated' | null
 type TaskVisibilityFilter = 'all' | 'active' | 'completed'
 type TaskSortMode = 'newest' | 'oldest' | 'difficulty-desc' | 'difficulty-asc'
 type TaskViewMode = 'kanban' | 'list'
@@ -80,9 +86,12 @@ export function TaskManagerSection({
   tasksLoading,
   taskError,
   goalInput,
+  plannedTaskDifficulty,
   planning,
+  creatingPlanTasks,
   deletingAllTasks,
   plannerStatus,
+  plannedTasks,
   taskTitle,
   taskDifficulty,
   taskGoal,
@@ -92,7 +101,9 @@ export function TaskManagerSection({
   clearingGoal,
   onRefresh,
   onGoalInputChange,
+  onPlannedTaskDifficultyChange,
   onGeneratePlan,
+  onCreatePlannedTasks,
   onTaskTitleChange,
   onTaskDifficultyChange,
   onTaskGoalChange,
@@ -102,6 +113,7 @@ export function TaskManagerSection({
   onDeleteTask,
   onDeleteAllTasks,
   onUpdateTaskStatus,
+  onResetGeneratedPlan,
   onClearPlanTasks,
 }: TaskManagerSectionProps) {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
@@ -109,6 +121,7 @@ export function TaskManagerSection({
   const [visibilityFilter, setVisibilityFilter] = useState<TaskVisibilityFilter>('all')
   const [sortMode, setSortMode] = useState<TaskSortMode>('newest')
   const [viewMode, setViewMode] = useState<TaskViewMode>('kanban')
+  const canResetGeneratedPlan = plannedTasks.length > 0 || goalInput.trim().length > 0
 
   const confirmDialog = useMemo(() => {
     if (confirmAction === 'delete-all') {
@@ -116,6 +129,14 @@ export function TaskManagerSection({
         title: 'Remove all tasks?',
         message: `This will permanently remove all ${tasks.length} current task${tasks.length === 1 ? '' : 's'}. This action cannot be undone.`,
         confirmLabel: deletingAllTasks ? 'Removing…' : 'Remove All',
+      }
+    }
+
+    if (confirmAction === 'reset-generated') {
+      return {
+        title: 'Reset generated tasks?',
+        message: 'This will clear the AI-generated task list and current goal input.',
+        confirmLabel: 'Reset',
       }
     }
 
@@ -132,6 +153,12 @@ export function TaskManagerSection({
   const handleConfirmAction = async () => {
     if (confirmAction === 'delete-all') {
       await onDeleteAllTasks()
+      setConfirmAction(null)
+      return
+    }
+
+    if (confirmAction === 'reset-generated') {
+      onResetGeneratedPlan()
       setConfirmAction(null)
     }
   }
@@ -170,15 +197,14 @@ export function TaskManagerSection({
 
   return (
     <section className="forge-panel relative rounded-3xl border border-amber-300/20 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
+      {/* ── Header ── */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold text-white">Task Manager</h2>
         <div className="flex items-center gap-2">
           <button
             type="button"
             className="rounded-xl border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={() => {
-              setConfirmAction('delete-all')
-            }}
+            onClick={() => { setConfirmAction('delete-all') }}
             disabled={authLocked || tasksLoading || deletingAllTasks || tasks.length === 0}
           >
             {deletingAllTasks ? 'Removing…' : 'Remove All Tasks'}
@@ -194,6 +220,7 @@ export function TaskManagerSection({
         </div>
       </div>
 
+      {/* ── Gamification stats ── */}
       <div className="mb-4 grid gap-2 sm:grid-cols-2">
         <p className="rounded-xl border border-orange-300/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
           Story Points: <strong>{storyPoints}</strong>
@@ -228,51 +255,13 @@ export function TaskManagerSection({
         Pending tasks: <strong>{pendingCount}</strong>
       </p>
 
-      {goalProgress.length > 0 && (
-        <div className="mb-4 rounded-2xl border border-zinc-500/35 bg-zinc-800/70 p-4">
-          <h3 className="mb-3 text-base font-semibold text-white">Goal Tracking</h3>
-          <ul className="space-y-3 text-sm">
-            {goalProgress.map((item) => {
-              const pct = item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
-              const isClearingThis = clearingGoal === item.goal
-              return (
-                <li key={item.goal}>
-                  <div className="mb-1 flex items-center justify-between gap-2">
-                    <span className="font-medium text-amber-200 truncate" title={item.goal}>{item.goal}</span>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="text-xs text-zinc-400">{item.completed}/{item.total} · {pct}%</span>
-                      {item.aiCount > 0 && (
-                        <button
-                          type="button"
-                          className="rounded-lg border border-purple-300/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-200 transition hover:bg-purple-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                          disabled={authLocked || isClearingThis}
-                          onClick={() => { void onClearPlanTasks(item.goal) }}
-                          title={`Remove ${item.aiCount} AI-generated task${item.aiCount === 1 ? '' : 's'} for this goal`}
-                        >
-                          {isClearingThis ? 'Clearing…' : `Clear AI (${item.aiCount})`}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-700/60">
-                    <div
-                      className="h-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      )}
-
       {authLocked && (
         <p className="mb-4 rounded-xl border border-amber-300/35 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
           Sign in to manage tasks and persist your session.
         </p>
       )}
 
+      {/* ── AI Planner ── */}
       <form className="mb-3 space-y-3" onSubmit={onGeneratePlan}>
         <div className="relative">
           <textarea
@@ -282,7 +271,7 @@ export function TaskManagerSection({
             onChange={(event) => onGoalInputChange(event.target.value)}
             rows={4}
             maxLength={GOAL_MAX_LENGTH}
-            disabled={authLocked || planning}
+            disabled={authLocked || planning || creatingPlanTasks}
           />
           <span className={`absolute bottom-2 right-3 text-xs ${goalInput.length >= GOAL_MAX_LENGTH ? 'text-rose-400' : 'text-zinc-500'}`}>
             {goalInput.length}/{GOAL_MAX_LENGTH}
@@ -291,7 +280,7 @@ export function TaskManagerSection({
         <button
           type="submit"
           className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={authLocked || planning}
+          disabled={authLocked || planning || creatingPlanTasks}
         >
           {planning ? 'Generating plan…' : 'Generate Composite Tasks'}
         </button>
@@ -301,6 +290,66 @@ export function TaskManagerSection({
         {plannerStatus.message}
       </p>
 
+      {/* ── Generated plan preview ── */}
+      {plannedTasks.length > 0 && (
+        <div className="mb-4 rounded-2xl border border-zinc-500/35 bg-zinc-800/70 p-4">
+          <h3 className="mb-2 text-base font-semibold text-white">Generated Plan — Review before creating</h3>
+          <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm text-zinc-200">
+            {plannedTasks.map((task, index) => (
+              <li key={`${task}-${index}`}>{task}</li>
+            ))}
+          </ol>
+          <div className="mb-3 flex items-center gap-2 text-sm text-zinc-200">
+            <label htmlFor="planned-task-difficulty">Difficulty for all:</label>
+            <select
+              id="planned-task-difficulty"
+              className="rounded-lg border border-zinc-500/40 bg-zinc-900/80 px-2 py-1 text-sm text-zinc-100"
+              value={plannedTaskDifficulty}
+              onChange={(event) => onPlannedTaskDifficultyChange(Number(event.target.value))}
+              disabled={authLocked || creatingPlanTasks}
+            >
+              {DIFFICULTY_TIERS.map((tier) => (
+                <option key={tier.value} value={tier.value}>
+                  {tier.label} ({tier.value})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => { void onCreatePlannedTasks() }}
+              disabled={authLocked || creatingPlanTasks}
+            >
+              {creatingPlanTasks ? 'Creating tasks…' : 'Create All Planned Tasks'}
+            </button>
+            <button
+              type="button"
+              className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => { setConfirmAction('reset-generated') }}
+              disabled={authLocked || creatingPlanTasks}
+            >
+              Discard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {canResetGeneratedPlan && plannedTasks.length === 0 && (
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => { setConfirmAction('reset-generated') }}
+            disabled={authLocked || creatingPlanTasks}
+          >
+            Clear Goal Input
+          </button>
+        </div>
+      )}
+
+      {/* ── Manual task creation ── */}
       <form className="mb-4 flex flex-col gap-2 sm:flex-row" onSubmit={onCreateTask}>
         <input
           type="text"
@@ -348,7 +397,7 @@ export function TaskManagerSection({
         </p>
       )}
 
-      {/* View mode toggle */}
+      {/* ── View mode toggle ── */}
       <div className="mb-4 flex items-center gap-1 rounded-xl border border-zinc-500/30 bg-zinc-800/50 p-1 w-fit">
         <button
           type="button"
@@ -374,140 +423,174 @@ export function TaskManagerSection({
         </button>
       </div>
 
-      {viewMode === 'kanban' ? (
-        tasksLoading ? (
-          <p className="text-sm text-zinc-300">Loading tasks…</p>
+      {/* ── Task board / list (scrollable) ── */}
+      <div className="max-h-[520px] overflow-y-auto rounded-2xl pr-1 scrollbar-thin">
+        {viewMode === 'kanban' ? (
+          tasksLoading ? (
+            <p className="text-sm text-zinc-300">Loading tasks…</p>
+          ) : (
+            <KanbanBoard
+              tasks={tasks}
+              workingTaskId={workingTaskId}
+              disabled={authLocked}
+              onStatusChange={(task, status) => { void onUpdateTaskStatus(task, status) }}
+              onDelete={(task) => { void onDeleteTask(task) }}
+            />
+          )
         ) : (
-          <KanbanBoard
-            tasks={tasks}
-            workingTaskId={workingTaskId}
-            disabled={authLocked}
-            onStatusChange={(task, status) => {
-              void onUpdateTaskStatus(task, status)
-            }}
-            onDelete={(task) => {
-              void onDeleteTask(task)
-            }}
-          />
-        )
-      ) : (
-      <>
-      <div className="mb-4 grid gap-2 md:grid-cols-3">
-        <input
-          type="text"
-          className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 placeholder:text-zinc-500 focus:ring"
-          placeholder="Search tasks or goals"
-          value={taskSearch}
-          onChange={(event) => setTaskSearch(event.target.value)}
-          disabled={tasksLoading}
-        />
-        <select
-          className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 focus:ring"
-          value={visibilityFilter}
-          onChange={(event) => setVisibilityFilter(event.target.value as TaskVisibilityFilter)}
-          disabled={tasksLoading}
-          aria-label="Filter tasks"
-        >
-          <option value="all">All tasks</option>
-          <option value="active">Active only</option>
-          <option value="completed">Completed only</option>
-        </select>
-        <select
-          className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 focus:ring"
-          value={sortMode}
-          onChange={(event) => setSortMode(event.target.value as TaskSortMode)}
-          disabled={tasksLoading}
-          aria-label="Sort tasks"
-        >
-          <option value="newest">Sort: Newest first</option>
-          <option value="oldest">Sort: Oldest first</option>
-          <option value="difficulty-desc">Sort: Difficulty high → low</option>
-          <option value="difficulty-asc">Sort: Difficulty low → high</option>
-        </select>
+          <>
+            <div className="mb-4 grid gap-2 md:grid-cols-3">
+              <input
+                type="text"
+                className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 placeholder:text-zinc-500 focus:ring"
+                placeholder="Search tasks or goals"
+                value={taskSearch}
+                onChange={(event) => setTaskSearch(event.target.value)}
+                disabled={tasksLoading}
+              />
+              <select
+                className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 focus:ring"
+                value={visibilityFilter}
+                onChange={(event) => setVisibilityFilter(event.target.value as TaskVisibilityFilter)}
+                disabled={tasksLoading}
+                aria-label="Filter tasks"
+              >
+                <option value="all">All tasks</option>
+                <option value="active">Active only</option>
+                <option value="completed">Completed only</option>
+              </select>
+              <select
+                className="rounded-xl border border-zinc-500/40 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-100 outline-none ring-amber-400 focus:ring"
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as TaskSortMode)}
+                disabled={tasksLoading}
+                aria-label="Sort tasks"
+              >
+                <option value="newest">Sort: Newest first</option>
+                <option value="oldest">Sort: Oldest first</option>
+                <option value="difficulty-desc">Sort: Difficulty high → low</option>
+                <option value="difficulty-asc">Sort: Difficulty low → high</option>
+              </select>
+            </div>
+
+            <p className="mb-3 text-xs text-zinc-400">
+              Showing {visibleTasks.length} of {tasks.length} tasks
+            </p>
+
+            {tasksLoading ? (
+              <p className="text-sm text-zinc-300">Loading tasks…</p>
+            ) : tasks.length === 0 ? (
+              <p className="text-sm text-zinc-300">No tasks yet. Create your first one.</p>
+            ) : visibleTasks.length === 0 ? (
+              <p className="text-sm text-zinc-300">No tasks match your current filters.</p>
+            ) : (
+              <ul className="space-y-2">
+                {visibleTasks.map((task, index) => {
+                  const isWorking = workingTaskId === task.id
+                  return (
+                    <li
+                      key={task.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-zinc-500/35 bg-zinc-900/70 p-3"
+                    >
+                      <label className="flex min-w-0 items-center gap-3 text-sm text-zinc-100">
+                        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-400/40 bg-zinc-800/80 text-xs font-semibold text-zinc-200">
+                          {index + 1}
+                        </span>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 shrink-0"
+                          checked={task.completed}
+                          disabled={authLocked || isWorking}
+                          onChange={() => { void onToggleTask(task) }}
+                        />
+                        <span className={`truncate ${task.completed ? 'line-through text-zinc-500' : ''}`}>
+                          {task.title}
+                        </span>
+                        {task.source === 'ai_generated' && (
+                          <span className="shrink-0 rounded-md border border-purple-300/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-200">
+                            AI
+                          </span>
+                        )}
+                        {task.goal && (
+                          <span className="shrink-0 rounded-md border border-amber-300/30 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-200">
+                            {task.goal}
+                          </span>
+                        )}
+                      </label>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <select
+                          className="rounded-lg border border-zinc-500/40 bg-zinc-900/80 px-2 py-1 text-xs text-zinc-100"
+                          value={task.difficulty}
+                          disabled={authLocked || isWorking}
+                          onChange={(event) => { void onSetTaskDifficulty(task, Number(event.target.value)) }}
+                          aria-label="Update task difficulty"
+                        >
+                          {DIFFICULTY_TIERS.map((tier) => (
+                            <option key={tier.value} value={tier.value}>
+                              {tier.label}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="text-xs text-amber-200">+{task.difficulty} SP</span>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={authLocked || isWorking}
+                          onClick={() => { void onDeleteTask(task) }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </>
+        )}
       </div>
 
-      <p className="mb-3 text-xs text-zinc-400">
-        Showing {visibleTasks.length} of {tasks.length} tasks
-      </p>
-
-      {tasksLoading ? (
-        <p className="text-sm text-zinc-300">Loading tasks…</p>
-      ) : tasks.length === 0 ? (
-        <p className="text-sm text-zinc-300">No tasks yet. Create your first one.</p>
-      ) : visibleTasks.length === 0 ? (
-        <p className="text-sm text-zinc-300">No tasks match your current filters.</p>
-      ) : (
-        <ul className="space-y-2">
-          {visibleTasks.map((task, index) => {
-            const isWorking = workingTaskId === task.id
-            return (
-              <li
-                key={task.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-zinc-500/35 bg-zinc-900/70 p-3"
-              >
-                <label className="flex items-center gap-3 text-sm text-zinc-100">
-                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-400/40 bg-zinc-800/80 text-xs font-semibold text-zinc-200">
-                    {index + 1}
-                  </span>
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4"
-                    checked={task.completed}
-                    disabled={authLocked || isWorking}
-                    onChange={() => {
-                      void onToggleTask(task)
-                    }}
-                  />
-                  <span className={task.completed ? 'line-through text-zinc-500' : ''}>
-                    {task.title}
-                  </span>
-                  {task.source === 'ai_generated' && (
-                    <span className="rounded-md border border-purple-300/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-200">
-                      AI
-                    </span>
-                  )}
-                  {task.goal && (
-                    <span className="rounded-md border border-amber-300/30 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-200">
-                      {task.goal}
-                    </span>
-                  )}
-                </label>
-                <div className="flex items-center gap-2">
-                  <select
-                    className="rounded-lg border border-zinc-500/40 bg-zinc-900/80 px-2 py-1 text-xs text-zinc-100"
-                    value={task.difficulty}
-                    disabled={authLocked || isWorking}
-                    onChange={(event) => {
-                      void onSetTaskDifficulty(task, Number(event.target.value))
-                    }}
-                    aria-label="Update task difficulty"
-                  >
-                    {DIFFICULTY_TIERS.map((tier) => (
-                      <option key={tier.value} value={tier.value}>
-                        {tier.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs text-amber-200">+{task.difficulty} SP</span>
-                <button
-                  type="button"
-                  className="rounded-lg border border-red-300/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={authLocked || isWorking}
-                  onClick={() => {
-                    void onDeleteTask(task)
-                  }}
-                >
-                  Delete
-                </button>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-      </>
+      {/* ── Goal Tracking (moved below board so it doesn't shift the planner) ── */}
+      {goalProgress.length > 0 && (
+        <div className="mt-6 rounded-2xl border border-zinc-500/35 bg-zinc-800/70 p-4">
+          <h3 className="mb-3 text-base font-semibold text-white">Goal Tracking</h3>
+          <ul className="space-y-3 text-sm">
+            {goalProgress.map((item) => {
+              const pct = item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
+              const isClearingThis = clearingGoal === item.goal
+              return (
+                <li key={item.goal}>
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span className="truncate font-medium text-amber-200" title={item.goal}>{item.goal}</span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-xs text-zinc-400">{item.completed}/{item.total} · {pct}%</span>
+                      {item.aiCount > 0 && (
+                        <button
+                          type="button"
+                          className="rounded-lg border border-purple-300/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-200 transition hover:bg-purple-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={authLocked || isClearingThis}
+                          onClick={() => { void onClearPlanTasks(item.goal) }}
+                          title={`Remove ${item.aiCount} AI-generated task${item.aiCount === 1 ? '' : 's'} for this goal`}
+                        >
+                          {isClearingThis ? 'Clearing…' : `Clear AI (${item.aiCount})`}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-700/60">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
 
+      {/* ── Confirm dialog overlay ── */}
       {confirmDialog && (
         <div className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-zinc-950/80 p-4">
           <div className="w-full max-w-md rounded-2xl border border-zinc-500/40 bg-zinc-900/95 p-4 shadow-xl">
@@ -525,9 +608,7 @@ export function TaskManagerSection({
               <button
                 type="button"
                 className="rounded-xl border border-red-300/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => {
-                  void handleConfirmAction()
-                }}
+                onClick={() => { void handleConfirmAction() }}
                 disabled={deletingAllTasks && confirmAction === 'delete-all'}
               >
                 {confirmDialog.confirmLabel}

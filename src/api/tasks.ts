@@ -3,7 +3,7 @@ import type { AdminMetrics, AdminRequestLog, AdminUserActivity, Task, TaskStatus
 
 interface PlanResponse {
   goal: string
-  tasks: Task[]
+  tasks: string[]
 }
 
 interface ClearPlanResponse {
@@ -85,10 +85,11 @@ export async function createTaskWithDifficulty(
   title: string,
   difficulty: number,
   goal?: string,
+  source?: string,
 ): Promise<Task> {
   return request<Task>('/api/v1/tasks', {
     method: 'POST',
-    body: JSON.stringify({ title, difficulty, goal: goal?.trim() || undefined }),
+    body: JSON.stringify({ title, difficulty, goal: goal?.trim() || undefined, source }),
   })
 }
 

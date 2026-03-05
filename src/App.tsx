@@ -64,7 +64,10 @@ function App() {
     submitting,
     workingTaskId,
     goalInput,
+    plannedTaskDifficulty,
+    plannedTasks,
     planning,
+    creatingPlanTasks,
     deletingAllTasks,
     plannerStatus,
     storyPoints,
@@ -75,6 +78,7 @@ function App() {
     setTaskDifficulty,
     setTaskGoal,
     setGoalInput,
+    setPlannedTaskDifficulty,
     loadTasks,
     handleCreateTask,
     handleSetTaskDifficulty,
@@ -83,6 +87,8 @@ function App() {
     handleDeleteTask,
     handleDeleteAllTasks,
     handleGeneratePlan,
+    handleCreatePlannedTasks,
+    handleResetGeneratedPlan,
     handleClearPlanTasks,
   } = useTaskManager(isAuthenticated, session?.subject ?? null)
 
@@ -182,9 +188,12 @@ function App() {
                 tasksLoading={tasksLoading}
                 taskError={taskError}
                 goalInput={goalInput}
+                plannedTaskDifficulty={plannedTaskDifficulty}
                 planning={planning}
+                creatingPlanTasks={creatingPlanTasks}
                 deletingAllTasks={deletingAllTasks}
                 plannerStatus={plannerStatus}
+                plannedTasks={plannedTasks}
                 taskTitle={taskTitle}
                 taskDifficulty={taskDifficulty}
                 taskGoal={taskGoal}
@@ -194,7 +203,9 @@ function App() {
                 clearingGoal={clearingGoal}
                 onRefresh={loadTasks}
                 onGoalInputChange={setGoalInput}
+                onPlannedTaskDifficultyChange={setPlannedTaskDifficulty}
                 onGeneratePlan={handleGeneratePlan}
+                onCreatePlannedTasks={handleCreatePlannedTasks}
                 onTaskTitleChange={setTaskTitle}
                 onTaskDifficultyChange={setTaskDifficulty}
                 onTaskGoalChange={setTaskGoal}
@@ -204,6 +215,7 @@ function App() {
                 onDeleteTask={handleDeleteTask}
                 onDeleteAllTasks={handleDeleteAllTasks}
                 onUpdateTaskStatus={handleUpdateTaskStatus}
+                onResetGeneratedPlan={handleResetGeneratedPlan}
                 onClearPlanTasks={handleClearPlanTasks}
               />
             </div>

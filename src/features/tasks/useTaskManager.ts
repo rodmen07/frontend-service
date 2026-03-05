@@ -9,6 +9,7 @@ import {
   updateTaskStatus,
 } from '../../api/tasks'
 import type { GoalPlan, PlannerTone, Task, TaskStatus } from '../../types'
+import { normalizePlanTask, normalizePlanTasks } from './planNormalization'
 
 export interface PlannerStatus {
   tone: PlannerTone
@@ -113,7 +114,10 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
   const [submitting, setSubmitting] = useState(false)
   const [workingTaskId, setWorkingTaskId] = useState<number | null>(null)
   const [goalInput, setGoalInput] = useState('')
+  const [plannedTasks, setPlannedTasks] = useState<string[]>([])
   const [planning, setPlanning] = useState(false)
+  const [plannedTaskDifficulty, setPlannedTaskDifficulty] = useState(2)
+  const [creatingPlanTasks, setCreatingPlanTasks] = useState(false)
   const [deletingAllTasks, setDeletingAllTasks] = useState(false)
   const [plannerStatus, setPlannerStatus] = useState<PlannerStatus>(INITIAL_PLANNER_STATUS)
   const [goalPlans, setGoalPlans] = useState<GoalPlan[]>([])
@@ -328,27 +332,15 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
 
     try {
       const plan = await planTasksFromGoal(goal)
-      const generatedTasks = Array.isArray(plan.tasks) ? plan.tasks : []
+      const generated = normalizePlanTasks(
+        Array.isArray(plan.tasks) ? plan.tasks : [],
+      )
+      setPlannedTasks(generated)
 
-      // Tasks are auto-created in the DB — merge into local state
-      if (generatedTasks.length > 0) {
-        setTasks((current) => {
-          const existingIds = new Set(current.map((t) => t.id))
-          const newTasks = generatedTasks.filter((t) => !existingIds.has(t.id))
-          return [...current, ...newTasks]
-        })
-
-        const nextPlan: GoalPlan = {
-          id: Date.now(),
-          goal: plan.goal,
-          tasks: generatedTasks,
-          createdAt: new Date().toISOString(),
-        }
-        setGoalPlans((current) => [nextPlan, ...current].slice(0, 8))
-
+      if (generated.length > 0) {
         setPlannerStatus({
           tone: 'success',
-          message: `Generated ${generatedTasks.length} task${generatedTasks.length === 1 ? '' : 's'} for "${plan.goal}".`,
+          message: `Generated ${generated.length} task${generated.length === 1 ? '' : 's'}. Review and create them when ready.`,
         })
       } else {
         setPlannerStatus({
@@ -396,6 +388,91 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     }
   }
 
+  const handleCreatePlannedTasks = async () => {
+    if (!isAuthenticated) {
+      setTaskError('Sign in is required to create planned tasks')
+      return
+    }
+
+    if (plannedTasks.length === 0) {
+      return
+    }
+
+    setCreatingPlanTasks(true)
+    setTaskError('')
+    setPlannerStatus({ tone: 'info', message: 'Creating planned tasks…' })
+
+    const created: Task[] = []
+    const failed: string[] = []
+    let firstErrorMessage = ''
+
+    for (const plannedTitle of plannedTasks) {
+      const title = normalizePlanTask(plannedTitle)
+      if (!title) {
+        continue
+      }
+
+      try {
+        const task = await createTaskWithDifficulty(
+          title,
+          normalizeDifficulty(plannedTaskDifficulty),
+          goalInput.trim(),
+          'ai_generated',
+        )
+        created.push(task)
+      } catch (error) {
+        failed.push(title)
+        if (!firstErrorMessage) {
+          firstErrorMessage =
+            error instanceof Error ? error.message : 'Failed to create planned tasks'
+        }
+      }
+    }
+
+    if (created.length > 0) {
+      setTasks((current) => [...current, ...created])
+
+      const nextPlan: GoalPlan = {
+        id: Date.now(),
+        goal: goalInput.trim(),
+        tasks: created.map((t) => t.title),
+        createdAt: new Date().toISOString(),
+      }
+      setGoalPlans((current) => [nextPlan, ...current].slice(0, 8))
+    }
+
+    if (failed.length === 0) {
+      setPlannedTasks([])
+      setGoalInput('')
+      setPlannerStatus({
+        tone: 'success',
+        message: `Created ${created.length} task${created.length === 1 ? '' : 's'} from your plan.`,
+      })
+    } else {
+      setPlannedTasks(failed)
+      setTaskError(firstErrorMessage)
+      setPlannerStatus({
+        tone: 'warning',
+        message: `Created ${created.length} task${created.length === 1 ? '' : 's'}. ${failed.length} could not be created. You can retry.`,
+      })
+    }
+
+    setCreatingPlanTasks(false)
+  }
+
+  const handleResetGeneratedPlan = () => {
+    if (plannedTasks.length === 0 && goalInput.trim().length === 0) {
+      return
+    }
+
+    setPlannedTasks([])
+    setGoalInput('')
+    setPlannerStatus({
+      tone: 'info',
+      message: 'Plan reset. Enter a new goal when ready.',
+    })
+  }
+
   const handleClearPlanTasks = async (goal: string) => {
     if (!isAuthenticated) {
       setTaskError('Sign in is required to clear AI tasks')
@@ -426,16 +503,20 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
       return
     }
 
-    const completedIds = new Set(tasks.filter((t) => t.completed).map((t) => t.id))
+    const completedTitles = new Set(
+      tasks
+        .filter((task) => task.completed)
+        .map((task) => `${task.goal || ''}::${task.title.trim().toLowerCase()}`),
+    )
 
     const newlyCompletedPlans = goalPlans.filter((plan) => {
       if (rewardedPlanIds.has(plan.id)) {
         return false
       }
-      if (plan.tasks.length === 0) {
-        return false
-      }
-      return plan.tasks.every((t) => completedIds.has(t.id))
+
+      return plan.tasks.every((task) =>
+        completedTitles.has(`${plan.goal}::${task.trim().toLowerCase()}`),
+      )
     })
 
     if (newlyCompletedPlans.length === 0) {
@@ -447,9 +528,19 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
 
     for (const plan of newlyCompletedPlans) {
       nextRewarded.add(plan.id)
-      bonusPoints += plan.tasks
-        .filter((t) => completedIds.has(t.id))
-        .reduce((sum, t) => sum + normalizeDifficulty(t.difficulty), 0)
+
+      const totalDifficulty = tasks
+        .filter(
+          (task) =>
+            task.completed &&
+            task.goal === plan.goal &&
+            plan.tasks.some(
+              (planTask) => planTask.trim().toLowerCase() === task.title.trim().toLowerCase(),
+            ),
+        )
+        .reduce((total, task) => total + normalizeDifficulty(task.difficulty), 0)
+
+      bonusPoints += totalDifficulty
     }
 
     setRewardedPlanIds(nextRewarded)
@@ -549,7 +640,10 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     submitting,
     workingTaskId,
     goalInput,
+    plannedTaskDifficulty,
+    plannedTasks,
     planning,
+    creatingPlanTasks,
     deletingAllTasks,
     plannerStatus,
     storyPoints,
@@ -560,6 +654,7 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     setTaskDifficulty,
     setTaskGoal,
     setGoalInput,
+    setPlannedTaskDifficulty,
     loadTasks,
     handleCreateTask,
     handleSetTaskDifficulty,
@@ -568,6 +663,8 @@ export function useTaskManager(isAuthenticated: boolean, subject: string | null)
     handleDeleteTask,
     handleDeleteAllTasks,
     handleGeneratePlan,
+    handleCreatePlannedTasks,
+    handleResetGeneratedPlan,
     handleClearPlanTasks,
   }
 }

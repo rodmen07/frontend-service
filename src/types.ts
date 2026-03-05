@@ -43,7 +43,7 @@ export interface Task {
 export interface GoalPlan {
   id: number
   goal: string
-  tasks: Task[]
+  tasks: string[]
   createdAt: string
 }
 
