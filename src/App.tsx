@@ -25,6 +25,7 @@ import { useFaqContent } from './features/site/useFaqContent'
 import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
 import { useRoadmapContent } from './features/site/useRoadmapContent'
 import { useSiteContent } from './features/site/useSiteContent'
+import { ActivityFeedSection } from './features/activity-feed/ActivityFeedSection'
 import { TaskManagerSection } from './features/tasks/TaskManagerSection'
 import { useTaskManager } from './features/tasks/useTaskManager'
 
@@ -180,6 +181,13 @@ function App() {
       { id: 'roadmap', label: 'Roadmap' },
     ]
 
+    if (isAuthenticated) {
+      items.splice(items.findIndex((i) => i.id === 'sections'), 0, {
+        id: 'activity-feed',
+        label: 'Activity Feed',
+      })
+    }
+
     if (isAuthenticated && isAdmin) {
       items.push({ id: 'admin-dashboard', label: 'Admin Dashboard' })
     }
@@ -321,6 +329,16 @@ function App() {
                 metrics={metrics}
               />
             </div>
+
+            {isAuthenticated && (
+              <div id="activity-feed" className={sectionStateClass('activity-feed')}>
+                <ActivityFeedSection
+                  tasks={tasks}
+                  token={session?.accessToken ?? ''}
+                  isAuthenticated={isAuthenticated}
+                />
+              </div>
+            )}
 
             <div id="sections" className={sectionStateClass('sections')}>
               <HomeSections content={homeSections} />

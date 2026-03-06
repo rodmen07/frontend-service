@@ -141,7 +141,7 @@
     {
       "title": "Activity feed",
       "description": "Real-time timeline of task completions, plan creations, tier progressions, and linked CRM events across all services.",
-      "status": "planned",
+      "status": "shipped",
       "category": "Core"
     },
     {
