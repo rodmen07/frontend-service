@@ -115,6 +115,7 @@ function App() {
     handleClearPlanTasks,
     handleUpdateTaskTitle,
     handleUpdateTaskDueDate,
+    handleUpdateTaskLabels,
   } = useTaskManager(isAuthenticated)
 
   // Celebration state
@@ -321,6 +322,7 @@ function App() {
                 onClearPlanTasks={handleClearPlanTasks}
                 onUpdateTaskTitle={handleUpdateTaskTitle}
                 onUpdateTaskDueDate={handleUpdateTaskDueDate}
+                onUpdateTaskLabels={handleUpdateTaskLabels}
               />
             </div>
 

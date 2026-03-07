@@ -526,6 +526,22 @@ export function useTaskManager(isAuthenticated: boolean) {
     }
   }
 
+  const handleUpdateTaskLabels = async (task: Task, labels: string | null) => {
+    if (!isAuthenticated) return
+
+    setWorkingTaskId(task.id)
+    try {
+      const updatedTask = await updateTask(task.id, { labels })
+      setTasks((current) =>
+        current.map((item) => (item.id === task.id ? updatedTask : item)),
+      )
+    } catch {
+      // silently ignore
+    } finally {
+      setWorkingTaskId(null)
+    }
+  }
+
   const handleUpdateTaskTitle = async (task: Task, title: string) => {
     if (!isAuthenticated) return
     const trimmed = title.trim()
@@ -611,5 +627,6 @@ export function useTaskManager(isAuthenticated: boolean) {
     handleClearPlanTasks,
     handleUpdateTaskTitle,
     handleUpdateTaskDueDate,
+    handleUpdateTaskLabels,
   }
 }

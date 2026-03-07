@@ -70,6 +70,7 @@ export interface Task {
   status: TaskStatus
   source: string
   due_date: string | null
+  labels: string | null
   created_at: string
 }
 

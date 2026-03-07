@@ -12,6 +12,7 @@ interface KanbanBoardProps {
   onDelete: (task: Task) => void
   onTitleSave: (task: Task, title: string) => void
   onDueDateChange: (task: Task, due_date: string | null) => void
+  onLabelsChange: (task: Task, labels: string | null) => void
 }
 
 export function KanbanBoard({
@@ -22,6 +23,7 @@ export function KanbanBoard({
   onDelete,
   onTitleSave,
   onDueDateChange,
+  onLabelsChange,
 }: KanbanBoardProps) {
   const grouped = useMemo(() => groupTasksByStatus(tasks), [tasks])
   const [selectedTaskForNotes, setSelectedTaskForNotes] = useState<Task | null>(null)
@@ -49,6 +51,7 @@ export function KanbanBoard({
             onStatusChange={onStatusChange}
             onTitleSave={onTitleSave}
             onDueDateChange={onDueDateChange}
+            onLabelsChange={onLabelsChange}
             onViewNotes={setSelectedTaskForNotes}
           />
         ))}

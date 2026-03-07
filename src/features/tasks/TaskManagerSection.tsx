@@ -68,6 +68,7 @@ interface TaskManagerSectionProps {
   onClearPlanTasks: (goal: string) => Promise<void>
   onUpdateTaskTitle: (task: Task, title: string) => Promise<void>
   onUpdateTaskDueDate: (task: Task, due_date: string | null) => Promise<void>
+  onUpdateTaskLabels: (task: Task, labels: string | null) => Promise<void>
 }
 
 type ConfirmAction = 'delete-all' | 'reset-generated' | 'bulk-delete' | null
@@ -131,6 +132,7 @@ export function TaskManagerSection({
   onClearPlanTasks,
   onUpdateTaskTitle,
   onUpdateTaskDueDate,
+  onUpdateTaskLabels,
 }: TaskManagerSectionProps) {
   const exportTasksAsCsv = useCallback(() => {
     const header = ['ID', 'Title', 'Goal', 'Status', 'Difficulty', 'Source', 'Completed', 'Due Date']
@@ -599,6 +601,7 @@ export function TaskManagerSection({
               onDelete={(task) => { void onDeleteTask(task) }}
               onTitleSave={(task, title) => { void onUpdateTaskTitle(task, title) }}
               onDueDateChange={(task, due_date) => { void onUpdateTaskDueDate(task, due_date) }}
+              onLabelsChange={(task, labels) => { void onUpdateTaskLabels(task, labels) }}
             />
           )
         ) : (

@@ -95,7 +95,7 @@ export async function createTaskWithDifficulty(
 
 export async function updateTask(
   id: number,
-  updates: Partial<Pick<Task, 'title' | 'completed' | 'difficulty' | 'goal' | 'status' | 'due_date'>>,
+  updates: Partial<Pick<Task, 'title' | 'completed' | 'difficulty' | 'goal' | 'status' | 'due_date' | 'labels'>>,
 ): Promise<Task> {
   return request<Task>(`/api/v1/tasks/${id}`, {
     method: 'PATCH',

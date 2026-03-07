@@ -1,6 +1,23 @@
 import { useState } from 'react'
 import type { Task, TaskStatus } from '../../../types'
 
+const LABEL_PALETTE = [
+  'border-blue-400/40 bg-blue-500/10 text-blue-300',
+  'border-emerald-400/40 bg-emerald-500/10 text-emerald-300',
+  'border-purple-400/40 bg-purple-500/10 text-purple-300',
+  'border-rose-400/40 bg-rose-500/10 text-rose-300',
+  'border-amber-500/40 bg-amber-600/10 text-amber-300',
+  'border-cyan-400/40 bg-cyan-500/10 text-cyan-300',
+  'border-orange-400/40 bg-orange-500/10 text-orange-300',
+  'border-teal-400/40 bg-teal-500/10 text-teal-300',
+]
+
+function labelColor(label: string): string {
+  let h = 0
+  for (const c of label) h = (h * 31 + c.charCodeAt(0)) & 0xff
+  return LABEL_PALETTE[h % LABEL_PALETTE.length]
+}
+
 const DIFFICULTY_LABELS: Record<number, string> = {
   1: '1 SP',
   2: '2 SP',
@@ -27,13 +44,15 @@ interface KanbanCardProps {
   onStatusChange: (task: Task, status: TaskStatus) => void
   onTitleSave: (task: Task, title: string) => void
   onDueDateChange: (task: Task, due_date: string | null) => void
+  onLabelsChange: (task: Task, labels: string | null) => void
   onViewNotes: (task: Task) => void
 }
 
-export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange, onTitleSave, onDueDateChange, onViewNotes }: KanbanCardProps) {
+export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange, onTitleSave, onDueDateChange, onLabelsChange, onViewNotes }: KanbanCardProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState(task.title)
+  const [labelDraft, setLabelDraft] = useState(task.labels ?? '')
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     event.dataTransfer.setData('text/plain', String(task.id))
@@ -131,6 +150,11 @@ export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange
             {isOverdue ? '⚠ ' : ''}{task.due_date}
           </span>
         )}
+        {task.labels && task.labels.split(',').map((l) => l.trim()).filter(Boolean).map((label) => (
+          <span key={label} className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${labelColor(label)}`}>
+            {label}
+          </span>
+        ))}
         <span className="ml-auto text-[10px] text-zinc-500">
           +{task.difficulty} SP
         </span>
@@ -146,6 +170,26 @@ export function KanbanCard({ task, isWorking, disabled, onDelete, onStatusChange
           onChange={(e) => onDueDateChange(task, e.target.value || null)}
           aria-label="Set due date"
           title="Due date"
+        />
+        <input
+          type="text"
+          placeholder="labels, comma-sep"
+          className="w-28 rounded border border-zinc-600/50 bg-zinc-800/90 px-1.5 py-0.5 text-[11px] text-zinc-200 outline-none ring-amber-400 focus:ring placeholder:text-zinc-600"
+          value={labelDraft}
+          disabled={disabled || isWorking}
+          onChange={(e) => setLabelDraft(e.target.value)}
+          onBlur={() => {
+            const normalized = labelDraft.trim() || null
+            if (normalized !== task.labels) onLabelsChange(task, normalized)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const normalized = labelDraft.trim() || null
+              if (normalized !== task.labels) onLabelsChange(task, normalized)
+            }
+          }}
+          aria-label="Task labels"
+          title="Labels (comma-separated)"
         />
         <select
           className="flex-1 rounded-lg border border-zinc-600/50 bg-zinc-800/90 px-2 py-1 text-[11px] text-zinc-200 outline-none ring-amber-400 focus:ring"
