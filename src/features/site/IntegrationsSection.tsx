@@ -77,8 +77,8 @@ const INTEGRATIONS: Integration[] = [
   {
     name: 'Integrations',
     slug: 'integrations-service',
-    description: 'Third-party connectors for GitHub, Slack, Jira, and more.',
-    status: 'coming-soon',
+    description: 'SQLite-backed Rust/Axum connection registry for third-party providers (Salesforce, HubSpot, Stripe). Tracks sync status and last-synced timestamps.',
+    status: 'in-development',
     category: 'Connectors',
   },
 ]
