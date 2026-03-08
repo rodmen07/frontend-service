@@ -1,0 +1,35 @@
+{
+  "intro": "Real systems, shipped to production.",
+  "featured": {
+    "title": "Microservices Platform — 9 Services, Solo-Built",
+    "subtitle": "Cloud architecture · Rust · Python · React · Fly.io · GitHub Actions",
+    "description": "Designed and built a full microservices platform from scratch: 7 Rust/Axum services, 1 Python/FastAPI AI orchestrator, and a React 19 frontend — all independently deployed on Fly.io with persistent SQLite volumes, JWT auth across services, and a complete GitHub Actions CI/CD pipeline.",
+    "techStack": ["Rust", "Axum", "Python", "FastAPI", "React 19", "Vite", "Tailwind", "SQLite", "Fly.io", "GitHub Actions", "Docker"],
+    "highlights": [
+      "9 independently deployed services with zero shared runtime state",
+      "JWT-based authentication with cross-service token validation",
+      "Claude API integration for AI-powered planning via a dedicated orchestrator service",
+      "GitHub Actions CI pipeline with per-service Docker builds and automated deploys",
+      "Fly.io persistent volumes for SQLite — no managed database costs at startup scale",
+      "Full CRUD REST APIs: accounts, contacts, opportunities, activities, automation, reporting, search"
+    ],
+    "githubUrl": "https://github.com/rodmen07"
+  },
+  "others": [
+    {
+      "title": "DynamoDB Idempotency Prototype",
+      "subtitle": "AWS CloudTrail · Rust · DynamoDB · Splunk HEC",
+      "description": "A Rust prototype implementing exactly-once log delivery from AWS CloudTrail to a Splunk HEC endpoint. Uses DynamoDB conditional writes as a distributed idempotency lock, tracking per-event state (processing → done / failed) with TTL-based expiry and duplicate counting.",
+      "techStack": ["Rust", "AWS SDK for Rust", "DynamoDB", "Tokio", "CloudTrail", "Splunk HEC"],
+      "highlights": [
+        "Atomic conditional PutItem ensures only one Lambda processes each event, even under retries",
+        "TTL-based record expiry keeps the table lean without manual cleanup",
+        "Duplicate counter tracks retry frequency for operational visibility",
+        "Status lifecycle: processing → done / failed, each with a timestamp",
+        "Full CRUD helpers abstracted for reuse across other DynamoDB-backed services"
+      ],
+      "githubUrl": "https://github.com/rodmen07/dynamodb_prototype",
+      "detailUrl": "#/case-studies/dynamodb-idempotency"
+    }
+  ]
+}

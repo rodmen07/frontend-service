@@ -1,10 +1,9 @@
-import { SessionPanel } from './features/auth/SessionPanel'
-import { useAuthSession } from './features/auth/useAuthSession'
 import { TopNav } from './features/layout/TopNav'
 import { HomeSections } from './features/site/HomeSections'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
 import { IntegrationsSection } from './features/site/IntegrationsSection'
-import { SiteHeader } from './features/site/SiteHeader'
+import { HeroSection } from './features/site/HeroSection'
+import { ContactCTA } from './features/site/ContactCTA'
 import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
 import { useSiteContent } from './features/site/useSiteContent'
 
@@ -12,22 +11,6 @@ function App() {
   const baseUrl = import.meta.env.BASE_URL
   const content = useSiteContent(baseUrl)
   const homeSections = useHomeSectionsContent(baseUrl)
-
-  const {
-    session,
-    isAuthenticated,
-    authLoading,
-    authBusy,
-    authError,
-    subjectInput,
-    setSubjectInput,
-    passwordInput,
-    setPasswordInput,
-    signIn,
-    createUsername,
-    signInWithOAuth,
-    signOut,
-  } = useAuthSession()
 
   return (
     <main className="forge-grid relative min-h-screen bg-zinc-950 px-2 py-6 text-zinc-100 sm:px-4 sm:py-8 lg:px-8 xl:px-10 2xl:px-14">
@@ -39,32 +22,11 @@ function App() {
 
       <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-6">
         <TopNav />
-
-        <SiteHeader content={content} />
-
-        <SessionPanel
-          isAuthenticated={isAuthenticated}
-          authLoading={authLoading}
-          authBusy={authBusy}
-          authError={authError}
-          subjectInput={subjectInput}
-          passwordInput={passwordInput}
-          currentSubject={session?.subject || ''}
-          currentRoles={session?.roles || []}
-          onSubjectInputChange={setSubjectInput}
-          onPasswordInputChange={setPasswordInput}
-          onSignIn={signIn}
-          onCreateUsername={createUsername}
-          onSignInWithGitHub={() => signInWithOAuth('github')}
-          onSignInWithGoogle={() => signInWithOAuth('google')}
-          onSignOut={signOut}
-        />
-
-        <HowItWorksSection />
-
+        <HeroSection content={content} />
         <HomeSections content={homeSections} />
-
+        <HowItWorksSection />
         <IntegrationsSection />
+        <ContactCTA />
       </div>
     </main>
   )

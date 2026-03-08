@@ -1,27 +1,25 @@
 {
-  "title": "Why teams use TaskForge",
+  "title": "What I help with",
   "cards": [
     {
-      "heading": "AI-assisted planning",
-      "body": "Generate practical short-term task plans from your goals in seconds. Review suggestions before committing — nothing is created until you confirm.",
-      "image": "/uploads/planning-orb.svg",
-      "link": "#/guide"
+      "heading": "Cloud Architecture",
+      "body": "Right-sized AWS/GCP setups for early-stage teams. No over-engineering, no vendor lock-in.",
+      "link": "#/services"
     },
     {
-      "heading": "Goal-based organisation",
-      "body": "Group tasks under goals and watch per-goal progress bars fill in real time. Clear AI-generated tasks for a goal with one click when priorities shift.",
-      "image": "/uploads/goal-progress.svg"
+      "heading": "CI/CD Pipelines",
+      "body": "GitHub Actions workflows that build, test, and deploy on every push. Zero-downtime deploys from day one.",
+      "link": "#/services"
     },
     {
-      "heading": "Story points & tiers",
-      "body": "Earn story points as you complete tasks. Difficulty multiplies your score. Climb from Poem to Epic as momentum builds across sessions.",
-      "image": "/uploads/progress-grid.svg",
-      "link": "#/tiers"
+      "heading": "Infrastructure as Code",
+      "body": "Terraform or Pulumi modules your team can own and extend. State management, secrets, environments.",
+      "link": "#/services"
     },
     {
-      "heading": "Board and list views",
-      "body": "Switch between a drag-and-drop Kanban board and a filterable list view. Status changes sync instantly with no page reload needed.",
-      "image": "/uploads/board-columns.svg"
+      "heading": "Containers & Orchestration",
+      "body": "Docker, Fly.io, ECS, or lightweight Kubernetes. Matched to your scale and budget.",
+      "link": "#/services"
     }
   ]
 }

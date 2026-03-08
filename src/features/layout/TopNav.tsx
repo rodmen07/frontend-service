@@ -1,18 +1,9 @@
 const NAV_ITEMS = [
-  { label: 'Home', href: '#/' },
-  { label: 'Tasks', href: '#/tasks' },
-  { label: 'Accounts', href: '#/accounts' },
-  { label: 'Contacts', href: '#/contacts' },
-  { label: 'Activities', href: '#/activities' },
-  { label: 'Opportunities', href: '#/opportunities' },
-  { label: 'Automation', href: '#/automation' },
-  { label: 'Integrations', href: '#/integrations' },
-  { label: 'Reporting', href: '#/reporting' },
-  { label: 'Guide', href: '#/guide' },
-  { label: 'Updates', href: '#/updates' },
-  { label: 'Tiers', href: '#/tiers' },
-  { label: 'Architecture', href: '#/architecture' },
-  { label: 'API', href: '#/api' },
+  { label: 'Home',         href: '#/' },
+  { label: 'Services',     href: '#/services' },
+  { label: 'Case Studies', href: '#/case-studies' },
+  { label: 'Pricing',      href: '#/pricing' },
+  { label: 'Contact',      href: '#/contact' },
 ]
 
 export function TopNav() {
@@ -26,7 +17,7 @@ export function TopNav() {
   return (
     <nav className="sticky top-2 z-40 rounded-2xl border border-zinc-500/30 bg-zinc-900/75 p-3 shadow-xl shadow-black/40 backdrop-blur-xl">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 shrink-0 text-sm font-bold tracking-tight text-amber-300">TaskForge</span>
+        <span className="mr-1 shrink-0 text-sm font-bold tracking-tight text-amber-300">R.M. Cloud</span>
         <div className="h-4 w-px shrink-0 bg-zinc-700" />
         {NAV_ITEMS.map((item) => (
           <a
