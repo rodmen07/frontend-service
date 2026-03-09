@@ -23,7 +23,7 @@ function App() {
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-amber-500/10 to-transparent" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-6 lg:ml-56">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 lg:ml-64">
         <div className="lg:hidden">
           <TopNav />
         </div>

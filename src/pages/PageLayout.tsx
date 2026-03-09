@@ -16,7 +16,7 @@ export function PageLayout({ title, children }: PageLayoutProps) {
         <div className="absolute -bottom-24 right-8 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-4xl space-y-6 lg:ml-56">
+      <div className="relative mx-auto max-w-5xl space-y-6 lg:ml-64">
         <div className="lg:hidden">
           <TopNav />
         </div>
