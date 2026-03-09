@@ -155,6 +155,12 @@
       "description": "Story point history, sprint velocity graphs, goal completion rates, and exportable reports via the reporting service.",
       "status": "planned",
       "category": "Reporting"
+    },
+    {
+      "title": "Medallion pipeline repo split",
+      "description": "Promote the CloudTrail Bronze/Silver/Gold pipeline from prototype scope into a standalone repository once it has dedicated runtime, infrastructure, and documentation boundaries.",
+      "status": "planned",
+      "category": "Integrations"
     }
   ]
 }
