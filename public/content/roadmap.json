@@ -93,13 +93,13 @@
     {
       "title": "Automation service",
       "description": "SQLite-backed workflow engine with event-driven trigger/action rules. Enable, disable, and manage automation workflows via REST API.",
-      "status": "in-progress",
+      "status": "shipped",
       "category": "Automation"
     },
     {
       "title": "Integrations service",
       "description": "SQLite-backed connection registry for third-party providers (Salesforce, HubSpot, Stripe). Tracks sync status and last-synced timestamps.",
-      "status": "shipped",
+      "status": "in-progress",
       "category": "Integrations"
     },
     {
@@ -111,7 +111,7 @@
     {
       "title": "Cross-service search",
       "description": "SQLite-backed search service indexing entities by type and content. Full-text search across titles and bodies with snippet extraction.",
-      "status": "shipped",
+      "status": "in-progress",
       "category": "Search"
     },
     {

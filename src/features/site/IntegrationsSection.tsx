@@ -56,8 +56,8 @@ const INTEGRATIONS: Integration[] = [
   {
     name: 'Automation',
     slug: 'automation-service',
-    description: 'SQLite-backed Rust/Axum service with event-driven trigger/action workflows. Enable, disable, and manage automation workflows via REST API.',
-    status: 'in-development',
+    description: 'Event-driven rules to create or update tasks from external triggers.',
+    status: 'coming-soon',
     category: 'Automation',
   },
   {
@@ -77,8 +77,8 @@ const INTEGRATIONS: Integration[] = [
   {
     name: 'Integrations',
     slug: 'integrations-service',
-    description: 'Third-party connectors for GitHub, Slack, Jira, and more.',
-    status: 'coming-soon',
+    description: 'SQLite-backed Rust/Axum connection registry for third-party providers (Salesforce, HubSpot, Stripe). Tracks sync status and last-synced timestamps.',
+    status: 'in-development',
     category: 'Connectors',
   },
 ]
