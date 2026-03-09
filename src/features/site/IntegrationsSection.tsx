@@ -2,6 +2,8 @@ import { useState } from 'react'
 
 type IntegrationStatus = 'live' | 'in-development' | 'coming-soon'
 
+type FilterStatus = IntegrationStatus | 'all'
+
 interface Integration {
   name: string
   slug: string
@@ -68,15 +70,15 @@ const INTEGRATIONS: Integration[] = [
   {
     name: 'Reporting',
     slug: 'reporting-service',
-    description: 'SQLite-backed Rust/Axum service with saved reports and a dashboard summary endpoint aggregating active report counts and distinct metrics.',
-    status: 'in-development',
+    description: 'Velocity charts, story point history, and goal completion exports.',
+    status: 'coming-soon',
     category: 'Analytics',
   },
   {
     name: 'Search',
     slug: 'search-service',
-    description: 'Full-text search across tasks, goals, contacts, and opportunities.',
-    status: 'coming-soon',
+    description: 'SQLite-backed Rust/Axum service indexing entities by type and content. Full-text search across titles and bodies with snippet extraction.',
+    status: 'in-development',
     category: 'Core',
   },
   {
@@ -118,7 +120,7 @@ const STATUS_CLASS: Record<IntegrationStatus, string> = {
   'coming-soon': 'border-zinc-600/40 bg-zinc-700/30 text-zinc-500',
 }
 
-const CATEGORY_CLASS: Record<string, string> = {
+const INTEGRATION_CATEGORY_CLASS: Record<string, string> = {
   Core: 'text-blue-400/70',
   AI: 'text-purple-400/70',
   Identity: 'text-teal-400/70',
@@ -126,6 +128,9 @@ const CATEGORY_CLASS: Record<string, string> = {
   Automation: 'text-rose-400/70',
   Analytics: 'text-amber-400/70',
   Connectors: 'text-zinc-400/70',
+}
+
+const TECH_CATEGORY_CLASS: Record<string, string> = {
   Cloud: 'text-blue-400/70',
   IaC: 'text-purple-400/70',
   Containers: 'text-teal-400/70',
@@ -135,93 +140,92 @@ const CATEGORY_CLASS: Record<string, string> = {
   Observability: 'text-rose-400/70',
 }
 
-type FilterStatus = IntegrationStatus | 'all'
-
 export function IntegrationsSection() {
   const [activeStatus, setActiveStatus] = useState<FilterStatus>('all')
-
   const statusFilters: FilterStatus[] = ['all', 'live', 'in-development', 'coming-soon']
-  const filtered = activeStatus === 'all' ? INTEGRATIONS : INTEGRATIONS.filter((i) => i.status === activeStatus)
-  const categories = [...new Set(TECH_STACK.map((t) => t.category))]
+
+  const filtered = activeStatus === 'all'
+    ? INTEGRATIONS
+    : INTEGRATIONS.filter((i) => i.status === activeStatus)
+
+  const techCategories = [...new Set(TECH_STACK.map((t) => t.category))]
 
   return (
     <section className="forge-panel rounded-3xl border border-zinc-500/30 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
-      <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Integrations status board</h2>
-            <p className="mt-1 text-sm text-zinc-400">
-              TaskForge is built on a microservice architecture. Each service extends the platform.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1 text-xs text-zinc-500">
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Live
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              In Development
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
-              Coming Soon
-            </span>
-          </div>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-white">Integrations</h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            TaskForge is built on a microservice architecture. Each service extends the platform.
+          </p>
         </div>
-
-        <div className="mb-5 flex flex-wrap gap-1.5">
-          {statusFilters.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setActiveStatus(s)}
-              className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
-                activeStatus === s
-                  ? 'border-amber-400/50 bg-amber-500/15 text-amber-300'
-                  : 'border-zinc-700/40 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600/50 hover:text-zinc-300'
-              }`}
-            >
-              {s === 'all' ? `All (${INTEGRATIONS.length})` : STATUS_LABEL[s as IntegrationStatus]}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((integration) => (
-            <div
-              key={integration.slug}
-              className={`rounded-xl border border-zinc-700/40 bg-zinc-800/50 p-4 transition hover:border-zinc-600/50 ${
-                integration.status === 'coming-soon' ? 'opacity-60' : ''
-              }`}
-            >
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="block text-sm font-semibold leading-snug text-white">{integration.name}</span>
-                  <span className={`text-[11px] font-medium ${CATEGORY_CLASS[integration.category] ?? 'text-zinc-500'}`}>
-                    {integration.category}
-                  </span>
-                </div>
-                <span
-                  className={`shrink-0 rounded border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide ${STATUS_CLASS[integration.status]}`}
-                >
-                  {STATUS_LABEL[integration.status]}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed text-zinc-400">{integration.description}</p>
-            </div>
-          ))}
+        <div className="flex shrink-0 flex-col items-end gap-1 text-xs text-zinc-500">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Live
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+            In Development
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
+            Coming Soon
+          </span>
         </div>
       </div>
 
-      <div className="border-t border-zinc-700/40 pt-6">
-        <h3 className="mb-1 text-lg font-semibold text-white">Tech stack</h3>
-        <p className="mb-5 text-sm text-zinc-400">Open-source first. Vendor-agnostic where it counts.</p>
+      <div className="mb-5 flex flex-wrap gap-1.5">
+        {statusFilters.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setActiveStatus(s)}
+            className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+              activeStatus === s
+                ? 'border-amber-400/50 bg-amber-500/15 text-amber-300'
+                : 'border-zinc-700/40 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600/50 hover:text-zinc-300'
+            }`}
+          >
+            {s === 'all' ? `All (${INTEGRATIONS.length})` : STATUS_LABEL[s as IntegrationStatus]}
+          </button>
+        ))}
+      </div>
 
-        <div className="flex flex-col gap-4">
-          {categories.map((cat) => (
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((integration) => (
+          <div
+            key={integration.slug}
+            className={`rounded-xl border border-zinc-700/40 bg-zinc-800/50 p-4 transition hover:border-zinc-600/50 ${
+              integration.status === 'coming-soon' ? 'opacity-60' : ''
+            }`}
+          >
+            <div className="mb-2 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <span className="block text-sm font-semibold leading-snug text-white">{integration.name}</span>
+                <span className={`text-[11px] font-medium ${INTEGRATION_CATEGORY_CLASS[integration.category] ?? 'text-zinc-500'}`}>
+                  {integration.category}
+                </span>
+              </div>
+              <span
+                className={`shrink-0 rounded border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide ${STATUS_CLASS[integration.status]}`}
+              >
+                {STATUS_LABEL[integration.status]}
+              </span>
+            </div>
+            <p className="text-xs leading-relaxed text-zinc-400">{integration.description}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 border-t border-zinc-700/50 pt-5">
+        <h3 className="mb-1 text-base font-semibold text-white">Tech stack</h3>
+        <p className="mb-4 text-sm text-zinc-400">Open-source first. Vendor-agnostic where it counts.</p>
+
+        <div className="flex flex-col gap-3">
+          {techCategories.map((cat) => (
             <div key={cat} className="flex flex-wrap items-center gap-2">
-              <span className={`w-24 shrink-0 text-[11px] font-semibold uppercase tracking-wide ${CATEGORY_CLASS[cat] ?? 'text-zinc-500'}`}>
+              <span className={`w-24 shrink-0 text-[11px] font-semibold uppercase tracking-wide ${TECH_CATEGORY_CLASS[cat] ?? 'text-zinc-500'}`}>
                 {cat}
               </span>
               {TECH_STACK.filter((t) => t.category === cat).map((tech) => (
