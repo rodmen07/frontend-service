@@ -1,8 +1,8 @@
 const FACTS = [
-  { label: 'Current role', value: 'Software Engineer at Smoothstack, delivering cloud and platform engineering across enterprise environments.' },
-  { label: 'Consulting scope', value: 'Cloud/Security consultant experience supporting government-focused programs for AFS/IRS.' },
-  { label: 'Engineering depth', value: 'Full application lifecycle exposure across frontend and backend: React/TypeScript, Node.js/Express, Ruby/Rails, and cloud-native deployment.' },
-  { label: 'Prior domain', value: '5 years in Finance/FinTech/Financial Operations, bringing regulated-environment discipline to delivery.' },
+  { label: 'Current role', value: 'Software Engineer at Smoothstack, focused on cloud and platform engineering in production environments.' },
+  { label: 'Consulting scope', value: 'Cloud/Security consulting exposure supporting government-focused programs for AFS/IRS.' },
+  { label: 'Build profile', value: 'Hands-on delivery across frontend, backend, and cloud infrastructure: React/TypeScript, Node.js/Express, Ruby/Rails, and IaC workflows.' },
+  { label: 'Prior domain', value: '5 years in Finance/FinTech operations, bringing regulated-environment rigor to startup delivery.' },
   { label: 'Education', value: 'BA in Economics and Mathematics.' },
   { label: 'Solo operator', value: 'No subcontractors, no account managers. You work directly with the engineer doing the work.' },
   { label: 'Built in public', value: '9-service microservices platform and a DynamoDB idempotency prototype — both on GitHub.' },
@@ -23,11 +23,10 @@ export function AboutSection() {
           <h2 className="text-xl font-bold text-white">Roderick Mendoza</h2>
           <p className="mt-1 text-sm text-amber-300/80">Cloud & Infrastructure Consultant</p>
           <p className="mt-3 text-sm leading-relaxed text-zinc-300">
-            I am a mid-level software engineer with hands-on exposure across the full application
-            lifecycle, from frontend and backend implementation through cloud deployment and
-            operational handoff. Current work centers on AWS/GCP platform engineering, Terraform,
-            CI/CD, and secure delivery patterns shaped by enterprise and regulated consulting
-            contexts.
+            I help founders and small product teams move from idea to reliable production systems
+            without hiring a full internal platform team too early. My work spans full-stack
+            implementation, cloud infrastructure, and operational handoff, with a focus on
+            AWS/GCP, Terraform, CI/CD, and secure delivery patterns.
           </p>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
