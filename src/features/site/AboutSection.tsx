@@ -1,5 +1,5 @@
 const FACTS = [
-  { label: 'Background', value: 'Cloud & infrastructure engineering — AWS, containers, CI/CD, and systems programming in Rust.' },
+  { label: 'Background', value: 'Cloud and infrastructure engineering - equal AWS/GCP focus, containers, CI/CD, and systems programming in Rust, with Azure expansion support.' },
   { label: 'Solo operator', value: 'No subcontractors, no account managers. You work directly with the engineer doing the work.' },
   { label: 'Built in public', value: '9-service microservices platform and a DynamoDB idempotency prototype — both on GitHub.' },
   { label: 'Location', value: 'San Antonio, TX — available remote worldwide, overlap with US and EU business hours.' },

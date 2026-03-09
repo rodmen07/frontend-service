@@ -11,7 +11,7 @@
     },
     {
       "question": "What cloud providers do you support?",
-      "answer": "AWS is my primary platform, GCP is secondary. I default to cloud-agnostic IaC (Terraform/Pulumi) so you're never locked into a provider. For GCP workloads, I commonly deploy on Cloud Run with managed CI/CD."
+      "answer": "AWS and GCP are equal focus areas right now. I default to cloud-agnostic IaC (Terraform/Pulumi) so you're never locked into a provider, and I'm open to expanding implementations into Azure as needed."
     },
     {
       "question": "How is pricing structured?",

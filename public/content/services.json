@@ -1,10 +1,10 @@
-﻿{
+{
   "intro": "End-to-end cloud engineering for startups that need to move fast without accumulating infrastructure debt.",
   "services": [
     {
       "title": "Cloud Architecture",
-      "description": "VPC design, IAM policies, multi-environment account structure. AWS-first, GCP available. Right-sized for your stage â€” no over-provisioning.",
-      "tags": ["AWS", "GCP", "VPC", "IAM"]
+      "description": "VPC design, IAM policies, and multi-environment account structure. AWS and GCP are equal focus areas, with Azure-ready patterns when needed. Right-sized for your stage - no over-provisioning.",
+      "tags": ["AWS", "GCP", "Azure-ready", "VPC", "IAM"]
     },
     {
       "title": "CI/CD Pipelines",
@@ -14,7 +14,7 @@
     {
       "title": "Infrastructure as Code",
       "description": "Terraform or Pulumi modules for repeatable, version-controlled infrastructure. Remote state, workspaces, and secrets management.",
-      "tags": ["Terraform", "Pulumi", "AWS CDK"]
+      "tags": ["Terraform", "Pulumi", "AWS CDK", "GCP IaC", "Azure IaC"]
     },
     {
       "title": "Containers & Orchestration",
@@ -28,13 +28,13 @@
     },
     {
       "title": "Cost Optimisation",
-      "description": "Audit unused resources, right-size instances, implement spot/preemptible strategies, and plan reserved capacity before your AWS bill surprises you.",
-      "tags": ["AWS Cost Explorer", "Savings Plans", "Spot Instances"]
+      "description": "Audit unused resources, right-size compute, implement spot/preemptible strategies, and plan committed-use or reserved capacity before cloud spend surprises you.",
+      "tags": ["AWS Cost Explorer", "GCP Billing", "Savings Plans", "Committed Use Discounts", "Spot Instances"]
     },
     {
       "title": "Security Hardening",
       "description": "Least-privilege IAM, secrets management, WAF setup, dependency scanning, and SAST pipeline integration. Secure by default, not bolted on after.",
-      "tags": ["IAM", "Vault", "AWS Secrets Manager", "Trivy"]
+      "tags": ["IAM", "Vault", "AWS Secrets Manager", "GCP Secret Manager", "Trivy", "Azure Key Vault"]
     },
     {
       "title": "Open-Source Stacks",
