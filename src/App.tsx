@@ -1,4 +1,4 @@
-import { TopNav } from './features/layout/TopNav'
+import TopNav from './features/layout/TopNav'
 import { HomeSections } from './features/site/HomeSections'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
 import { IntegrationsSection } from './features/site/IntegrationsSection'

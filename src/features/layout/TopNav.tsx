@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { label: 'Contact',      href: '#/contact' },
 ]
 
-export function TopNav() {
+function TopNavComponent() {
   const hash = window.location.hash
 
   const isActive = (href: string) => {
@@ -39,3 +39,6 @@ export function TopNav() {
     </nav>
   )
 }
+
+export const TopNav = TopNavComponent
+export default TopNavComponent
