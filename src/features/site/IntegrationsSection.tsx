@@ -2,18 +2,11 @@ import { useState } from 'react'
 
 type IntegrationStatus = 'live' | 'in-development' | 'coming-soon'
 
-type FilterStatus = IntegrationStatus | 'all'
-
 interface Integration {
   name: string
   slug: string
   description: string
   status: IntegrationStatus
-  category: string
-}
-
-interface TechBadge {
-  name: string
   category: string
 }
 
@@ -77,78 +70,51 @@ const INTEGRATIONS: Integration[] = [
   {
     name: 'Search',
     slug: 'search-service',
-    description: 'SQLite-backed Rust/Axum service indexing entities by type and content. Full-text search across titles and bodies with snippet extraction.',
-    status: 'in-development',
+    description: 'Full-text search across tasks, goals, contacts, and opportunities.',
+    status: 'coming-soon',
     category: 'Core',
   },
   {
     name: 'Integrations',
     slug: 'integrations-service',
-    description: 'Third-party connectors for GitHub, Slack, Jira, and more.',
-    status: 'coming-soon',
+    description: 'SQLite-backed Rust/Axum connection registry for third-party providers (Salesforce, HubSpot, Stripe). Tracks sync status and last-synced timestamps.',
+    status: 'in-development',
     category: 'Connectors',
   },
 ]
 
-const TECH_STACK: TechBadge[] = [
-  { name: 'AWS', category: 'Cloud' },
-  { name: 'GCP', category: 'Cloud' },
-  { name: 'Cloud Run', category: 'Cloud' },
-  { name: 'Terraform', category: 'IaC' },
-  { name: 'Pulumi', category: 'IaC' },
-  { name: 'Docker', category: 'Containers' },
-  { name: 'Kubernetes', category: 'Containers' },
-  { name: 'GitHub Actions', category: 'CI/CD' },
-  { name: 'Rust', category: 'Languages' },
-  { name: 'Python', category: 'Languages' },
-  { name: 'React', category: 'Languages' },
-  { name: 'PostgreSQL', category: 'Data' },
-  { name: 'SQLite', category: 'Data' },
-  { name: 'Prometheus', category: 'Observability' },
-  { name: 'Grafana', category: 'Observability' },
-]
-
 const STATUS_LABEL: Record<IntegrationStatus, string> = {
-  live: 'Live',
+  'live':           'Live',
   'in-development': 'In Development',
-  'coming-soon': 'Coming Soon',
+  'coming-soon':    'Coming Soon',
 }
 
 const STATUS_CLASS: Record<IntegrationStatus, string> = {
-  live: 'border-emerald-400/40 bg-emerald-500/10 text-emerald-300',
+  'live':           'border-emerald-400/40 bg-emerald-500/10 text-emerald-300',
   'in-development': 'border-amber-400/40 bg-amber-500/10 text-amber-300',
-  'coming-soon': 'border-zinc-600/40 bg-zinc-700/30 text-zinc-500',
+  'coming-soon':    'border-zinc-600/40 bg-zinc-700/30 text-zinc-500',
 }
 
-const INTEGRATION_CATEGORY_CLASS: Record<string, string> = {
-  Core: 'text-blue-400/70',
-  AI: 'text-purple-400/70',
-  Identity: 'text-teal-400/70',
-  CRM: 'text-orange-400/70',
+const CATEGORY_CLASS: Record<string, string> = {
+  Core:       'text-blue-400/70',
+  AI:         'text-purple-400/70',
+  Identity:   'text-teal-400/70',
+  CRM:        'text-orange-400/70',
   Automation: 'text-rose-400/70',
-  Analytics: 'text-amber-400/70',
+  Analytics:  'text-amber-400/70',
   Connectors: 'text-zinc-400/70',
 }
 
-const TECH_CATEGORY_CLASS: Record<string, string> = {
-  Cloud: 'text-blue-400/70',
-  IaC: 'text-purple-400/70',
-  Containers: 'text-teal-400/70',
-  'CI/CD': 'text-orange-400/70',
-  Languages: 'text-amber-400/70',
-  Data: 'text-emerald-400/70',
-  Observability: 'text-rose-400/70',
-}
+type FilterStatus = IntegrationStatus | 'all'
 
 export function IntegrationsSection() {
   const [activeStatus, setActiveStatus] = useState<FilterStatus>('all')
+
   const statusFilters: FilterStatus[] = ['all', 'live', 'in-development', 'coming-soon']
 
   const filtered = activeStatus === 'all'
     ? INTEGRATIONS
     : INTEGRATIONS.filter((i) => i.status === activeStatus)
-
-  const techCategories = [...new Set(TECH_STACK.map((t) => t.category))]
 
   return (
     <section className="forge-panel rounded-3xl border border-zinc-500/30 bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl">
@@ -175,6 +141,7 @@ export function IntegrationsSection() {
         </div>
       </div>
 
+      {/* Status filter chips */}
       <div className="mb-5 flex flex-wrap gap-1.5">
         {statusFilters.map((s) => (
           <button
@@ -202,8 +169,8 @@ export function IntegrationsSection() {
           >
             <div className="mb-2 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <span className="block text-sm font-semibold leading-snug text-white">{integration.name}</span>
-                <span className={`text-[11px] font-medium ${INTEGRATION_CATEGORY_CLASS[integration.category] ?? 'text-zinc-500'}`}>
+                <span className="block text-sm font-semibold text-white leading-snug">{integration.name}</span>
+                <span className={`text-[11px] font-medium ${CATEGORY_CLASS[integration.category] ?? 'text-zinc-500'}`}>
                   {integration.category}
                 </span>
               </div>
@@ -216,29 +183,6 @@ export function IntegrationsSection() {
             <p className="text-xs leading-relaxed text-zinc-400">{integration.description}</p>
           </div>
         ))}
-      </div>
-
-      <div className="mt-6 border-t border-zinc-700/50 pt-5">
-        <h3 className="mb-1 text-base font-semibold text-white">Tech stack</h3>
-        <p className="mb-4 text-sm text-zinc-400">Open-source first. Vendor-agnostic where it counts.</p>
-
-        <div className="flex flex-col gap-3">
-          {techCategories.map((cat) => (
-            <div key={cat} className="flex flex-wrap items-center gap-2">
-              <span className={`w-24 shrink-0 text-[11px] font-semibold uppercase tracking-wide ${TECH_CATEGORY_CLASS[cat] ?? 'text-zinc-500'}`}>
-                {cat}
-              </span>
-              {TECH_STACK.filter((t) => t.category === cat).map((tech) => (
-                <span
-                  key={tech.name}
-                  className="rounded-md border border-zinc-700/50 bg-zinc-800/60 px-2.5 py-1 text-xs font-medium text-zinc-200"
-                >
-                  {tech.name}
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   )
