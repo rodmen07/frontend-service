@@ -1,5 +1,4 @@
-import { MONITORING_URL } from '../../config'
-import { useBuildStatus } from './useBuildStatus'
+import { useGitHubBuildStatus } from './useGitHubBuildStatus'
 
 function formatRelativeTime(iso: string): string {
   if (!iso) return ''
@@ -36,32 +35,26 @@ const STATUS_CLASS: Record<string, string> = {
 
 interface BuildStatusBadgesProps {
   repos: string[]
+  owner?: string
 }
 
-export function BuildStatusBadges({ repos }: BuildStatusBadgesProps) {
-  const state = useBuildStatus()
+export function BuildStatusBadges({ repos, owner = 'rodmen07' }: BuildStatusBadgesProps) {
+  const state = useGitHubBuildStatus(owner, repos)
 
-  if (state.phase === 'disabled' || state.phase === 'error') return null
-
-  const items =
-    state.phase === 'ready'
-      ? state.items.filter((item) => repos.includes(item.repo))
-      : []
+  if (state.phase === 'error') return null
 
   return (
     <section className="forge-panel rounded-2xl border border-zinc-500/30 bg-zinc-900/80 p-5 backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-zinc-300">Live CI/CD</span>
-        {MONITORING_URL && (
-          <a
-            href={`${MONITORING_URL}/builds`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-zinc-500 transition hover:text-zinc-300"
-          >
-            Full dashboard →
-          </a>
-        )}
+        <a
+          href={`https://github.com/${owner}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-zinc-500 transition hover:text-zinc-300"
+        >
+          GitHub →
+        </a>
       </div>
 
       {state.phase === 'loading' ? (
@@ -69,18 +62,18 @@ export function BuildStatusBadges({ repos }: BuildStatusBadgesProps) {
           {repos.map((r) => (
             <div
               key={r}
-              className="h-8 w-36 animate-pulse rounded-xl border border-zinc-700/40 bg-zinc-800/50"
+              className="h-8 w-40 animate-pulse rounded-xl border border-zinc-700/40 bg-zinc-800/50"
             />
           ))}
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {items.map((item) => {
+          {state.items.map((item) => {
             const ds = item.display_status in DOT_CLASS ? item.display_status : 'unknown'
             return (
               <a
                 key={item.repo}
-                href={item.html_url || `${MONITORING_URL}/builds`}
+                href={item.html_url || `https://github.com/${owner}/${item.repo}/actions`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-xl border border-zinc-700/40 bg-zinc-800/50 px-3 py-1.5 text-sm transition hover:border-zinc-600/50"
