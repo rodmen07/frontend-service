@@ -1,6 +1,7 @@
 import { PageLayout } from './PageLayout'
 import { CaseStudyCard } from '../features/consulting/CaseStudyCard'
 import { useCaseStudiesContent } from '../features/consulting/useCaseStudiesContent'
+import { BuildStatusBadges } from '../features/site/BuildStatusBadges'
 
 export function CaseStudiesPage() {
   const baseUrl = import.meta.env.BASE_URL
@@ -43,6 +44,8 @@ export function CaseStudiesPage() {
           </a>
         </div>
       </section>
+
+      <BuildStatusBadges repos={['microservices', 'backend-service', 'frontend-service', 'auth-service', 'ai-orchestrator-service', 'dynamodb_prototype']} />
 
       {featured.title && (
         <CaseStudyCard {...featured} featured />
