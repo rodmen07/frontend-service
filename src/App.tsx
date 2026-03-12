@@ -2,6 +2,7 @@ import TopNav from './features/layout/TopNav'
 import { SideNav } from './features/layout/SideNav'
 import { HomeSections } from './features/site/HomeSections'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
+import { BuildStatusSection } from './features/site/BuildStatusSection'
 import { HeroSection } from './features/site/HeroSection'
 import { AboutSection } from './features/site/AboutSection'
 import { ContactCTA } from './features/site/ContactCTA'
@@ -31,6 +32,7 @@ function App() {
         <HomeSections content={homeSections} />
         <AboutSection />
         <HowItWorksSection />
+        <BuildStatusSection />
         <ContactCTA />
       </div>
     </main>
