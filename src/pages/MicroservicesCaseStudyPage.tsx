@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PageLayout } from './PageLayout'
 import { CodeBlock } from '../features/consulting/CodeBlock'
+import { BuildStatusBadges } from '../features/site/BuildStatusBadges'
 
 const TECH_STACK = ['Rust', 'Axum', 'Python', 'FastAPI', 'React 19', 'Vite', 'Tailwind', 'PostgreSQL', 'Terraform', 'Google Cloud Run', 'Cloud SQL', 'Secret Manager', 'Artifact Registry', 'GitHub Actions', 'Docker']
 
@@ -276,6 +277,8 @@ export function MicroservicesCaseStudyPage() {
           Cloud Run.
         </p>
       </section>
+
+      <BuildStatusBadges repos={['microservices', 'backend-service', 'frontend-service', 'auth-service', 'ai-orchestrator-service']} />
 
       {/* Tech stack */}
       <div className="flex flex-wrap gap-2">

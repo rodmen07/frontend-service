@@ -12,7 +12,12 @@ export function CodeBlock({ code, language = 'rust', file }: {
   language?: string
   file?: string
 }) {
-  const highlighted = hljs.highlight(code, { language, ignoreIllegals: true }).value
+  let highlighted: string
+  try {
+    highlighted = hljs.highlight(code, { language, ignoreIllegals: true }).value
+  } catch {
+    highlighted = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-800/60 bg-zinc-950">
       {file && (

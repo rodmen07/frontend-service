@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PageLayout } from './PageLayout'
 import { CodeBlock } from '../features/consulting/CodeBlock'
+import { BuildStatusBadges } from '../features/site/BuildStatusBadges'
 
 const TECH_STACK = ['Rust', 'AWS SDK for Rust', 'DynamoDB', 'Google Cloud (GCP)', 'Tokio', 'CloudTrail', 'Cloud Logging', 'Splunk HEC', 'Bronze/Silver/Gold Pipeline', 'Azure (planned)']
 
@@ -342,6 +343,8 @@ export function DynamoDbCaseStudyPage() {
           expand into Azure.
         </p>
       </section>
+
+      <BuildStatusBadges repos={['dynamodb_prototype']} />
 
       <section className="forge-panel rounded-2xl border border-zinc-500/30 bg-zinc-900/80 p-5 backdrop-blur-xl">
         <h2 className="text-base font-semibold text-white">Medallion architecture extension</h2>
