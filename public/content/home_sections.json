@@ -25,6 +25,11 @@
       "heading": "Fixed scope, fixed price",
       "body": "I scope projects carefully so there are no surprises. Written proposal before any work begins. Retainer support available after delivery.",
       "link": "#/pricing"
+    },
+    {
+      "heading": "Secure by default",
+      "body": "Every layer hardened from the start: JWT/RBAC, secrets management, least-privilege IAM, and audit logging — informed by compliance exposure on federal programs.",
+      "link": "#/services"
     }
   ]
 }
