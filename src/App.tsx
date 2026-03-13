@@ -1,18 +1,15 @@
 import TopNav from './features/layout/TopNav'
 import { SideNav } from './features/layout/SideNav'
-import { HomeSections } from './features/site/HomeSections'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
 import { BuildStatusSection } from './features/site/BuildStatusSection'
 import { MedallionDemo } from './features/site/MedallionDemo'
 import { HeroSection } from './features/site/HeroSection'
 import { ContactCTA } from './features/site/ContactCTA'
-import { useHomeSectionsContent } from './features/site/useHomeSectionsContent'
 import { useSiteContent } from './features/site/useSiteContent'
 
 function App() {
   const baseUrl = import.meta.env.BASE_URL
   const content = useSiteContent(baseUrl)
-  const homeSections = useHomeSectionsContent(baseUrl)
 
   return (
     <main className="forge-grid relative min-h-screen bg-zinc-950 px-2 py-6 text-zinc-100 sm:px-4 sm:py-8 lg:px-8 lg:pl-64 xl:px-10 2xl:px-14">
@@ -29,7 +26,6 @@ function App() {
           <TopNav />
         </div>
         <HeroSection content={content} />
-        <HomeSections content={homeSections} />
         <MedallionDemo defaultLayer="gold" />
         <BuildStatusSection />
         <HowItWorksSection />
