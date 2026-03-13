@@ -30,6 +30,7 @@ type DailyAggregate = {
   max: number
   avg: number
   maxPrecip: number
+  avgWind: number
 }
 
 // ── Data processing ────────────────────────────────────────────────────────
@@ -49,31 +50,59 @@ function toSilver(raw: OpenMeteoResponse): HourlyRecord[] {
 function toGold(records: HourlyRecord[]): DailyAggregate[] {
   const byDate = new Map<string, number[]>()
   const precipByDate = new Map<string, number>()
+  const windByDate = new Map<string, number[]>()
 
   for (const r of records) {
     const date = r.time.slice(0, 10)
-    if (!byDate.has(date)) { byDate.set(date, []); precipByDate.set(date, 0) }
+    if (!byDate.has(date)) {
+      byDate.set(date, [])
+      precipByDate.set(date, 0)
+      windByDate.set(date, [])
+    }
     byDate.get(date)!.push(r.temp)
     precipByDate.set(date, Math.max(precipByDate.get(date)!, r.precip))
+    windByDate.get(date)!.push(r.wind)
   }
 
-  return Array.from(byDate.entries()).map(([date, temps]) => ({
-    date,
-    min: Math.min(...temps),
-    max: Math.max(...temps),
-    avg: temps.reduce((a, b) => a + b, 0) / temps.length,
-    maxPrecip: precipByDate.get(date) ?? 0,
-  }))
+  return Array.from(byDate.entries()).map(([date, temps]) => {
+    const winds = windByDate.get(date) ?? []
+    return {
+      date,
+      min: Math.min(...temps),
+      max: Math.max(...temps),
+      avg: temps.reduce((a, b) => a + b, 0) / temps.length,
+      maxPrecip: precipByDate.get(date) ?? 0,
+      avgWind: winds.length > 0 ? winds.reduce((a, b) => a + b, 0) / winds.length : 0,
+    }
+  })
 }
 
-// ── SVG Chart ─────────────────────────────────────────────────────────────
+// ── Shared chart constants ─────────────────────────────────────────────────
 
-function TempChart({ days }: { days: DailyAggregate[] }) {
+const CHART_W = 560
+const CHART_PAD = { top: 16, right: 12, bottom: 36, left: 36 }
+
+function chartToX(i: number, total: number) {
+  const inner = CHART_W - CHART_PAD.left - CHART_PAD.right
+  return CHART_PAD.left + (i + 0.5) * (inner / total)
+}
+
+// ── TempChart ──────────────────────────────────────────────────────────────
+
+function TempChart({
+  days,
+  hoveredIdx,
+  onHover,
+}: {
+  days: DailyAggregate[]
+  hoveredIdx: number | null
+  onHover: (idx: number | null) => void
+}) {
   if (days.length === 0) return null
 
-  const W = 560
+  const W = CHART_W
   const H = 200
-  const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
+  const PAD = CHART_PAD
   const chartW = W - PAD.left - PAD.right
   const chartH = H - PAD.top - PAD.bottom
 
@@ -85,7 +114,7 @@ function TempChart({ days }: { days: DailyAggregate[] }) {
 
   const toY = (v: number) => PAD.top + chartH - ((v - yMin) / (yMax - yMin)) * chartH
   const barW = Math.min(32, (chartW / days.length) * 0.55)
-  const toX = (i: number) => PAD.left + (i + 0.5) * (chartW / days.length)
+  const toX = (i: number) => chartToX(i, days.length)
 
   const gridLines: number[] = []
   for (let t = yMin; t <= yMax; t += 5) gridLines.push(t)
@@ -96,7 +125,12 @@ function TempChart({ days }: { days: DailyAggregate[] }) {
   }
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Daily temperature range chart">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      aria-label="Daily temperature range chart"
+      onMouseLeave={() => onHover(null)}
+    >
       {/* Grid lines */}
       {gridLines.map((t) => (
         <g key={t}>
@@ -119,8 +153,19 @@ function TempChart({ days }: { days: DailyAggregate[] }) {
         const isWarm = d.avg > 15
         const barColor = isWarm ? '#f59e0b' : '#38bdf8'
         const precipH = (d.maxPrecip / 100) * chartH * 0.18
+        const dimmed = hoveredIdx !== null && hoveredIdx !== i
         return (
-          <g key={d.date}>
+          <g
+            key={d.date}
+            style={{ opacity: dimmed ? 0.3 : 1, cursor: 'crosshair' }}
+            onMouseEnter={() => onHover(i)}
+          >
+            {/* Wide transparent hit area */}
+            <rect
+              x={x - barW * 1.5} y={PAD.top}
+              width={barW * 3} height={chartH}
+              fill="transparent"
+            />
             {/* Precipitation base */}
             <rect
               x={x - barW / 2} y={toY(yMin) - precipH}
@@ -132,7 +177,7 @@ function TempChart({ days }: { days: DailyAggregate[] }) {
             <rect
               x={x - barW / 2} y={y1}
               width={barW} height={Math.max(y2 - y1, 2)}
-              fill={barColor} opacity={0.7}
+              fill={barColor} opacity={hoveredIdx === i ? 1 : 0.7}
               rx="3"
             />
             {/* Avg dot */}
@@ -156,6 +201,147 @@ function TempChart({ days }: { days: DailyAggregate[] }) {
       <rect x={PAD.left + 96} y={PAD.top - 10} width={8} height={8} fill="#818cf8" opacity={0.35} rx="1" />
       <text x={PAD.left + 109} y={PAD.top - 3} fontSize="9" fill="#a1a1aa">precip %</text>
     </svg>
+  )
+}
+
+// ── WindChart ──────────────────────────────────────────────────────────────
+
+function WindChart({ days }: { days: DailyAggregate[] }) {
+  if (days.length === 0) return null
+
+  const W = CHART_W
+  const H = 90
+  const PAD = { top: 20, right: CHART_PAD.right, bottom: 8, left: CHART_PAD.left }
+  const chartH = H - PAD.top - PAD.bottom
+
+  const maxWind = Math.max(...days.map((d) => d.avgWind), 10)
+  const yMax = Math.ceil(maxWind / 10) * 10
+
+  const toX = (i: number) => chartToX(i, days.length)
+  const toY = (v: number) => PAD.top + chartH - (v / yMax) * chartH
+
+  const gridLines: number[] = []
+  for (let t = 0; t <= yMax; t += 10) gridLines.push(t)
+
+  const points = days.map((d, i) => `${toX(i)},${toY(d.avgWind)}`).join(' ')
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Daily avg wind speed chart">
+      {gridLines.map((t) => (
+        <g key={t}>
+          <line
+            x1={PAD.left} y1={toY(t)} x2={W - PAD.right} y2={toY(t)}
+            stroke="#3f3f46" strokeWidth="1"
+          />
+          <text x={PAD.left - 4} y={toY(t) + 4} textAnchor="end" fontSize="9" fill="#71717a">
+            {t}
+          </text>
+        </g>
+      ))}
+      <text x={PAD.left} y={PAD.top - 6} fontSize="9" fill="#71717a">Avg wind km/h</text>
+      <polyline
+        points={points}
+        fill="none"
+        stroke="#38bdf8"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      {days.map((d, i) => (
+        <circle
+          key={d.date}
+          cx={toX(i)} cy={toY(d.avgWind)}
+          r="2.5"
+          fill="#38bdf8"
+          stroke="#18181b"
+          strokeWidth="1"
+        />
+      ))}
+    </svg>
+  )
+}
+
+// ── Stat cards ─────────────────────────────────────────────────────────────
+
+function StatCards({ days }: { days: DailyAggregate[] }) {
+  if (days.length === 0) return null
+
+  const coldest = days.reduce((a, b) => (a.min <= b.min ? a : b))
+  const warmest = days.reduce((a, b) => (a.max >= b.max ? a : b))
+  const wettest = days.reduce((a, b) => (a.maxPrecip >= b.maxPrecip ? a : b))
+
+  const fmt = (iso: string) => {
+    const d = new Date(iso + 'T12:00:00')
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  return (
+    <div className="mb-3 grid grid-cols-3 gap-2">
+      <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/50 p-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Coldest</p>
+        <p className="mt-0.5 text-[11px] text-zinc-400">{fmt(coldest.date)}</p>
+        <p className="text-sm font-semibold text-sky-400">{coldest.min.toFixed(1)}°C</p>
+      </div>
+      <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/50 p-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Warmest</p>
+        <p className="mt-0.5 text-[11px] text-zinc-400">{fmt(warmest.date)}</p>
+        <p className="text-sm font-semibold text-amber-400">{warmest.max.toFixed(1)}°C</p>
+      </div>
+      <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/50 p-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Wettest</p>
+        <p className="mt-0.5 text-[11px] text-zinc-400">{fmt(wettest.date)}</p>
+        <p className="text-sm font-semibold text-indigo-400">{wettest.maxPrecip}%</p>
+      </div>
+    </div>
+  )
+}
+
+// ── GoldView ───────────────────────────────────────────────────────────────
+
+function GoldView({ days }: { days: DailyAggregate[] }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+
+  const tooltipLeftPct =
+    hoveredIdx !== null
+      ? Math.min(92, Math.max(8, (chartToX(hoveredIdx, days.length) / CHART_W) * 100))
+      : 50
+
+  const hovered = hoveredIdx !== null ? days[hoveredIdx] : null
+
+  const fmt = (iso: string) => {
+    const d = new Date(iso + 'T12:00:00')
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        <span className="rounded border border-amber-600/40 bg-amber-900/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">Aggregated</span>
+        <span className="rounded border border-zinc-700/40 bg-zinc-800/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Analytics-Ready</span>
+        <span className="rounded border border-zinc-700/40 bg-zinc-800/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{days.length} days</span>
+      </div>
+      <StatCards days={days} />
+      <div className="rounded-xl border border-zinc-800/60 bg-zinc-950 p-4">
+        <div className="relative">
+          <TempChart days={days} hoveredIdx={hoveredIdx} onHover={setHoveredIdx} />
+          {hovered && (
+            <div
+              className="pointer-events-none absolute top-3 z-10 rounded-lg border border-zinc-700/60 bg-zinc-900/95 px-3 py-2 text-xs shadow-xl backdrop-blur"
+              style={{ left: `${tooltipLeftPct}%`, transform: 'translateX(-50%)' }}
+            >
+              <p className="mb-1 font-semibold text-zinc-100">{fmt(hovered.date)}</p>
+              <p className="text-zinc-400">Min <span className="font-mono text-sky-400">{hovered.min.toFixed(1)}°C</span></p>
+              <p className="text-zinc-400">Max <span className="font-mono text-amber-400">{hovered.max.toFixed(1)}°C</span></p>
+              <p className="text-zinc-400">Avg <span className="font-mono text-zinc-200">{hovered.avg.toFixed(1)}°C</span></p>
+              <p className="text-zinc-400">Precip <span className="font-mono text-indigo-300">{hovered.maxPrecip}%</span></p>
+            </div>
+          )}
+        </div>
+        <WindChart days={days} />
+        <p className="mt-2 text-center text-[10px] text-zinc-600">
+          Bars: daily temperature range (min→max) · Dot: avg °C · Indigo base: precip % · Line: avg wind km/h
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -235,24 +421,6 @@ function SilverView({ records }: { records: HourlyRecord[] }) {
           {showAll ? '▲ collapse' : `▼ show all ${records.length} records`}
         </button>
       )}
-    </div>
-  )
-}
-
-function GoldView({ days }: { days: DailyAggregate[] }) {
-  return (
-    <div>
-      <div className="mb-2 flex flex-wrap gap-1.5">
-        <span className="rounded border border-amber-600/40 bg-amber-900/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">Aggregated</span>
-        <span className="rounded border border-zinc-700/40 bg-zinc-800/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Analytics-Ready</span>
-        <span className="rounded border border-zinc-700/40 bg-zinc-800/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{days.length} days</span>
-      </div>
-      <div className="rounded-xl border border-zinc-800/60 bg-zinc-950 p-4">
-        <TempChart days={days} />
-        <p className="mt-2 text-center text-[10px] text-zinc-600">
-          Bars: daily temperature range (min→max) · Dot: average · Indigo base: precipitation probability
-        </p>
-      </div>
     </div>
   )
 }

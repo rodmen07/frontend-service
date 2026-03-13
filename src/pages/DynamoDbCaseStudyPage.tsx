@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PageLayout } from './PageLayout'
 import { CodeBlock } from '../features/consulting/CodeBlock'
 import { MedallionDemo } from '../features/site/MedallionDemo'
+import { PipelineMetrics } from '../features/site/PipelineMetrics'
 
 const TECH_STACK = ['Rust', 'AWS SDK for Rust', 'DynamoDB', 'Google Cloud (GCP)', 'Tokio', 'CloudTrail', 'Cloud Logging', 'Splunk HEC', 'Bronze/Silver/Gold Pipeline', 'Azure (planned)']
 
@@ -361,6 +362,7 @@ export function DynamoDbCaseStudyPage() {
       </section>
 
       <MedallionDemo />
+      <PipelineMetrics />
 
       {/* Tech stack */}
       <div className="flex flex-wrap gap-2">
