@@ -7,6 +7,7 @@ const FACTS = [
   { label: 'Solo operator', value: 'No subcontractors, no account managers. You work directly with the engineer doing the work.' },
   { label: 'Built in public', value: '9-service microservices platform and a DynamoDB idempotency prototype — both on GitHub.' },
   { label: 'Location', value: 'San Antonio, TX — available remote worldwide, overlap with US and EU business hours.' },
+  { label: 'Security posture', value: 'Secure-by-default across every layer: JWT/RBAC, secrets management, least-privilege IAM, and audit logging — informed by compliance exposure on federal programs.' },
 ]
 
 export function AboutSection() {
