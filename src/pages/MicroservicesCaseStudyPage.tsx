@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PageLayout } from './PageLayout'
 import { CodeBlock } from '../features/consulting/CodeBlock'
+import { BuildStatusBadges } from '../features/site/BuildStatusBadges'
 
 
 const TECH_STACK = ['Rust', 'Axum', 'Python', 'FastAPI', 'React 19', 'Vite', 'Tailwind', 'PostgreSQL', 'Terraform', 'Google Cloud Run', 'Cloud SQL', 'Secret Manager', 'Artifact Registry', 'GitHub Actions', 'Docker']
@@ -299,6 +300,8 @@ export function MicroservicesCaseStudyPage() {
           top of this Cloud Run + Terraform base, instead of reworking platform fundamentals.
         </p>
       </section>
+
+      <BuildStatusBadges repos={['microservices', 'backend-service', 'frontend-service', 'auth-service', 'ai-orchestrator-service', 'dynamodb_prototype']} />
 
       {/* Expandable highlights */}
       <section className="forge-panel overflow-hidden rounded-2xl border border-zinc-500/30 bg-zinc-900/80 backdrop-blur-xl">
