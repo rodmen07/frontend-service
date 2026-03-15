@@ -460,6 +460,12 @@ export function MedallionDemo({ defaultLayer = 'gold' as Layer }: { defaultLayer
           <div>
             <h2 className="text-base font-semibold text-white">Security Intelligence Pipeline</h2>
             <p className="mt-0.5 text-sm text-zinc-500">NVD CVE data · NIST API · Bronze → Silver → Gold</p>
+            <p className="mt-2 max-w-md text-sm text-zinc-400">
+              Live CVE feed from NIST — the same database security teams use to track software vulnerabilities.
+              <span className="text-zinc-500"> Bronze</span> shows raw API records,
+              <span className="text-zinc-500"> Silver</span> parses and classifies them,
+              <span className="text-zinc-500"> Gold</span> aggregates into charts a security team would act on.
+            </p>
           </div>
           <div className="flex gap-1 rounded-lg border border-zinc-700/40 bg-zinc-900/60 p-0.5">
             {LAYERS.map(({ id, label }) => (
