@@ -19,6 +19,34 @@
   },
   "others": [
     {
+      "title": "SOC 2 Baseline — Terraform Module",
+      "subtitle": "Cloud-agnostic · GCP + AWS · IaC · Security Controls",
+      "description": "Cloud-agnostic GCP + AWS Terraform module encoding 9 SOC 2 Type II controls: IAM least-privilege, secrets management, VPC segmentation, audit logging, and non-root containers.",
+      "techStack": ["Terraform", "GCP", "AWS", "Secret Manager", "Secrets Manager", "KMS", "CloudTrail", "VPC", "IAM", "OIDC"],
+      "highlights": [
+        "Cloud-agnostic: parallel GCP and AWS sub-modules with identical control surface",
+        "9 SOC 2 Type II controls mapped to exact implementation files",
+        "Audit logging sinks for Secret Manager, Cloud SQL, and Cloud Run data access events",
+        "Non-root container enforcement via ECS task policy and GCP Org Policy documentation"
+      ],
+      "githubUrl": "https://github.com/rodmen07/microservices",
+      "detailUrl": "#/case-studies/soc2-terraform-module"
+    },
+    {
+      "title": "CI/CD Pipeline Template",
+      "subtitle": "Cloud-agnostic · GCP Cloud Run + AWS ECS · GitHub Actions · OIDC",
+      "description": "Cloud-agnostic GitHub Actions reference: dev → staging → prod promotion gates, automated health-check rollback on GCP Cloud Run and AWS ECS, environment-scoped OIDC secret injection.",
+      "techStack": ["GitHub Actions", "GCP Cloud Run", "AWS ECS", "OIDC", "Rust", "Python", "Docker", "Bash"],
+      "highlights": [
+        "Cloud-agnostic: GCP and AWS rollback scripts share identical shell interface",
+        "Automated rollback — polls /health for 90s, reverts traffic on failure",
+        "Environment-scoped OIDC: staging and prod each hold isolated credentials",
+        "Forkable template with prereq checklist and architecture diagram in docs/"
+      ],
+      "githubUrl": "https://github.com/rodmen07/microservices",
+      "detailUrl": "#/case-studies/cicd-pipeline-template"
+    },
+    {
       "title": "DynamoDB Idempotency Prototype",
       "subtitle": "AWS + GCP focus · Rust · DynamoDB · CloudTrail/Cloud Logging · Splunk HEC",
       "description": "Rust prototype for exactly-once cloud audit log delivery to Splunk HEC via DynamoDB conditional writes with TTL expiry.",

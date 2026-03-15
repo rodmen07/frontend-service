@@ -10,6 +10,8 @@ import { PricingPage } from './pages/PricingPage'
 import { ContactPage } from './pages/ContactPage'
 import { DynamoDbCaseStudyPage } from './pages/DynamoDbCaseStudyPage'
 import { MicroservicesCaseStudyPage } from './pages/MicroservicesCaseStudyPage'
+import { Soc2CaseStudyPage } from './pages/Soc2CaseStudyPage'
+import { CicdCaseStudyPage } from './pages/CicdCaseStudyPage'
 import { AboutPage } from './pages/AboutPage'
 import { PatchNotesPage } from './pages/PatchNotesPage'
 
@@ -108,6 +110,8 @@ function Root() {
   if (hash === '#/case-studies') return <CaseStudiesPage />
   if (hash === '#/case-studies/dynamodb-idempotency') return <DynamoDbCaseStudyPage />
   if (hash === '#/case-studies/microservices-platform') return <MicroservicesCaseStudyPage />
+  if (hash === '#/case-studies/soc2-terraform-module') return <Soc2CaseStudyPage />
+  if (hash === '#/case-studies/cicd-pipeline-template') return <CicdCaseStudyPage />
   if (hash === '#/pricing') return <PricingPage />
   if (hash === '#/patch-notes') return <PatchNotesPage />
   if (hash === '#/contact') return <ContactPage />
