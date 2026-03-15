@@ -14,20 +14,24 @@ function App() {
   const content = useSiteContent(baseUrl)
 
   return (
-    <main className="forge-grid relative min-h-screen bg-zinc-950 px-2 py-6 text-zinc-100 sm:px-4 sm:py-8 lg:px-8 lg:pl-64 xl:px-10 2xl:px-14">
+    <main className="forge-grid relative bg-zinc-950 px-2 text-zinc-100 sm:px-4 lg:px-8 lg:pl-64 xl:px-10 2xl:px-14">
       <SideNav />
 
-      <div className="pointer-events-none absolute inset-0 overflow-clip">
+      <div className="pointer-events-none fixed inset-0 overflow-clip">
         <div className="absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-amber-500/20 blur-3xl" />
         <div className="absolute -bottom-24 right-8 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-amber-500/10 to-transparent" />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <div className="lg:hidden">
+      {/* perspective here = shared vanishing point for all FocusCards (one cylinder) */}
+      <div
+        className="relative mx-auto flex w-full max-w-5xl flex-col"
+        style={{ perspective: '1200px' }}
+      >
+        <div className="lg:hidden py-4">
           <TopNav />
         </div>
-        <FocusCard minOpacity={0.7}>
+        <FocusCard>
           <HeroSection content={content} />
         </FocusCard>
         <FocusCard>
@@ -42,7 +46,7 @@ function App() {
         <FocusCard>
           <HowItWorksSection />
         </FocusCard>
-        <FocusCard minOpacity={0.6}>
+        <FocusCard>
           <ContactCTA />
         </FocusCard>
       </div>

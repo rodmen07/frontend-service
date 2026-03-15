@@ -3,29 +3,32 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 interface FocusCardProps {
   children: React.ReactNode
   className?: string
-  /** Max rotateX angle (degrees) at full distance from center. Default 48. */
+  /** Max rotateX angle (degrees) at full distance from center. Default 35. */
   maxAngle?: number
-  /** Minimum opacity when fully rotated away. Default 0.35. */
+  /** Minimum opacity when fully rotated away. Default 0.38. */
   minOpacity?: number
-  /** Distance (as fraction of vh) at which rotation/fade max out. Default 0.6. */
+  /** Distance (as fraction of vh) at which rotation/fade max out. Default 0.65. */
   fadeRadius?: number
 }
 
 /**
- * Cards sit on an imaginary vertical wheel. The card centered in the viewport
- * faces the viewer flat-on; cards above/below rotate away as if the wheel is
- * spinning, with matching opacity and scale falloff.
+ * Full-viewport section that sits on a shared vertical wheel.
+ * The perspective CSS property on the parent container (App.tsx) provides the
+ * shared vanishing point — all cards rotate around the same cylinder axis.
+ * translateZ pushes off-center cards back along the Z-axis for genuine depth.
+ * A gradient overlay darkens the "far edge" to simulate a curved surface.
  * Respects prefers-reduced-motion.
  */
 export function FocusCard({
   children,
   className,
-  maxAngle = 48,
-  minOpacity = 0.35,
-  fadeRadius = 0.6,
+  maxAngle = 35,
+  minOpacity = 0.38,
+  fadeRadius = 0.65,
 }: FocusCardProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const [style, setStyle] = useState<React.CSSProperties>({})
+  const [sectionStyle, setSectionStyle] = useState<React.CSSProperties>({})
+  const [gradient, setGradient] = useState('')
   const rafRef = useRef<number>(0)
 
   const update = useCallback(() => {
@@ -36,23 +39,36 @@ export function FocusCard({
     const viewportCenter = window.innerHeight / 2
     const maxDist = window.innerHeight * fadeRadius
 
-    // signed: positive when card is above center (rotates over the top of the wheel)
+    // positive → card is above center (top tilts away)
+    // negative → card is below center (bottom tilts away)
     const signed = viewportCenter - elementCenter
     const t = Math.min(Math.abs(signed) / maxDist, 1)
-
-    // rotateX: positive → top goes away (card tilts backward over the wheel)
-    //          negative → bottom goes away (card tilts forward under the wheel)
     const angle = (signed / (maxDist || 1)) * maxAngle
 
-    const opacity = 1 - t * (1 - minOpacity)
-    const scale = 1 - t * 0.06
+    // Quadratic depth: cards further from center recede along the cylinder surface
+    const depth = t * t * 120
 
-    setStyle({
+    const opacity = 1 - t * (1 - minOpacity)
+    const scale = 1 - t * 0.04
+
+    setSectionStyle({
       opacity,
-      transform: `perspective(900px) rotateX(${angle}deg) scale(${scale})`,
-      transformOrigin: 'center center',
-      transition: 'opacity 120ms ease, transform 120ms ease',
+      // No CSS transition on transform — scroll-driven, must be immediate
+      transform: `rotateX(${angle}deg) translateZ(${-depth}px) scale(${scale})`,
+      transition: 'opacity 150ms ease',
     })
+
+    // Gradient darkens the "far edge" to simulate a curved cylinder surface
+    const overlayAlpha = (t * 0.28).toFixed(3)
+    if (t < 0.04) {
+      setGradient('')
+    } else if (angle > 0) {
+      // Top is tilting away — darken the top edge
+      setGradient(`linear-gradient(to top, transparent 55%, rgba(0,0,0,${overlayAlpha}))`)
+    } else {
+      // Bottom is tilting away — darken the bottom edge
+      setGradient(`linear-gradient(to bottom, transparent 55%, rgba(0,0,0,${overlayAlpha}))`)
+    }
   }, [maxAngle, minOpacity, fadeRadius])
 
   useEffect(() => {
@@ -75,8 +91,21 @@ export function FocusCard({
   }, [update])
 
   return (
-    <div ref={ref} style={style} className={className}>
-      {children}
+    <div
+      ref={ref}
+      style={sectionStyle}
+      className={`min-h-screen flex items-center justify-center py-12 ${className ?? ''}`}
+    >
+      <div className="relative w-full">
+        {children}
+        {gradient && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-3xl"
+            style={{ background: gradient }}
+          />
+        )}
+      </div>
     </div>
   )
 }
