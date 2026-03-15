@@ -1,5 +1,6 @@
 import TopNav from './features/layout/TopNav'
 import { SideNav } from './features/layout/SideNav'
+import { FocusCard } from './features/layout/FocusCard'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
 import { BuildStatusSection } from './features/site/BuildStatusSection'
 import { AskAISection } from './features/site/AskAISection'
@@ -26,12 +27,24 @@ function App() {
         <div className="lg:hidden">
           <TopNav />
         </div>
-        <HeroSection content={content} />
-        <MedallionDemo defaultLayer="gold" />
-        <BuildStatusSection />
-        <AskAISection />
-        <HowItWorksSection />
-        <ContactCTA />
+        <FocusCard minOpacity={0.7}>
+          <HeroSection content={content} />
+        </FocusCard>
+        <FocusCard>
+          <MedallionDemo defaultLayer="gold" />
+        </FocusCard>
+        <FocusCard>
+          <BuildStatusSection />
+        </FocusCard>
+        <FocusCard>
+          <AskAISection />
+        </FocusCard>
+        <FocusCard>
+          <HowItWorksSection />
+        </FocusCard>
+        <FocusCard minOpacity={0.6}>
+          <ContactCTA />
+        </FocusCard>
       </div>
     </main>
   )
