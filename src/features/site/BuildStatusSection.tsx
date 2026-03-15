@@ -1,17 +1,6 @@
 import { MONITORING_URL } from '../../config'
 import { useBuildStatus } from './useBuildStatus'
-
-function formatRelativeTime(iso: string): string {
-  if (!iso) return ''
-  const diff = Date.now() - new Date(iso).getTime()
-  const s = Math.floor(diff / 1000)
-  if (s < 60) return `${s}s ago`
-  const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
-}
+import { formatRelativeTime } from '../../utils/time'
 
 const DOT_CLASS: Record<string, string> = {
   green:   'bg-emerald-400',
