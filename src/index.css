@@ -261,6 +261,22 @@ body {
   color: #3f3f46;
 }
 
+/* About page fact cards — warm amber tint in light mode */
+[data-theme="light"] .about-fact-card {
+  background-color: rgba(251, 191, 36, 0.08) !important;
+  border-color: rgba(180, 83, 9, 0.18) !important;
+}
+
+/* HomeSections interactive cards — soft sky tint in light mode for contrast with amber fact cards */
+[data-theme="light"] .interactive-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(224, 242, 254, 0.6)) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+[data-theme="light"] .interactive-card:hover {
+  border-color: rgba(56, 189, 248, 0.45) !important;
+}
+
 /* ---------------------------------------------------------------------------
    Text overrides — Tailwind hardcoded classes
    [data-theme="light"] adds specificity without !important where possible.

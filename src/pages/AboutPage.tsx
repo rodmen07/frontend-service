@@ -1,4 +1,5 @@
 import { PageLayout } from './PageLayout'
+import { AboutHero } from '../features/site/AboutHero'
 import { AboutSection } from '../features/site/AboutSection'
 import { HomeSections } from '../features/site/HomeSections'
 import { useHomeSectionsContent } from '../features/site/useHomeSectionsContent'
@@ -9,6 +10,7 @@ export function AboutPage() {
 
   return (
     <PageLayout>
+      <AboutHero />
       <AboutSection />
       <HomeSections content={homeSections} />
     </PageLayout>
