@@ -129,6 +129,7 @@ export function ContactPage() {
           </a>
         </div>
         <p className="mt-4 text-xs text-zinc-600">Based in San Antonio, TX — open to remote worldwide.</p>
+        <p className="mt-1 text-xs text-zinc-600">Email link opens your default mail client — works best on mobile.</p>
       </section>
     </PageLayout>
   )
