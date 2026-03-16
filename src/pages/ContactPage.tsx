@@ -1,15 +1,32 @@
 import { useState } from 'react'
 import { PageLayout } from './PageLayout'
+import { MONITORING_URL } from '../config'
+
+type Phase = 'idle' | 'sending' | 'sent' | 'error'
 
 export function ContactPage() {
   const [name, setName] = useState('')
-  const [subject, setSubject] = useState('')
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const [phase, setPhase] = useState<Phase>('idle')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const body = `Hi Roderick,\n\n${message}\n\n— ${name}`
-    window.location.href = `mailto:rodmendoza07@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    setPhase('sending')
+    try {
+      const res = await fetch(`${MONITORING_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      })
+      if (!res.ok) throw new Error(`${res.status}`)
+      setPhase('sent')
+      setName('')
+      setEmail('')
+      setMessage('')
+    } catch {
+      setPhase('error')
+    }
   }
 
   const fieldClass = 'w-full rounded-lg border border-zinc-700/60 bg-zinc-800/70 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition focus:border-amber-400/55 focus:ring-1 focus:ring-amber-400/35'
@@ -32,6 +49,11 @@ export function ContactPage() {
           </div>
         </div>
 
+        {phase === 'sent' ? (
+          <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-300">
+            Message sent — I'll be in touch within 1 business day.
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
@@ -47,14 +69,14 @@ export function ContactPage() {
               />
             </div>
             <div>
-              <label htmlFor="subject" className={labelClass}>Subject</label>
+              <label htmlFor="email" className={labelClass}>Email</label>
               <input
-                id="subject"
-                type="text"
+                id="email"
+                type="email"
                 required
-                placeholder="CI/CD pipeline project"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                placeholder="jane@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className={fieldClass}
               />
             </div>
@@ -73,13 +95,19 @@ export function ContactPage() {
             />
           </div>
 
+          {phase === 'error' && (
+            <p className="text-sm text-red-400">Something went wrong — please try again or reach out directly below.</p>
+          )}
+
           <button
             type="submit"
-            className="btn-accent px-6 py-2.5 text-sm"
+            disabled={phase === 'sending'}
+            className="btn-accent px-6 py-2.5 text-sm disabled:opacity-50"
           >
-            Open in email client →
+            {phase === 'sending' ? 'Sending…' : 'Send message →'}
           </button>
         </form>
+        )}
       </section>
 
       <section className="forge-panel surface-card rounded-2xl p-6 reveal reveal-delay-1">
