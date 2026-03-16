@@ -96,12 +96,6 @@ function App() {
           <HeroSection content={content} />
         </FocusCard>
         <FocusCard>
-          <MedallionDemo defaultLayer="gold" />
-        </FocusCard>
-        <FocusCard>
-          <BuildStatusSection />
-        </FocusCard>
-        <FocusCard>
           <AskAISection />
         </FocusCard>
         <FocusCard>
@@ -109,6 +103,12 @@ function App() {
         </FocusCard>
         <FocusCard>
           <ContactCTA />
+        </FocusCard>
+        <FocusCard>
+          <BuildStatusSection />
+        </FocusCard>
+        <FocusCard>
+          <MedallionDemo defaultLayer="gold" />
         </FocusCard>
       </div>
     </main>
