@@ -14,6 +14,7 @@ interface Version {
   tag: string
   date: string
   label: string
+  status?: 'upcoming'
   summary: string
   highlights: { heading: string; items: string[] }[]
   findings?: Finding[]
@@ -28,6 +29,76 @@ const SEVERITY_STYLES: Record<Severity, string> = {
 }
 
 const VERSIONS: Version[] = [
+  {
+    tag: 'v0.4',
+    date: 'In progress',
+    label: 'Language Breadth & AI Depth',
+    status: 'upcoming',
+    summary:
+      'Two parallel tracks: finishing what was started on the AI consulting feature, then demonstrating multi-language backend range with a Django REST API and a Go service. The AI work ships first — multi-turn conversation and streaming are already live.',
+    highlights: [
+      {
+        heading: 'AI consulting (in progress)',
+        items: [
+          'Multi-turn conversation — full message history sent on each follow-up; up to 4 exchanges per session.',
+          'Streaming responses — tokens render as they arrive via SSE, eliminating the loading wait entirely.',
+          'Starter prompts — four pre-built scenario chips guide visitors toward actual service offerings.',
+          'Markdown rendering — inline bold, italic, code, and bullet lists with no external dependency.',
+          'Lead capture — email form after conversation posts directly to contacts-service as a CRM lead.',
+          'Topic classification — prompt categories logged to DynamoDB for analytics.',
+        ],
+      },
+      {
+        heading: 'Django REST API (planned)',
+        items: [
+          'observaboard: a standalone Python/Django REST framework service demonstrating a production-grade API in the language most data and enterprise clients already run.',
+          'Deployed separately from the FastAPI AI orchestrator to show Django as a first-class backend choice.',
+        ],
+      },
+      {
+        heading: 'Go service (planned)',
+        items: [
+          'Standalone Go microservice added to the portfolio — third backend language alongside Rust and Python.',
+          'Reinforces that architecture decisions are language-agnostic.',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v0.3',
+    date: '2026-03-16',
+    label: 'Observability & Operations',
+    summary:
+      'Platform visibility, AI feature accountability, and structural correctness. The DynamoDB dashboard became a real operations tool. AI prompt/response logging closed the loop on the consulting feature. A silent startup crash in two services — caused by a Postgres pool connected to SQLite volumes — was diagnosed and fixed root-cause rather than patched.',
+    highlights: [
+      {
+        heading: 'DynamoDB dashboard',
+        items: [
+          'AI Logs page (admin-only): every visitor prompt and AI response logged to DynamoDB via fire-and-forget from the orchestrator. Token counts, model, and duration tracked per interaction.',
+          'Open PRs section in CI/CD status (admin-only): live open pull requests across all repos via GitHub API.',
+          'AWS Spend caching: Cost Explorer results cached in DynamoDB with a 24-hour TTL, reducing API charges from per-page-load to once per day.',
+          'go-pipeline-monitor removed from build status: repo does not exist as a standalone GitHub repo — was causing a permanent UNKNOWN badge.',
+        ],
+      },
+      {
+        heading: 'AI consulting feature',
+        items: [
+          'Prompt and response logging added to ai-orchestrator-service: fire-and-forget POST to /ingest after each consult, with model name, token counts, and duration.',
+          'Improved loading indicator: spinning icon, bouncing dots, and an elapsed-seconds counter replace the previous subtle pulse.',
+        ],
+      },
+      {
+        heading: 'Infrastructure & CI fixes',
+        items: [
+          'accounts-service and contacts-service: converted from PostgreSQL (PgPool) to SQLite (SqlitePool + create_if_missing). All $N placeholders replaced with ?, ILIKE replaced with LIKE. Root cause: pool type mismatched the deployed volume configuration, causing PoolTimedOut panics on startup.',
+          'Dockerfiles updated: libsqlite3-dev at build time, libsqlite3-0 at runtime; redundant touch removed from CMD.',
+          'CI pipeline: accounts and contacts moved from Postgres-backed to SQLite-backed test/clippy steps; Postgres service no longer required for those two services.',
+          'MedallionDemo added to CaseStudiesPage and Soc2CaseStudyPage; BuildStatusSection added to CicdCaseStudyPage and CaseStudiesPage.',
+          'Codebase audit: 66 MB AWS CLI artifact removed, temp files cleaned, unused openrouter_retry.py deleted.',
+        ],
+      },
+    ],
+  },
   {
     tag: 'v0.2',
     date: '2026-03-15',
@@ -146,17 +217,23 @@ function SeverityBadge({ severity }: { severity: Severity }) {
 }
 
 function VersionCard({ version, index }: { version: Version; index: number }) {
-  const isLatest = index === 0
+  const isUpcoming = version.status === 'upcoming'
+  const isLatest = index === 0 && !isUpcoming
 
   return (
-    <article className="forge-panel surface-card-strong rounded-3xl p-6 shadow-2xl shadow-black/50">
+    <article className={`forge-panel surface-card-strong rounded-3xl p-6 shadow-2xl shadow-black/50 ${isUpcoming ? 'border border-dashed border-zinc-600/50' : ''}`}>
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-xl bg-amber-500/15 px-3 py-1 text-lg font-bold text-amber-300 ring-1 ring-amber-500/30">
+            <span className={`rounded-xl px-3 py-1 text-lg font-bold ring-1 ${isUpcoming ? 'bg-zinc-700/30 text-zinc-400 ring-zinc-600/40' : 'bg-amber-500/15 text-amber-300 ring-amber-500/30'}`}>
               {version.tag}
             </span>
+            {isUpcoming && (
+              <span className="rounded-full bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30">
+                Upcoming
+              </span>
+            )}
             {isLatest && (
               <span className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-300 ring-1 ring-green-500/30">
                 Latest
@@ -268,7 +345,7 @@ export function PatchNotesPage() {
           </div>
           <div className="grid w-full max-w-xs grid-cols-3 gap-2 text-center sm:w-auto">
             <div className="surface-card rounded-xl px-3 py-2">
-              <div className="text-base font-bold text-white">2</div>
+              <div className="text-base font-bold text-white">3</div>
               <div className="text-[11px] text-zinc-400">Releases</div>
             </div>
             <div className="surface-card rounded-xl px-3 py-2">
