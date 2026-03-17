@@ -24,7 +24,7 @@ function secondsLeft(): number {
 type SendState =
   | { phase: 'idle' }
   | { phase: 'cooldown'; secondsLeft: number }
-  | { phase: 'loading'; elapsed: number }
+  | { phase: 'streaming' }
   | { phase: 'error'; message: string }
   | { phase: 'disabled' }
 
@@ -39,7 +39,6 @@ export function AskAISection() {
   })
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const elapsedRef = useRef(0)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   // Cooldown tick
@@ -57,49 +56,76 @@ export function AskAISection() {
     return () => clearInterval(timerRef.current!)
   }, [sendState.phase])
 
-  // Elapsed timer while loading
-  useEffect(() => {
-    if (sendState.phase !== 'loading') { elapsedRef.current = 0; return }
-    elapsedRef.current = 0
-    timerRef.current = setInterval(() => {
-      elapsedRef.current += 1
-      setSendState({ phase: 'loading', elapsed: elapsedRef.current })
-    }, 1000)
-    return () => clearInterval(timerRef.current!)
-  }, [sendState.phase === 'loading'])
-
   // Scroll to bottom when messages update
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }, [messages, sendState.phase])
+  }, [messages])
 
   async function send(text: string) {
     const trimmed = text.trim()
     if (!trimmed || !AI_ORCHESTRATOR_URL) return
     if (sendState.phase !== 'idle' && sendState.phase !== 'error') return
 
-    const nextMessages: Message[] = [...messages, { role: 'user', content: trimmed }]
-    setMessages(nextMessages)
+    const userMessages: Message[] = [...messages, { role: 'user', content: trimmed }]
+    setMessages([...userMessages, { role: 'assistant', content: '' }])
     setInput('')
     localStorage.setItem(STORAGE_KEY, String(Date.now()))
-    setSendState({ phase: 'loading', elapsed: 0 })
+    setSendState({ phase: 'streaming' })
 
     try {
-      const r = await fetch(`${AI_ORCHESTRATOR_URL}/consult`, {
+      const r = await fetch(`${AI_ORCHESTRATOR_URL}/consult/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: userMessages }),
       })
-      if (!r.ok) {
+
+      if (!r.ok || !r.body) {
         const body = await r.json().catch(() => ({}))
         throw new Error(body.detail ?? `HTTP ${r.status}`)
       }
-      const data = await r.json()
-      const response: string = data.response ?? ''
-      if (!response) throw new Error('No response returned')
-      setMessages([...nextMessages, { role: 'assistant', content: response }])
+
+      const reader = r.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      outer: while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() ?? ''
+
+        for (const part of parts) {
+          if (!part.startsWith('data: ')) continue
+          const data = part.slice(6).trim()
+          if (data === '[DONE]') break outer
+
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.error) throw new Error(parsed.error)
+            if (parsed.token) {
+              setMessages(prev => {
+                const updated = [...prev]
+                updated[updated.length - 1] = {
+                  role: 'assistant',
+                  content: updated[updated.length - 1].content + parsed.token,
+                }
+                return updated
+              })
+            }
+          } catch (e) {
+            if ((e as Error).message !== 'JSON parse') throw e
+          }
+        }
+      }
+
       setSendState({ phase: 'idle' })
     } catch (e) {
+      // Remove the empty assistant placeholder on error
+      setMessages(prev => {
+        const last = prev[prev.length - 1]
+        return last?.role === 'assistant' && !last.content ? prev.slice(0, -1) : prev
+      })
       setSendState({ phase: 'error', message: (e as Error).message })
       localStorage.removeItem(STORAGE_KEY)
     }
@@ -107,6 +133,7 @@ export function AskAISection() {
 
   const canSend = (sendState.phase === 'idle' || sendState.phase === 'error') && messages.length < MAX_TURNS * 2
   const turnCount = messages.filter(m => m.role === 'user').length
+  const isStreaming = sendState.phase === 'streaming'
   const showStarterPrompts = messages.length === 0 && sendState.phase === 'idle'
 
   if (sendState.phase === 'disabled') return null
@@ -138,40 +165,38 @@ export function AskAISection() {
       {/* Conversation thread */}
       {messages.length > 0 && (
         <div className="max-h-96 space-y-4 overflow-y-auto pr-1">
-          {messages.map((msg, i) => (
-            <div key={i} className={msg.role === 'user' ? 'flex justify-end' : ''}>
-              {msg.role === 'user' ? (
-                <div className="max-w-[85%] rounded-xl bg-amber-500/15 px-4 py-2.5 text-sm text-zinc-200 border border-amber-500/20">
-                  {msg.content}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-zinc-700/40 bg-zinc-800/40 px-4 py-3">
-                  <MarkdownResponse content={msg.content} />
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Loading bubble */}
-          {sendState.phase === 'loading' && (
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-              <div className="flex items-center gap-3">
-                <svg className="h-4 w-4 animate-spin text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span className="text-sm text-amber-300/80">
-                  Thinking
-                  <span className="ml-1 inline-flex gap-0.5">
-                    {[0, 1, 2].map(i => (
-                      <span key={i} className="inline-block h-1 w-1 animate-bounce rounded-full bg-amber-400" style={{ animationDelay: `${i * 0.15}s` }} />
-                    ))}
-                  </span>
-                </span>
-                <span className="ml-auto text-xs text-zinc-600">{sendState.elapsed}s</span>
+          {messages.map((msg, i) => {
+            const isLastAssistant = msg.role === 'assistant' && i === messages.length - 1
+            return (
+              <div key={i} className={msg.role === 'user' ? 'flex justify-end' : ''}>
+                {msg.role === 'user' ? (
+                  <div className="max-w-[85%] rounded-xl border border-amber-500/20 bg-amber-500/15 px-4 py-2.5 text-sm text-zinc-200">
+                    {msg.content}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-zinc-700/40 bg-zinc-800/40 px-4 py-3">
+                    {msg.content ? (
+                      <div className="relative">
+                        <MarkdownResponse content={msg.content} />
+                        {isLastAssistant && isStreaming && (
+                          <span className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-amber-400 align-middle" />
+                        )}
+                      </div>
+                    ) : (
+                      /* Empty placeholder while first tokens arrive */
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4 animate-spin text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <span className="text-sm text-amber-300/70">Thinking…</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })}
 
           {/* Error bubble */}
           {sendState.phase === 'error' && (
@@ -186,7 +211,7 @@ export function AskAISection() {
       )}
 
       {/* CTA after first assistant response */}
-      {messages.some(m => m.role === 'assistant') && (
+      {messages.some(m => m.role === 'assistant' && m.content) && !isStreaming && (
         <div className="border-t border-zinc-700/40 pt-3">
           <p className="text-xs text-zinc-500">
             Ready to move forward?{' '}
@@ -223,7 +248,9 @@ export function AskAISection() {
             </button>
             <span className="text-xs text-zinc-600">or Cmd+Enter</span>
             {turnCount > 0 && (
-              <span className="ml-auto text-xs text-zinc-600">{MAX_TURNS - turnCount} follow-up{MAX_TURNS - turnCount !== 1 ? 's' : ''} remaining</span>
+              <span className="ml-auto text-xs text-zinc-600">
+                {MAX_TURNS - turnCount} follow-up{MAX_TURNS - turnCount !== 1 ? 's' : ''} remaining
+              </span>
             )}
           </div>
         </div>
