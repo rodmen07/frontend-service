@@ -15,16 +15,6 @@ export interface HomeSectionsContent {
   cards: HomeSectionCard[]
 }
 
-export interface FaqItem {
-  question: string
-  answer: string
-}
-
-export interface FaqContent {
-  title: string
-  items: FaqItem[]
-}
-
 // Consulting types
 
 export interface ServiceItem {

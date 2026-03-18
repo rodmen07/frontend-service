@@ -11,6 +11,9 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Patch Notes',  href: '#/patch-notes' },
   { label: 'Status',       href: '#/', scrollTo: 'build-status' },
   { label: 'Contact',      href: '#/contact' },
+  { label: 'Search',       href: '#/search' },
+  { label: 'Reports',      href: '#/crm/reports' },
+  { label: 'Observaboard', href: '#/observaboard' },
 ]
 
 function TopNavComponent() {
@@ -68,4 +71,3 @@ function TopNavComponent() {
 }
 
 export const TopNav = TopNavComponent
-export default TopNavComponent

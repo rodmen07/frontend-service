@@ -14,6 +14,11 @@ import { Soc2CaseStudyPage } from './pages/Soc2CaseStudyPage'
 import { CicdCaseStudyPage } from './pages/CicdCaseStudyPage'
 import { AboutPage } from './pages/AboutPage'
 import { PatchNotesPage } from './pages/PatchNotesPage'
+import { AdminPage } from './pages/AdminPage'
+import { CrmAdminPage } from './pages/CrmAdminPage'
+import { SearchPage } from './pages/SearchPage'
+import { ReportsPage } from './pages/ReportsPage'
+import { ObservaboardPage } from './pages/ObservaboardPage'
 
 const WATCHDOG_DELAY_MS = 5000
 
@@ -114,6 +119,11 @@ function Root() {
   if (hash === '#/case-studies/cicd-pipeline-template') return <CicdCaseStudyPage />
   if (hash === '#/pricing') return <PricingPage />
   if (hash === '#/patch-notes') return <PatchNotesPage />
+  if (hash === '#/admin') return <AdminPage />
+  if (hash === '#/crm/admin') return <CrmAdminPage />
+  if (hash === '#/search') return <SearchPage />
+  if (hash === '#/crm/reports') return <ReportsPage />
+  if (hash === '#/observaboard') return <ObservaboardPage />
   if (hash === '#/contact') return <ContactPage />
   return <App />
 }

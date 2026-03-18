@@ -4,7 +4,7 @@ import { CodeBlock } from '../features/consulting/CodeBlock'
 import { BuildStatusBadges } from '../features/site/BuildStatusBadges'
 
 
-const TECH_STACK = ['Rust', 'Axum', 'Python', 'FastAPI', 'React 19', 'Vite', 'Tailwind', 'PostgreSQL', 'Terraform', 'Google Cloud Run', 'Cloud SQL', 'Secret Manager', 'Artifact Registry', 'GitHub Actions', 'Docker']
+const TECH_STACK = ['Rust', 'Axum', 'Python', 'FastAPI', 'Django', 'DRF', 'Celery', 'React 19', 'Vite', 'Tailwind', 'PostgreSQL', 'SQLite', 'Terraform', 'Google Cloud Run', 'Fly.io', 'Secret Manager', 'GitHub Actions', 'Docker']
 
 const HIGHLIGHTS: { label: string; detail: string; file: string; code: string; language?: string }[] = [
   {

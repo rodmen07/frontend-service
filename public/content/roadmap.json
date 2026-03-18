@@ -161,6 +161,12 @@
       "description": "Promote the CloudTrail Bronze/Silver/Gold pipeline from prototype scope into a standalone repository once it has dedicated runtime, infrastructure, and documentation boundaries.",
       "status": "planned",
       "category": "Integrations"
+    },
+    {
+      "title": "Observaboard — Django REST API",
+      "description": "Standalone Django 5 + DRF service demonstrating webhook ingestion, Celery async classification, PostgreSQL FTS, and dual auth (JWT + API key). Deployed to Fly.io.",
+      "status": "shipped",
+      "category": "Services"
     }
   ]
 }

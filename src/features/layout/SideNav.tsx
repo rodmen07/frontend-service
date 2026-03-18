@@ -9,6 +9,9 @@ const NAV_ITEMS = [
   { label: 'Pricing', href: '#/pricing' },
   { label: 'Patch Notes', href: '#/patch-notes' },
   { label: 'Contact', href: '#/contact' },
+  { label: 'Search', href: '#/search' },
+  { label: 'Reports', href: '#/crm/reports' },
+  { label: 'Observaboard', href: '#/observaboard' },
 ]
 
 function SideNavComponent() {
@@ -67,4 +70,3 @@ function SideNavComponent() {
 }
 
 export const SideNav = SideNavComponent
-export default SideNavComponent
