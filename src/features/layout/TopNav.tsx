@@ -1,4 +1,5 @@
 import { useTheme } from './ThemeContext'
+import { useAuth } from '../auth/AuthContext'
 
 type NavItem = { label: string; href: string; scrollTo?: string }
 
@@ -12,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Status',       href: '#/', scrollTo: 'build-status' },
   { label: 'Contact',      href: '#/contact' },
   { label: 'Search',       href: '#/search' },
+  { label: 'Portal',       href: '#/portal' },
   { label: 'Dashboard',    href: '#/crm/dashboard' },
   { label: 'Reports',      href: '#/crm/reports' },
   { label: 'Observaboard', href: '#/observaboard' },
@@ -20,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 function TopNavComponent() {
   const hash = window.location.hash
   const { theme, toggle } = useTheme()
+  const { claims, logout, isClient } = useAuth()
 
   const isActive = (item: NavItem) => {
     if (item.scrollTo) return false
@@ -55,6 +58,18 @@ function TopNavComponent() {
             {item.label}
           </a>
         ))}
+        {isClient && (
+          <span className="flex items-center gap-2 rounded-lg border border-emerald-600/40 bg-emerald-900/20 px-2.5 py-1.5 text-xs text-emerald-300">
+            {claims?.username ?? claims?.email ?? claims?.sub.slice(0, 8)}
+            <button
+              type="button"
+              onClick={() => { logout(); window.location.hash = '#/portal/login' }}
+              className="text-emerald-500 hover:text-emerald-300"
+            >
+              Sign out
+            </button>
+          </span>
+        )}
         <button
           type="button"
           onClick={toggle}

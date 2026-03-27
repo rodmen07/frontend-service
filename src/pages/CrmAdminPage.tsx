@@ -10,6 +10,7 @@ const ACCOUNTS_URL   = (import.meta.env.VITE_ACCOUNTS_API_BASE_URL      ?? '').r
 const OPPS_URL       = (import.meta.env.VITE_OPPORTUNITIES_API_BASE_URL  ?? '').replace(/\/$/, '')
 const ACTIVITIES_URL = (import.meta.env.VITE_ACTIVITIES_API_BASE_URL     ?? '').replace(/\/$/, '')
 const STREAM_URL     = (import.meta.env.VITE_EVENT_STREAM_URL            ?? '').replace(/\/$/, '')
+const PROJECTS_URL   = (import.meta.env.VITE_PROJECTS_API_BASE_URL       ?? '').replace(/\/$/, '')
 const ADMIN_JWT      = import.meta.env.VITE_ADMIN_JWT ?? ''
 
 // ---------------------------------------------------------------------------
@@ -39,7 +40,27 @@ interface StreamEvent {
 }
 interface PagedResponse<T> { data: T[]; total: number; limit: number; offset: number }
 
-type Tab = 'leads' | 'contacts' | 'accounts' | 'opportunities' | 'activities' | 'live-feed'
+interface Project {
+  id: string; account_id: string; client_user_id: string | null
+  name: string; description: string | null; status: string
+  start_date: string | null; target_end_date: string | null
+  created_at: string; updated_at: string
+}
+interface Milestone {
+  id: string; project_id: string; name: string; description: string | null
+  due_date: string | null; status: string; sort_order: number
+  created_at: string; updated_at: string
+}
+interface Deliverable {
+  id: string; milestone_id: string; name: string
+  description: string | null; status: string
+}
+interface PMessage {
+  id: string; project_id: string; author_id: string
+  author_role: string; body: string; created_at: string
+}
+
+type Tab = 'leads' | 'contacts' | 'accounts' | 'opportunities' | 'activities' | 'live-feed' | 'projects'
 type ModalMode<T> = null | { mode: 'create' } | { mode: 'edit'; record: T } | { mode: 'delete'; id: string; label: string }
 
 // ---------------------------------------------------------------------------
@@ -851,6 +872,324 @@ function LiveFeedTab() {
 }
 
 // ---------------------------------------------------------------------------
+// Projects tab
+// ---------------------------------------------------------------------------
+const PROJECT_STATUSES = ['planning', 'active', 'on_hold', 'completed', 'cancelled']
+const MILESTONE_STATUSES = ['pending', 'in_progress', 'completed', 'blocked']
+const DELIVERABLE_STATUSES = ['pending', 'in_progress', 'completed', 'blocked']
+
+const STATUS_PILL: Record<string, string> = {
+  planning:    'bg-zinc-700/40 text-zinc-300',
+  active:      'bg-emerald-500/15 text-emerald-300',
+  on_hold:     'bg-amber-500/15 text-amber-300',
+  completed:   'bg-blue-500/15 text-blue-300',
+  cancelled:   'bg-red-500/15 text-red-300',
+  pending:     'bg-zinc-700/40 text-zinc-400',
+  in_progress: 'bg-amber-500/15 text-amber-300',
+  blocked:     'bg-red-500/15 text-red-400',
+}
+
+function ProjectsTab() {
+  const [projects, setProjects]   = useState<Project[]>([])
+  const [selected, setSelected]   = useState<Project | null>(null)
+  const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [deliverables, setDeliverables] = useState<Record<string, Deliverable[]>>({})
+  const [messages, setMessages]   = useState<PMessage[]>([])
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+  const [reply, setReply]         = useState('')
+  const [sending, setSending]     = useState(false)
+
+  // project create form
+  const [showCreate, setShowCreate] = useState(false)
+  const [form, setForm] = useState({ name: '', account_id: '', client_user_id: '', status: 'planning', start_date: '', target_end_date: '', description: '' })
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  // milestone create form
+  const [showMilestone, setShowMilestone] = useState(false)
+  const [msForm, setMsForm] = useState({ name: '', due_date: '', status: 'pending', sort_order: '0', description: '' })
+
+  // deliverable create form
+  const [showDeliverable, setShowDeliverable] = useState<string | null>(null) // milestone id
+  const [dlForm, setDlForm] = useState({ name: '', description: '', status: 'pending' })
+
+  const loadProjects = useCallback(async () => {
+    if (!PROJECTS_URL) return
+    setLoading(true); setError(null)
+    try {
+      const rows = await api<Project[]>(`${PROJECTS_URL}/api/v1/projects`)
+      setProjects(rows)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const loadProject = useCallback(async (p: Project) => {
+    setSelected(p); setMilestones([]); setDeliverables({}); setMessages([])
+    try {
+      const [ms, msgs] = await Promise.all([
+        api<Milestone[]>(`${PROJECTS_URL}/api/v1/projects/${p.id}/milestones`),
+        api<PMessage[]>(`${PROJECTS_URL}/api/v1/projects/${p.id}/messages`),
+      ])
+      const sorted = [...ms].sort((a, b) => a.sort_order - b.sort_order)
+      setMilestones(sorted)
+      setMessages(msgs)
+      const dlMap: Record<string, Deliverable[]> = {}
+      await Promise.all(sorted.map(async (m) => {
+        const ds = await api<Deliverable[]>(`${PROJECTS_URL}/api/v1/milestones/${m.id}/deliverables`).catch(() => [])
+        dlMap[m.id] = ds
+      }))
+      setDeliverables(dlMap)
+    } catch { /* best-effort */ }
+  }, [])
+
+  useEffect(() => { loadProjects() }, [loadProjects])
+
+  const createProject = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setSaveError(null)
+    try {
+      await api(`${PROJECTS_URL}/api/v1/projects`, { method: 'POST', body: JSON.stringify({
+        name: form.name, account_id: form.account_id,
+        client_user_id: form.client_user_id || null,
+        status: form.status,
+        start_date: form.start_date || null,
+        target_end_date: form.target_end_date || null,
+        description: form.description || null,
+      })})
+      setShowCreate(false)
+      setForm({ name: '', account_id: '', client_user_id: '', status: 'planning', start_date: '', target_end_date: '', description: '' })
+      loadProjects()
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const createMilestone = async (e: React.FormEvent) => {
+    if (!selected) return
+    e.preventDefault(); setSaving(true); setSaveError(null)
+    try {
+      await api(`${PROJECTS_URL}/api/v1/projects/${selected.id}/milestones`, { method: 'POST', body: JSON.stringify({
+        name: msForm.name, status: msForm.status,
+        due_date: msForm.due_date || null,
+        sort_order: parseInt(msForm.sort_order) || milestones.length,
+        description: msForm.description || null,
+      })})
+      setShowMilestone(false)
+      setMsForm({ name: '', due_date: '', status: 'pending', sort_order: '0', description: '' })
+      loadProject(selected)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const createDeliverable = async (e: React.FormEvent) => {
+    if (!showDeliverable) return
+    e.preventDefault(); setSaving(true); setSaveError(null)
+    try {
+      await api(`${PROJECTS_URL}/api/v1/milestones/${showDeliverable}/deliverables`, { method: 'POST', body: JSON.stringify({
+        name: dlForm.name, status: dlForm.status,
+        description: dlForm.description || null,
+      })})
+      setShowDeliverable(null)
+      setDlForm({ name: '', description: '', status: 'pending' })
+      if (selected) loadProject(selected)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const sendReply = async (e: React.FormEvent) => {
+    if (!selected) return
+    e.preventDefault()
+    const body = reply.trim()
+    if (!body) return
+    setSending(true)
+    try {
+      const msg = await api<PMessage>(`${PROJECTS_URL}/api/v1/projects/${selected.id}/messages`, {
+        method: 'POST', body: JSON.stringify({ body }),
+      })
+      setMessages(prev => [...prev, msg])
+      setReply('')
+    } catch { /* silent */ } finally {
+      setSending(false)
+    }
+  }
+
+  if (!PROJECTS_URL) return (
+    <div className="py-6 text-xs text-zinc-500">Set <code className="rounded bg-zinc-800 px-1 py-0.5">VITE_PROJECTS_API_BASE_URL</code> to enable this tab.</div>
+  )
+
+  return (
+    <div className="space-y-4">
+      {/* Project list */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-zinc-200">Projects</h3>
+        <button className="btn-accent btn-sm" onClick={() => setShowCreate(true)}>+ New project</button>
+      </div>
+
+      {loading && <p className="text-xs text-zinc-400">Loading…</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {projects.length > 0 && (
+        <div className="space-y-1">
+          {projects.map(p => (
+            <button key={p.id} type="button" onClick={() => loadProject(p)}
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-2.5 text-left text-sm transition ${
+                selected?.id === p.id
+                  ? 'border-amber-400/40 bg-amber-500/10 text-amber-100'
+                  : 'border-zinc-700/40 bg-zinc-800/30 text-zinc-200 hover:bg-zinc-800/60'
+              }`}>
+              <span className="font-medium">{p.name}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_PILL[p.status] ?? 'bg-zinc-700/40 text-zinc-400'}`}>
+                {p.status.replace('_', ' ')}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!loading && projects.length === 0 && (
+        <p className="text-xs text-zinc-500">No projects yet.</p>
+      )}
+
+      {/* Selected project detail */}
+      {selected && (
+        <div className="space-y-4 border-t border-zinc-700/40 pt-4">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-100">{selected.name}</h4>
+              {selected.client_user_id && (
+                <p className="mt-0.5 font-mono text-xs text-zinc-500">client: {selected.client_user_id}</p>
+              )}
+            </div>
+            <button className="btn-neutral btn-sm" onClick={() => setShowMilestone(true)}>+ Milestone</button>
+          </div>
+
+          {/* Milestones */}
+          {milestones.length === 0 && <p className="text-xs text-zinc-500">No milestones yet.</p>}
+          {milestones.map(m => (
+            <div key={m.id} className="rounded-xl border border-zinc-700/30 bg-zinc-800/20 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-zinc-200">{m.name}</span>
+                <div className="flex items-center gap-2">
+                  {m.due_date && <span className="text-xs text-zinc-500">{m.due_date.slice(0, 10)}</span>}
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_PILL[m.status] ?? 'bg-zinc-700/40 text-zinc-400'}`}>
+                    {m.status.replace('_', ' ')}
+                  </span>
+                  <button className="text-xs text-zinc-500 hover:text-zinc-300" onClick={() => { setShowDeliverable(m.id); setDlForm({ name: '', description: '', status: 'pending' }) }}>
+                    + Deliverable
+                  </button>
+                </div>
+              </div>
+              {(deliverables[m.id] ?? []).map(d => (
+                <div key={d.id} className="flex items-center justify-between gap-2 rounded-lg bg-zinc-900/40 px-3 py-1.5 text-xs">
+                  <span className="text-zinc-300">{d.name}</span>
+                  <span className={`rounded-full px-2 py-0.5 ${STATUS_PILL[d.status] ?? 'bg-zinc-700/40 text-zinc-400'}`}>
+                    {d.status.replace('_', ' ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {/* Messages */}
+          <div className="space-y-2">
+            <h5 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Messages</h5>
+            {messages.length === 0 && <p className="text-xs text-zinc-500">No messages.</p>}
+            {messages.map(m => (
+              <div key={m.id} className={`rounded-xl px-3 py-2 text-sm ${m.author_role === 'admin' ? 'bg-amber-500/10 text-amber-100 ml-6' : 'bg-zinc-800/40 text-zinc-200 mr-6'}`}>
+                <p>{m.body}</p>
+                <p className="mt-0.5 text-[10px] text-zinc-500">{m.author_role} · {m.created_at.slice(0, 16).replace('T', ' ')}</p>
+              </div>
+            ))}
+            <form onSubmit={sendReply} className="flex gap-2 pt-1">
+              <input value={reply} onChange={e => setReply(e.target.value)} placeholder="Reply to client…"
+                className="min-w-0 flex-1 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400/50 focus:outline-none" />
+              <button type="submit" disabled={!reply.trim() || sending} className="btn-accent btn-sm disabled:opacity-50">Send</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create project modal */}
+      {showCreate && (
+        <Modal title="New project" onClose={() => setShowCreate(false)}>
+          <form onSubmit={createProject} className="space-y-3">
+            <FormField label="Name"><input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Account ID"><input required value={form.account_id} onChange={e => setForm(f => ({ ...f, account_id: e.target.value }))} className={INPUT_CLS} placeholder="UUID from accounts-service" /></FormField>
+            <FormField label="Client user ID"><input value={form.client_user_id} onChange={e => setForm(f => ({ ...f, client_user_id: e.target.value }))} className={INPUT_CLS} placeholder="auth-service user ID (optional)" /></FormField>
+            <FormField label="Status">
+              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className={INPUT_CLS}>
+                {PROJECT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </FormField>
+            <FormField label="Start date"><input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Target end date"><input type="date" value={form.target_end_date} onChange={e => setForm(f => ({ ...f, target_end_date: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Description"><textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} className={INPUT_CLS} /></FormField>
+            {saveError && <SaveError message={saveError} />}
+            <div className="flex justify-end gap-2 pt-1">
+              <button type="button" className="btn-neutral btn-sm" onClick={() => setShowCreate(false)}>Cancel</button>
+              <button type="submit" disabled={saving} className="btn-accent btn-sm disabled:opacity-50">{saving ? 'Saving…' : 'Create'}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Create milestone modal */}
+      {showMilestone && (
+        <Modal title="New milestone" onClose={() => setShowMilestone(false)}>
+          <form onSubmit={createMilestone} className="space-y-3">
+            <FormField label="Name"><input required value={msForm.name} onChange={e => setMsForm(f => ({ ...f, name: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Status">
+              <select value={msForm.status} onChange={e => setMsForm(f => ({ ...f, status: e.target.value }))} className={INPUT_CLS}>
+                {MILESTONE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </FormField>
+            <FormField label="Due date"><input type="date" value={msForm.due_date} onChange={e => setMsForm(f => ({ ...f, due_date: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Sort order"><input type="number" value={msForm.sort_order} onChange={e => setMsForm(f => ({ ...f, sort_order: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Description"><textarea value={msForm.description} onChange={e => setMsForm(f => ({ ...f, description: e.target.value }))} rows={2} className={INPUT_CLS} /></FormField>
+            {saveError && <SaveError message={saveError} />}
+            <div className="flex justify-end gap-2 pt-1">
+              <button type="button" className="btn-neutral btn-sm" onClick={() => setShowMilestone(false)}>Cancel</button>
+              <button type="submit" disabled={saving} className="btn-accent btn-sm disabled:opacity-50">{saving ? 'Saving…' : 'Add'}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Create deliverable modal */}
+      {showDeliverable && (
+        <Modal title="New deliverable" onClose={() => setShowDeliverable(null)}>
+          <form onSubmit={createDeliverable} className="space-y-3">
+            <FormField label="Name"><input required value={dlForm.name} onChange={e => setDlForm(f => ({ ...f, name: e.target.value }))} className={INPUT_CLS} /></FormField>
+            <FormField label="Status">
+              <select value={dlForm.status} onChange={e => setDlForm(f => ({ ...f, status: e.target.value }))} className={INPUT_CLS}>
+                {DELIVERABLE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </FormField>
+            <FormField label="Description"><textarea value={dlForm.description} onChange={e => setDlForm(f => ({ ...f, description: e.target.value }))} rows={2} className={INPUT_CLS} /></FormField>
+            {saveError && <SaveError message={saveError} />}
+            <div className="flex justify-end gap-2 pt-1">
+              <button type="button" className="btn-neutral btn-sm" onClick={() => setShowDeliverable(null)}>Cancel</button>
+              <button type="submit" disabled={saving} className="btn-accent btn-sm disabled:opacity-50">{saving ? 'Saving…' : 'Add'}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 const TABS: { id: Tab; label: string }[] = [
@@ -860,6 +1199,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'opportunities', label: 'Opportunities' },
   { id: 'activities',    label: 'Activities' },
   { id: 'live-feed',     label: 'Live Feed' },
+  { id: 'projects',      label: 'Projects' },
 ]
 
 export function CrmAdminPage() {
@@ -905,6 +1245,7 @@ export function CrmAdminPage() {
         {tab === 'opportunities' && <OpportunitiesTab />}
         {tab === 'activities'    && <ActivitiesTab />}
         {tab === 'live-feed'     && <LiveFeedTab />}
+        {tab === 'projects'      && <ProjectsTab />}
       </section>
     </PageLayout>
   )

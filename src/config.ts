@@ -6,3 +6,6 @@ export const AI_ORCHESTRATOR_URL: string =
 
 export const AUTH_SERVICE_URL: string =
   (import.meta.env.VITE_AUTH_SERVICE_URL as string | undefined) ?? ''
+
+export const PROJECTS_API_BASE_URL: string =
+  ((import.meta.env.VITE_PROJECTS_API_BASE_URL as string | undefined) ?? '').replace(/\/$/, '')

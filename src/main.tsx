@@ -1,6 +1,7 @@
 import { Component, StrictMode, useEffect, useState, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from './features/layout/ThemeContext'
+import { AuthProvider } from './features/auth/AuthContext'
 import './index.css'
 import 'highlight.js/styles/github-dark.css'
 import App from './App'
@@ -19,6 +20,8 @@ import { SearchPage } from './pages/SearchPage'
 import { UserDashboardPage } from './pages/UserDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { ObservaboardPage } from './pages/ObservaboardPage'
+import { PortalPage } from './pages/PortalPage'
+import { PortalLoginPage } from './pages/PortalLoginPage'
 
 const WATCHDOG_DELAY_MS = 5000
 
@@ -123,6 +126,8 @@ function Root() {
   if (hash === '#/search') return <SearchPage />
   if (hash === '#/crm/dashboard') return <UserDashboardPage />
   if (hash === '#/crm/reports') return <ReportsPage />
+  if (hash === '#/portal/login') return <PortalLoginPage />
+  if (hash === '#/portal' || hash.startsWith('#/portal/')) return <PortalPage />
   if (hash === '#/observaboard') return <ObservaboardPage />
   if (hash === '#/contact') return <ContactPage />
   return <App />
@@ -140,7 +145,9 @@ createRoot(rootElement).render(
   <StrictMode>
     <RootBoundary>
       <ThemeProvider>
-        <Root />
+        <AuthProvider>
+          <Root />
+        </AuthProvider>
       </ThemeProvider>
     </RootBoundary>
   </StrictMode>,
