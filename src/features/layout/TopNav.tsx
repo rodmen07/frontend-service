@@ -12,6 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Status',       href: '#/', scrollTo: 'build-status' },
   { label: 'Contact',      href: '#/contact' },
   { label: 'Search',       href: '#/search' },
+  { label: 'Dashboard',    href: '#/crm/dashboard' },
   { label: 'Reports',      href: '#/crm/reports' },
   { label: 'Observaboard', href: '#/observaboard' },
 ]

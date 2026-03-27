@@ -93,12 +93,12 @@ const VERSIONS: Version[] = [
   },
   {
     tag: 'v0.5.1',
-    date: '',
+    date: '2026-03-19',
     label: 'reporting-service Production Upgrade',
-    completionState: 'planned',
+    completionState: 'published',
     group: 'v0.5',
     summary:
-      'Upgrade reporting-service from in-memory stub to production-grade: SQLite persistence, JWT auth, saved report CRUD, and a /dashboard summary endpoint. Unblocks the Reports page in the frontend.',
+      'Reporting-service production upgrade completed: SQLite persistence, JWT auth, saved report CRUD, and healthy /dashboard summary endpoint. Reports page now fully operational on the frontend.',
     highlights: [
       {
         heading: 'Planned scope',
@@ -111,13 +111,34 @@ const VERSIONS: Version[] = [
     ],
   },
   {
-    tag: 'v0.5.2',
+    tag: 'v1.0',
     date: '',
-    label: 'search-service Production Upgrade',
+    label: 'Client Portal',
     completionState: 'planned',
+    group: 'v1.0',
+    summary:
+      'Real client-facing portal at /portal. Clients sign in via Google or GitHub OAuth and see their project scope, milestone timeline, deliverables, and a per-project message thread. Admin CRM dashboard ships alongside as an internal tool.',
+    highlights: [
+      {
+        heading: 'Planned scope',
+        items: [
+          'OAuth sign-in (Google + GitHub) with client role provisioning via auth-service.',
+          'Client portal UI: project overview, milestone timeline, deliverables per milestone, message thread.',
+          'projects-service powers all portal data — projects, milestones, deliverables, and messages with client-scoped JWT access.',
+          'Admin CRM dashboard (internal): cross-service stats, opportunity stage distribution, recent activities.',
+          'Projects tab in CRM admin for managing projects, milestones, deliverables, and replying to client messages.',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v0.5.2',
+    date: '2026-03-19',
+    label: 'search-service Production Upgrade',
+    completionState: 'published',
     group: 'v0.5',
     summary:
-      'Upgrade search-service from in-memory stub to production-grade: cross-domain search across accounts, contacts, opportunities, and activities via parallel fan-out requests to each service. Unblocks the Search page in the frontend.',
+      'Search-service production upgrade completed: cross-domain search across accounts, contacts, opportunities, and activities is now live. Search page now fully functional on the frontend.',
     highlights: [
       {
         heading: 'Planned scope',

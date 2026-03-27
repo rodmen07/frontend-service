@@ -16,6 +16,7 @@ import { AboutPage } from './pages/AboutPage'
 import { PatchNotesPage } from './pages/PatchNotesPage'
 import { CrmAdminPage } from './pages/CrmAdminPage'
 import { SearchPage } from './pages/SearchPage'
+import { UserDashboardPage } from './pages/UserDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { ObservaboardPage } from './pages/ObservaboardPage'
 
@@ -120,6 +121,7 @@ function Root() {
   if (hash === '#/patch-notes') return <PatchNotesPage />
   if (hash === '#/crm/admin') return <CrmAdminPage />
   if (hash === '#/search') return <SearchPage />
+  if (hash === '#/crm/dashboard') return <UserDashboardPage />
   if (hash === '#/crm/reports') return <ReportsPage />
   if (hash === '#/observaboard') return <ObservaboardPage />
   if (hash === '#/contact') return <ContactPage />
