@@ -1,6 +1,7 @@
 export interface SiteContent {
   title: string
   subtitle: string
+  heroTagline?: string
 }
 
 export interface HomeSectionCard {

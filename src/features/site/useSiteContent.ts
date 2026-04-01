@@ -5,6 +5,7 @@ export function useSiteContent(baseUrl: string): SiteContent {
   const [content, setContent] = useState<SiteContent>({
     title: 'R.M. Cloud Consulting',
     subtitle: 'Clean cloud architectures for early-stage startups.',
+    heroTagline: 'AI + Cloud Launchpad',
   })
 
   useEffect(() => {
@@ -17,6 +18,7 @@ export function useSiteContent(baseUrl: string): SiteContent {
         setContent({
           title: payload.title || 'R.M. Cloud Consulting',
           subtitle: payload.subtitle || '',
+          heroTagline: payload.heroTagline || 'AI + Cloud Launchpad',
         })
       } catch {
       }
