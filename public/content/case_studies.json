@@ -19,19 +19,23 @@
   },
   "others": [
     {
-      "title": "Observaboard — Django REST API",
-      "subtitle": "Python · Django 5 · DRF · Celery · PostgreSQL FTS · Fly.io",
-      "description": "Production webhook ingestion and event classification API demonstrating Django REST Framework, Celery async workers, PostgreSQL full-text search, and dual authentication (JWT + API key).",
-      "techStack": ["Django 5", "Django REST Framework", "Celery", "Redis", "PostgreSQL", "simplejwt", "Docker", "Fly.io", "Python"],
+      "title": "Observaboard — Observability Dashboard",
+      "subtitle": "Python · Django 5 · DRF · HTMX · Celery · PostgreSQL FTS · Fly.io",
+      "description": "Full-stack observability platform with a live HTMX dashboard, REST API, Celery async event classification, and PostgreSQL full-text search — deployed on Fly.io with CI/CD.",
+      "techStack": ["Django 5", "Django REST Framework", "HTMX", "Tailwind CSS", "Celery", "Redis", "PostgreSQL", "simplejwt", "pytest", "WhiteNoise", "Docker", "Fly.io", "GitHub Actions", "Python"],
       "highlights": [
+        "Live dashboard with real-time filtering via HTMX partial swaps — no SPA, no build step",
         "POST /api/ingest/ accepts webhooks from any source with API key auth",
         "Celery async classification assigns category (deployment/security/alert/metric/info) and severity from raw payload",
         "PostgreSQL SearchVectorField + GIN index for full-text search across event summaries",
         "Dual auth — JWT for API consumers, custom Api-Key header for ingest sources",
-        "Django Admin with severity-badge rendering and masked API key display",
-        "Zero-downtime deploys via Fly.io [deploy] release_command running migrations before traffic switch"
+        "OpenAPI/Swagger docs auto-generated via drf-spectacular",
+        "81-test pytest suite covering models, serializers, auth, views, tasks, and dashboard",
+        "Rate limiting via DRF ScopedRateThrottle on ingest (100/min) and search (30/min) endpoints",
+        "Health endpoint with DB + Redis connectivity checks returning 503 on degradation",
+        "Multi-stage Docker build with non-root user, WhiteNoise static serving, zero-downtime Fly.io deploys"
       ],
-      "githubUrl": "https://github.com/rodmen07/portfolio",
+      "githubUrl": "https://github.com/rodmen07/observaboard",
       "detailUrl": "https://observaboard-rodmen07.fly.dev/dashboard/"
     },
     {
