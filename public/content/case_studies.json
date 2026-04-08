@@ -32,7 +32,7 @@
         "Zero-downtime deploys via Fly.io [deploy] release_command running migrations before traffic switch"
       ],
       "githubUrl": "https://github.com/rodmen07/portfolio",
-      "detailUrl": "https://observaboard-rodmen07.fly.dev/api/health/"
+      "detailUrl": "https://observaboard-rodmen07.fly.dev/dashboard/"
     },
     {
       "title": "SOC 2 Baseline — Terraform Module",
