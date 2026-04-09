@@ -17,10 +17,10 @@
     },
     {
       "tier": "Retainer",
-      "price": "$1,250/week · 10 hrs/week",
+      "price": "$1,875/week · 15 hrs/week",
       "description": "Dedicated capacity for ongoing engineering support. Buy availability and responsiveness, not just tracked hours.",
       "features": [
-        "10 hrs/week of hands-on work",
+        "15 hrs/week of hands-on work",
         "Priority response (same business day)",
         "Weekly sync and progress update",
         "Slack/Discord access during business hours"
