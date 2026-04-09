@@ -17,15 +17,12 @@ export function PageLayout({ title, subtitle, children }: PageLayoutProps) {
         <div className="absolute -bottom-24 right-8 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-5xl space-y-6">
-        <div className="lg:hidden">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col">
+        <div className="lg:hidden py-4">
           <TopNav />
         </div>
 
-        {title && <h1 className="reveal text-2xl font-bold text-white">{title}</h1>}
-        {subtitle && <p className="reveal text-sm text-zinc-300">{subtitle}</p>}
-
-        <div className="reveal reveal-delay-1">{children}</div>
+        {children}
       </div>
     </main>
   )

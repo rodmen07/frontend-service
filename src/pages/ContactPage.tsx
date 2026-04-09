@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { PageLayout } from './PageLayout'
+import { FocusCard } from '../features/layout/FocusCard'
+import { HowItWorksSection } from '../features/site/HowItWorksSection'
 import { MONITORING_URL } from '../config'
 
 type Phase = 'idle' | 'sending' | 'sent' | 'error'
@@ -34,7 +36,8 @@ export function ContactPage() {
 
   return (
     <PageLayout>
-      <section className="forge-panel surface-card-strong rounded-3xl p-8 shadow-2xl shadow-black/50 reveal sm:p-10">
+      <FocusCard>
+      <section className="forge-panel surface-card-strong rounded-3xl p-8 shadow-2xl shadow-black/50 sm:p-10">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="max-w-xl">
             <h1 className="text-2xl font-bold text-white">Get in touch</h1>
@@ -109,36 +112,40 @@ export function ContactPage() {
         </form>
         )}
       </section>
+      </FocusCard>
 
-      <section className="forge-panel surface-card rounded-2xl p-6 reveal reveal-delay-1">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-500">Or reach me directly</p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="mailto:rodmendoza07@gmail.com"
-            className="btn-neutral px-4 py-2 text-sm"
-          >
-            rodmendoza07@gmail.com
-          </a>
-          <a
-            href="https://www.linkedin.com/in/roderick-mendoza-9133b7b5/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-neutral px-4 py-2 text-sm"
-          >
-            LinkedIn →
-          </a>
-          <a
-            href="https://www.upwork.com/freelancers/~01d4b41a81a0ae3ec6?mp_source=share"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-neutral px-4 py-2 text-sm"
-          >
-            Upwork →
-          </a>
-        </div>
-        <p className="mt-4 text-xs text-zinc-600">Based in San Antonio, TX — open to remote worldwide.</p>
-        <p className="mt-1 text-xs text-zinc-600">Email link opens your default mail client — works best on mobile.</p>
-      </section>
+      <FocusCard>
+        <section className="forge-panel surface-card rounded-2xl p-6">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-500">Or reach me directly</p>
+          <div className="flex flex-wrap gap-3">
+            <a href="mailto:rodmendoza07@gmail.com" className="btn-neutral px-4 py-2 text-sm">
+              rodmendoza07@gmail.com
+            </a>
+            <a
+              href="https://www.linkedin.com/in/roderick-mendoza-9133b7b5/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-neutral px-4 py-2 text-sm"
+            >
+              LinkedIn →
+            </a>
+            <a
+              href="https://www.upwork.com/freelancers/~01d4b41a81a0ae3ec6?mp_source=share"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-neutral px-4 py-2 text-sm"
+            >
+              Upwork →
+            </a>
+          </div>
+          <p className="mt-4 text-xs text-zinc-600">Based in San Antonio, TX — open to remote worldwide.</p>
+          <p className="mt-1 text-xs text-zinc-600">Email link opens your default mail client — works best on mobile.</p>
+        </section>
+      </FocusCard>
+
+      <FocusCard>
+        <HowItWorksSection />
+      </FocusCard>
     </PageLayout>
   )
 }
