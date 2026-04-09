@@ -1211,14 +1211,19 @@ const PLATFORM_COLOR: Record<string, string> = {
   flyio:          'bg-purple-500/15 text-purple-300 ring-purple-500/30',
   anthropic:      'bg-amber-500/15 text-amber-300 ring-amber-500/30',
   github_copilot: 'bg-green-500/15 text-green-300 ring-green-500/30',
+  github:         'bg-green-500/15 text-green-300 ring-green-500/30',
+  aws:            'bg-orange-500/15 text-orange-300 ring-orange-500/30',
 }
 const SOURCE_COLOR: Record<string, string> = {
-  manual:        'bg-zinc-500/15 text-zinc-400 ring-zinc-500/30',
-  bigquery:      'bg-blue-500/15 text-blue-300 ring-blue-500/30',
-  flyio_graphql: 'bg-purple-500/15 text-purple-300 ring-purple-500/30',
+  manual:              'bg-zinc-500/15 text-zinc-400 ring-zinc-500/30',
+  bigquery:            'bg-blue-500/15 text-blue-300 ring-blue-500/30',
+  flyio_graphql:       'bg-purple-500/15 text-purple-300 ring-purple-500/30',
+  github_api:          'bg-green-500/15 text-green-300 ring-green-500/30',
+  aws_cost_explorer:   'bg-orange-500/15 text-orange-300 ring-orange-500/30',
 }
 const PLATFORM_LABELS: Record<string, string> = {
   gcp: 'GCP', flyio: 'Fly.io', anthropic: 'Anthropic', github_copilot: 'GitHub Copilot',
+  github: 'GitHub', aws: 'AWS',
 }
 
 function SpendTab() {
@@ -1259,7 +1264,7 @@ function SpendTab() {
 
   useEffect(() => { load() }, [load])
 
-  async function handleSync(platform: 'gcp' | 'flyio') {
+  async function handleSync(platform: 'gcp' | 'flyio' | 'github' | 'aws') {
     setSyncing(platform); setSyncMsg(null)
     try {
       const result = await api<SyncResult>(`${SPEND_URL}/api/v1/spend/sync/${platform}`, { method: 'POST' })
@@ -1333,6 +1338,12 @@ function SpendTab() {
         </button>
         <button type="button" onClick={() => handleSync('flyio')} disabled={!!syncing} className="btn-neutral px-3 py-1.5 text-xs disabled:opacity-50">
           {syncing === 'flyio' ? 'Syncing…' : 'Sync Fly.io'}
+        </button>
+        <button type="button" onClick={() => handleSync('github')} disabled={!!syncing} className="btn-neutral px-3 py-1.5 text-xs disabled:opacity-50">
+          {syncing === 'github' ? 'Syncing…' : 'Sync GitHub'}
+        </button>
+        <button type="button" onClick={() => handleSync('aws')} disabled={!!syncing} className="btn-neutral px-3 py-1.5 text-xs disabled:opacity-50">
+          {syncing === 'aws' ? 'Syncing…' : 'Sync AWS'}
         </button>
         <div className="flex-1" />
         <button type="button" onClick={() => { setModal({ mode: 'create' }); setSaveError(null) }} className="btn-accent px-3 py-1.5 text-xs">+ Manual Entry</button>
