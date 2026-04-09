@@ -39,12 +39,70 @@ const COMPLETION_STYLES: Record<CompletionState, { badge: string; label: string 
 
 // Groups for section headers
 const GROUP_META: Record<string, { label: string; status: string }> = {
+  'v1.1': { label: 'Developer Experience & AI Research', status: 'Active' },
   'v1.0': { label: 'Client Portal',              status: 'Complete' },
   'v0.5': { label: 'Platform Completeness',       status: 'Complete' },
   'v0.4': { label: 'Language Breadth & AI Depth', status: 'Complete' },
 }
 
 const VERSIONS: Version[] = [
+  {
+    tag: 'v1.1',
+    date: '2026-04-09',
+    label: 'CI/CD Pipeline & DevEx',
+    completionState: 'published',
+    group: 'v1.1',
+    summary:
+      'Two-stage CI runner image pipeline shipped across the full workspace. A custom Docker runner image is built and pushed to Artifact Registry, then reused for all test/lint/audit jobs — eliminating per-job toolchain install time. Workspace test script hardened with submodule auto-init, cross-platform venv, and 100KB log cap. GCP provisioning script gains a NONINTERACTIVE=1 mode for headless CI use. Frontend receives motion override toggle, animation replay, dynamic hero tagline, gradient pulse badge, and slide-over panel.',
+    highlights: [
+      {
+        heading: 'CI/CD pipeline',
+        items: [
+          'build-runner-image.yml: builds a project-specific Docker image with Rust, Go, Python, and all toolchain deps pre-installed; pushes to Artifact Registry via OIDC.',
+          'run-tests-with-runner-image.yml: pulls the runner image and runs all workspace tests in a single container — cargo test, pytest, go test — with log artifacts collected per project.',
+          'run_workspace_tests.sh: auto-inits submodules on first run, creates cross-platform Python venv, caps test log output at 100KB per project to prevent artifact bloat.',
+          'gcp-setup.sh gains NONINTERACTIVE=1 mode for use in headless CI environments without TTY prompts.',
+          'Docs added: docs/ci-test-summary.md (latest run summary + artifact pointers), docs/gcp-setup.md (Cloud Run + IAM + OIDC reference).',
+        ],
+      },
+      {
+        heading: 'Frontend UX',
+        items: [
+          'Motion override toggle: lets users pause all CSS animations site-wide; state persists across navigation.',
+          'Animation replay: replay button re-triggers entrance animations on demand without a page reload.',
+          'Dynamic hero tagline: cycles through tagline variants on a configurable interval.',
+          'Gradient pulse badge + slide-over panel: new visual components added to the marketing home page.',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v1.1.1',
+    date: '2026-04-09',
+    label: 'Vertex AI SecondBrain Phase A',
+    completionState: 'published',
+    group: 'v1.1',
+    summary:
+      'Phase A of the Vertex AI SecondBrain prototype: a FastAPI service that grounds query responses in a Google Drive document corpus via Vertex AI Agent Builder. Drive file ingestion, agent query, and graceful degradation when GCP credentials are absent are all wired and covered by tests.',
+    highlights: [
+      {
+        heading: 'Vertex AI Agent Builder',
+        items: [
+          'app/agent.py: query routed through google-cloud-discoveryengine; returns answer + citations. Gracefully degrades to a stub response when VERTEX_PROJECT_ID / VERTEX_DATA_STORE_ID env vars are absent — safe for local dev without GCP credentials.',
+          '_TEST_AGENT_CLIENT hook allows unit tests to inject a mock client without patching internals.',
+          'requirements.txt: google-cloud-discoveryengine>=0.11.0 added.',
+        ],
+      },
+      {
+        heading: 'Drive connector & ingest endpoint',
+        items: [
+          'app/drive_connector.py: DriveConnector.from_env() — loads credentials from GOOGLE_APPLICATION_CREDENTIALS or falls back to Application Default Credentials.',
+          'POST /ingest/drive: downloads a Drive file by ID, runs it through ingest_file(), returns { answer, citations, source, file_id }.',
+          'All 8 tests passing: test_agent, test_drive_connector, test_drive_ingest, test_ingest.',
+        ],
+      },
+    ],
+  },
   {
     tag: 'v1.0',
     date: '2026-03-29',
