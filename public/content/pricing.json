@@ -3,8 +3,8 @@
   "tiers": [
     {
       "tier": "Hourly",
-      "price": "$65/hr",
-      "description": "Hourly advisory for architecture reviews, second opinions, and troubleshooting sessions.",
+      "price": "$125/hr",
+      "description": "Advisory for architecture reviews, second opinions, compliance assessments, and troubleshooting sessions.",
       "features": [
         "Scheduled 1-hr video calls",
         "Written summary after each session",
@@ -16,9 +16,23 @@
       "ctaHref": "#/contact"
     },
     {
+      "tier": "Retainer",
+      "price": "$1,250/week · 10 hrs/week",
+      "description": "Dedicated capacity for ongoing engineering support. Buy availability and responsiveness, not just tracked hours.",
+      "features": [
+        "10 hrs/week of hands-on work",
+        "Priority response (same business day)",
+        "Weekly sync and progress update",
+        "Slack/Discord access during business hours"
+      ],
+      "highlighted": false,
+      "ctaLabel": "Start a retainer",
+      "ctaHref": "#/contact"
+    },
+    {
       "tier": "Project",
-      "price": "$5,000/month (1+ months)",
-      "description": "Fixed-scope delivery. CI/CD pipeline, IaC baseline, containerisation, or cloud migration.",
+      "price": "$7,500/month · 4-week minimum",
+      "description": "Fixed-scope delivery billed as a monthly project fee. CI/CD pipelines, IaC, containerisation, cloud migrations, and compliance readiness.",
       "features": [
         "Scoped proposal with timeline",
         "All code delivered via pull request",
@@ -27,20 +41,6 @@
       ],
       "highlighted": false,
       "ctaLabel": "Discuss a project",
-      "ctaHref": "#/contact"
-    },
-    {
-      "tier": "Retainer",
-      "price": "$1,500/week - 15 hrs/week (1 week - 1 month engagements)",
-      "description": "Short-term engineering support. 1 week to 1 month engagements.",
-      "features": [
-        "Up to 15 hrs/month hands-on work",
-        "Priority response (same business day)",
-        "Monthly infrastructure review",
-        "Slack/Discord access during business hours"
-      ],
-      "highlighted": false,
-      "ctaLabel": "Start a retainer",
       "ctaHref": "#/contact"
     }
   ]
