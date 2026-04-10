@@ -14,6 +14,7 @@ const STARTER_PROMPTS = [
 ]
 
 type Message = { role: 'user' | 'assistant'; content: string }
+type AIModel = 'claude' | 'gemini'
 
 function secondsLeft(): number {
   const last = parseInt(localStorage.getItem(STORAGE_KEY) ?? '0', 10)
@@ -31,6 +32,7 @@ type SendState =
 export function AskAISection() {
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
+  const [model, setModel] = useState<AIModel>('claude')
   const [leadName, setLeadName] = useState('')
   const [leadEmail, setLeadEmail] = useState('')
   const [leadState, setLeadState] = useState<'idle' | 'submitting' | 'done' | 'error'>('idle')
@@ -76,7 +78,8 @@ export function AskAISection() {
     setSendState({ phase: 'streaming' })
 
     try {
-      const r = await fetch(`${AI_ORCHESTRATOR_URL}/consult/stream`, {
+      const endpoint = model === 'gemini' ? '/consult/gemini/stream' : '/consult/stream'
+      const r = await fetch(`${AI_ORCHESTRATOR_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: userMessages }),
@@ -159,11 +162,30 @@ export function AskAISection() {
 
   return (
     <section className="forge-panel space-y-4 rounded-2xl border border-zinc-500/30 bg-zinc-900/80 p-6 backdrop-blur-xl">
-      <div>
-        <h2 className="text-lg font-bold text-white">How Can I Help?</h2>
-        <p className="mt-1 text-sm text-zinc-400">
-          Describe your project or problem — get a direct answer on how I can help.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-white">How Can I Help?</h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            Describe your project or problem — get a direct answer on how I can help.
+          </p>
+        </div>
+        <div className="flex items-center gap-1 rounded-lg border border-zinc-700/50 bg-zinc-800/60 p-0.5">
+          {(['claude', 'gemini'] as AIModel[]).map(m => (
+            <button
+              key={m}
+              onClick={() => messages.length === 0 && setModel(m)}
+              disabled={messages.length > 0}
+              className={[
+                'rounded-md px-3 py-1 text-xs font-medium transition',
+                model === m
+                  ? 'bg-amber-500 text-zinc-900'
+                  : 'text-zinc-400 hover:text-zinc-200 disabled:cursor-default disabled:hover:text-zinc-400',
+              ].join(' ')}
+            >
+              {m === 'claude' ? 'Claude' : 'Gemini'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Starter prompts */}

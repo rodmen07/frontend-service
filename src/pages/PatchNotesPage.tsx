@@ -78,27 +78,27 @@ const VERSIONS: Version[] = [
   },
   {
     tag: 'v1.1.1',
-    date: '2026-04-09',
-    label: 'Vertex AI SecondBrain Phase A',
+    date: '2026-04-10',
+    label: 'Gemini API Integration',
     completionState: 'published',
     group: 'v1.1',
     summary:
-      'Phase A of the Vertex AI SecondBrain prototype: a FastAPI service that grounds query responses in a Google Drive document corpus via Vertex AI Agent Builder. Drive file ingestion, agent query, and graceful degradation when GCP credentials are absent are all wired and covered by tests.',
+      'The AI orchestrator service now supports Google Gemini (gemini-2.0-flash) alongside Anthropic Claude. New /consult/gemini and /consult/gemini/stream endpoints mirror the existing Claude endpoints exactly. The portfolio site adds a Claude / Gemini model toggle — locked once a conversation starts — letting visitors compare responses from both providers.',
     highlights: [
       {
-        heading: 'Vertex AI Agent Builder',
+        heading: 'ai-orchestrator-service',
         items: [
-          'app/agent.py: query routed through google-cloud-discoveryengine; returns answer + citations. Gracefully degrades to a stub response when VERTEX_PROJECT_ID / VERTEX_DATA_STORE_ID env vars are absent — safe for local dev without GCP credentials.',
-          '_TEST_AGENT_CLIENT hook allows unit tests to inject a mock client without patching internals.',
-          'requirements.txt: google-cloud-discoveryengine>=0.11.0 added.',
+          'app/gemini_client.py: async Gemini client wrapping google-generativeai; supports multi-turn chat history via start_chat(history=[...]). Same CONSULT_SYSTEM_PROMPT used for both providers.',
+          'POST /consult/gemini: non-streaming Gemini consulting endpoint. Returns 503 if GOOGLE_API_KEY is absent.',
+          'POST /consult/gemini/stream: streaming SSE endpoint — identical token/DONE/error envelope as the Claude stream, enabling drop-in frontend swap.',
+          'requirements.txt: google-generativeai>=0.8.0 added.',
         ],
       },
       {
-        heading: 'Drive connector & ingest endpoint',
+        heading: 'Frontend',
         items: [
-          'app/drive_connector.py: DriveConnector.from_env() — loads credentials from GOOGLE_APPLICATION_CREDENTIALS or falls back to Application Default Credentials.',
-          'POST /ingest/drive: downloads a Drive file by ID, runs it through ingest_file(), returns { answer, citations, source, file_id }.',
-          'All 8 tests passing: test_agent, test_drive_connector, test_drive_ingest, test_ingest.',
+          'Claude / Gemini pill toggle added to the Ask AI section — locked once a conversation starts to prevent mid-conversation provider switches.',
+          'Stream endpoint selected based on active model; all existing SSE parsing logic reused unchanged.',
         ],
       },
     ],
