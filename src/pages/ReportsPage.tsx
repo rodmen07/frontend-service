@@ -31,6 +31,7 @@ type ModalMode =
   | { mode: 'create' }
   | { mode: 'edit'; record: SavedReport }
   | { mode: 'delete'; id: string; label: string }
+  | { mode: 'export' }
 
 // ---------------------------------------------------------------------------
 // Auth gate
@@ -199,6 +200,85 @@ function ReportForm({
 }
 
 // ---------------------------------------------------------------------------
+// Export form
+// ---------------------------------------------------------------------------
+function ExportForm({ onClose, metrics }: { onClose: () => void; metrics: string[] }) {
+  const [format, setFormat] = useState<'csv' | 'json'>('csv')
+  const [metric, setMetric] = useState('')
+  const [exporting, setExporting] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const handleExport = async () => {
+    setExporting(true); setErr(null)
+    try {
+      const params = new URLSearchParams({ format })
+      if (metric) params.set('metric', metric)
+      const res = await fetch(`${REPORTING_URL}/api/v1/reports/export?${params}`, {
+        headers: { Authorization: `Bearer ${ADMIN_JWT}` },
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.message ?? `${res.status} ${res.statusText}`)
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `reports-export.${format}`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      onClose()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Export failed')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <FormField label="Format">
+        <div className="flex gap-2">
+          {(['csv', 'json'] as const).map(f => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFormat(f)}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                format === f
+                  ? 'border-amber-400/50 bg-amber-400/10 text-amber-300'
+                  : 'border-zinc-600/50 bg-zinc-800/60 text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </FormField>
+      <FormField label="Filter by metric (optional)">
+        <select
+          className={INPUT}
+          value={metric}
+          onChange={e => setMetric(e.target.value)}
+        >
+          <option value="">All metrics</option>
+          {metrics.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+      </FormField>
+      {err && <SaveError message={err} />}
+      <div className="flex gap-2 pt-1">
+        <button className="btn-accent flex-1" onClick={handleExport} disabled={exporting}>
+          {exporting ? 'Exporting...' : 'Download'}
+        </button>
+        <button className="btn-neutral flex-1" onClick={onClose} disabled={exporting}>Cancel</button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard summary card
 // ---------------------------------------------------------------------------
 function DashboardCard({ summary }: { summary: DashboardSummary }) {
@@ -296,7 +376,10 @@ function ReportsView() {
       {/* Table header */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-zinc-200">Saved Reports</h2>
-        <button className="btn-accent text-xs" onClick={() => setModal({ mode: 'create' })}>+ New Report</button>
+        <div className="flex gap-2">
+          <button className="btn-neutral text-xs" onClick={() => setModal({ mode: 'export' })}>Export</button>
+          <button className="btn-accent text-xs" onClick={() => setModal({ mode: 'create' })}>+ New Report</button>
+        </div>
       </div>
 
       {/* Reports table */}
@@ -349,6 +432,11 @@ function ReportsView() {
       {modal?.mode === 'edit' && (
         <Modal title="Edit Report" onClose={() => setModal(null)}>
           <ReportForm initial={modal.record} onSave={handleSave} onCancel={() => setModal(null)} />
+        </Modal>
+      )}
+      {modal?.mode === 'export' && (
+        <Modal title="Export Reports" onClose={() => setModal(null)}>
+          <ExportForm onClose={() => setModal(null)} metrics={summary?.core_metrics ?? []} />
         </Modal>
       )}
       {modal?.mode === 'delete' && (
