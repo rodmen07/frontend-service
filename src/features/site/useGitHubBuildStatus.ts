@@ -23,7 +23,7 @@ type GhRunsResponse = {
   workflow_runs: GhRun[]
 }
 
-function mapStatus(run: GhRun | undefined): GhBuildItem['display_status'] {
+export function mapStatus(run: GhRun | undefined): GhBuildItem['display_status'] {
   if (!run) return 'unknown'
   if (run.status === 'queued' || run.status === 'in_progress') return 'yellow'
   if (run.status === 'completed') {

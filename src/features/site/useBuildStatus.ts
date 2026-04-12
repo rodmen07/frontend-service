@@ -19,35 +19,47 @@ export function useBuildStatus(): BuildStatusState {
   const [state, setState] = useState<BuildStatusState>(
     MONITORING_URL ? { phase: 'loading' } : { phase: 'disabled' }
   )
+  const monitoringUrl = MONITORING_URL.replace(/\/$/, '')
 
   useEffect(() => {
-    if (!MONITORING_URL) return
+    if (!monitoringUrl) return
 
-    let timer: ReturnType<typeof setInterval>
-    let controller: AbortController
+    let active = true
+    let inFlightController: AbortController | null = null
+    const timer = setInterval(() => {
+      void load()
+    }, 60_000)
 
     const load = async () => {
-      controller = new AbortController()
+      inFlightController?.abort()
+      const controller = new AbortController()
+      inFlightController = controller
       try {
-        const res = await fetch(`${MONITORING_URL}/api/builds`, {
-          signal: AbortSignal.timeout(5000),
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+        const res = await fetch(`${monitoringUrl}/api/builds`, {
+          signal: controller.signal,
+          cache: 'no-store',
         })
+        clearTimeout(timeoutId)
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const items: BuildStatusItem[] = await res.json()
-        setState({ phase: 'ready', items })
-      } catch {
-        setState({ phase: 'error' })
+        if (active) setState({ phase: 'ready', items })
+      } catch (error) {
+        if (active && !(error instanceof DOMException && error.name === 'AbortError')) {
+          setState({ phase: 'error' })
+        }
       }
     }
 
-    load()
-    timer = setInterval(load, 60_000)
+    void load()
 
     return () => {
+      active = false
       clearInterval(timer)
-      controller?.abort()
+      inFlightController?.abort()
     }
-  }, [])
+  }, [monitoringUrl])
 
   return state
 }
