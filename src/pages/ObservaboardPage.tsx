@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PageLayout } from './PageLayout'
+import { resolveAdminToken } from '../config'
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 const ADMIN_KEY      = import.meta.env.VITE_ADMIN_KEY ?? 'dev-admin'
-const ADMIN_JWT      = import.meta.env.VITE_ADMIN_JWT ?? ''
 const OBSERVABOARD   = (import.meta.env.VITE_OBSERVABOARD_URL ?? '').replace(/\/$/, '')
 
 // ---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 async function apiFetch<T>(url: string): Promise<T> {
   const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${ADMIN_JWT}` },
+    headers: { Authorization: `Bearer ${resolveAdminToken()}` },
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

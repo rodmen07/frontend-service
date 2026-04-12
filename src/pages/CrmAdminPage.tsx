@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { PageLayout } from './PageLayout'
+import { resolveAdminToken } from '../config'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -12,7 +13,6 @@ const ACTIVITIES_URL = (import.meta.env.VITE_ACTIVITIES_API_BASE_URL     ?? '').
 const STREAM_URL     = (import.meta.env.VITE_EVENT_STREAM_URL            ?? '').replace(/\/$/, '')
 const PROJECTS_URL   = (import.meta.env.VITE_PROJECTS_API_BASE_URL       ?? '').replace(/\/$/, '')
 const SPEND_URL      = (import.meta.env.VITE_SPEND_API_BASE_URL          ?? '').replace(/\/$/, '')
-const ADMIN_JWT      = import.meta.env.VITE_ADMIN_JWT ?? ''
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,7 +83,7 @@ type ModalMode<T> = null | { mode: 'create' } | { mode: 'edit'; record: T } | { 
 async function api<T>(url: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(url, {
     ...opts,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ADMIN_JWT}`, ...opts.headers },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resolveAdminToken()}`, ...opts.headers },
   })
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`)
   if (res.status === 204) return null as T
@@ -262,7 +262,7 @@ function ContactsTab({ stageFilter }: { stageFilter?: string }) {
 
   const load = useCallback(async () => {
     if (!CONTACTS_URL) { setError('VITE_CONTACTS_API_BASE_URL not configured.'); return }
-    if (!ADMIN_JWT)    { setError('VITE_ADMIN_JWT not configured.'); return }
+    if (!resolveAdminToken()) { setError('No auth token — set VITE_ADMIN_JWT or log in via the portal.'); return }
     setLoading(true); setError(null)
     try {
       const qs = stageFilter ? `lifecycle_stage=${stageFilter}&limit=100` : 'limit=100'
@@ -410,7 +410,7 @@ function AccountsTab() {
 
   const load = useCallback(async () => {
     if (!ACCOUNTS_URL) { setError('VITE_ACCOUNTS_API_BASE_URL not configured.'); return }
-    if (!ADMIN_JWT)    { setError('VITE_ADMIN_JWT not configured.'); return }
+    if (!resolveAdminToken()) { setError('No auth token — set VITE_ADMIN_JWT or log in via the portal.'); return }
     setLoading(true); setError(null)
     try {
       const body = await api<PagedResponse<Account>>(`${ACCOUNTS_URL}/api/v1/accounts?limit=100`)
@@ -533,7 +533,7 @@ function OpportunitiesTab() {
 
   const load = useCallback(async () => {
     if (!OPPS_URL)  { setError('VITE_OPPORTUNITIES_API_BASE_URL not configured.'); return }
-    if (!ADMIN_JWT) { setError('VITE_ADMIN_JWT not configured.'); return }
+    if (!resolveAdminToken()) { setError('No auth token — set VITE_ADMIN_JWT or log in via the portal.'); return }
     setLoading(true); setError(null)
     try   { setRows(await api<Opportunity[]>(`${OPPS_URL}/api/v1/opportunities`)) }
     catch (e) { setError(e instanceof Error ? e.message : String(e)) }
@@ -672,7 +672,7 @@ function ActivitiesTab() {
 
   const load = useCallback(async () => {
     if (!ACTIVITIES_URL) { setError('VITE_ACTIVITIES_API_BASE_URL not configured.'); return }
-    if (!ADMIN_JWT)      { setError('VITE_ADMIN_JWT not configured.'); return }
+    if (!resolveAdminToken()) { setError('No auth token — set VITE_ADMIN_JWT or log in via the portal.'); return }
     setLoading(true); setError(null)
     try   { setRows(await api<Activity[]>(`${ACTIVITIES_URL}/api/v1/activities`)) }
     catch (e) { setError(e instanceof Error ? e.message : String(e)) }
@@ -1244,7 +1244,7 @@ function SpendTab() {
 
   const load = useCallback(async () => {
     if (!SPEND_URL)  { setError('VITE_SPEND_API_BASE_URL not configured.'); return }
-    if (!ADMIN_JWT)  { setError('VITE_ADMIN_JWT not configured.'); return }
+    if (!resolveAdminToken()) { setError('No auth token — set VITE_ADMIN_JWT or log in via the portal.'); return }
     setLoading(true); setError(null)
     try {
       const params = new URLSearchParams()
@@ -1495,7 +1495,7 @@ export function CrmAdminPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">CRM — Admin</h1>
-            <p className="mt-1 text-sm text-zinc-400">Live data from the microservices. Requires service URLs and <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs">VITE_ADMIN_JWT</code> in <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs">.env.local</code>.</p>
+            <p className="mt-1 text-sm text-zinc-400">Live data from the microservices. Requires service URLs configured and either <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs">VITE_ADMIN_JWT</code> set or an active portal login.</p>
           </div>
           <a href="#/admin" className="btn-neutral px-3 py-1.5 text-xs">← Admin</a>
         </div>

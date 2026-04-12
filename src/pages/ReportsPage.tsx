@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PageLayout } from './PageLayout'
+import { resolveAdminToken } from '../config'
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 const ADMIN_KEY     = import.meta.env.VITE_ADMIN_KEY ?? 'dev-admin'
-const ADMIN_JWT     = import.meta.env.VITE_ADMIN_JWT ?? ''
 const REPORTING_URL = (import.meta.env.VITE_REPORTING_API_BASE_URL ?? '').replace(/\/$/, '')
 
 // ---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ async function api<T>(url: string, opts: RequestInit = {}): Promise<T> {
     ...opts,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${ADMIN_JWT}`,
+      Authorization: `Bearer ${resolveAdminToken()}`,
       ...opts.headers,
     },
   })
@@ -214,7 +214,7 @@ function ExportForm({ onClose, metrics }: { onClose: () => void; metrics: string
       const params = new URLSearchParams({ format })
       if (metric) params.set('metric', metric)
       const res = await fetch(`${REPORTING_URL}/api/v1/reports/export?${params}`, {
-        headers: { Authorization: `Bearer ${ADMIN_JWT}` },
+        headers: { Authorization: `Bearer ${resolveAdminToken()}` },
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))

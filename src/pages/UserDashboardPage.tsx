@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PageLayout } from './PageLayout'
+import { resolveAdminToken } from '../config'
 
 const ADMIN_KEY          = import.meta.env.VITE_ADMIN_KEY ?? 'dev-admin'
-const ADMIN_JWT          = import.meta.env.VITE_ADMIN_JWT ?? ''
 const ACCOUNTS_URL      = (import.meta.env.VITE_ACCOUNTS_API_BASE_URL ?? '').replace(/\/$/, '')
 const CONTACTS_URL      = (import.meta.env.VITE_CONTACTS_API_BASE_URL ?? '').replace(/\/$/, '')
 const OPPORTUNITIES_URL = (import.meta.env.VITE_OPPORTUNITIES_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -77,7 +77,7 @@ async function api<T>(url: string, opts: RequestInit = {}): Promise<T> {
     ...opts,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${ADMIN_JWT}`,
+      Authorization: `Bearer ${resolveAdminToken()}`,
       ...opts.headers,
     },
   })
@@ -182,8 +182,8 @@ export function UserDashboardPage() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchCounts = useCallback(async () => {
-    if (!ADMIN_JWT) {
-      setError('VITE_ADMIN_JWT is required')
+    if (!resolveAdminToken()) {
+      setError('No auth token — set VITE_ADMIN_JWT or log in via the portal.')
       setStatus('error')
       return
     }

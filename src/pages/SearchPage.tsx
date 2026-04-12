@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { PageLayout } from './PageLayout'
+import { resolveAdminToken } from '../config'
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 const ADMIN_KEY  = import.meta.env.VITE_ADMIN_KEY ?? 'dev-admin'
-const ADMIN_JWT  = import.meta.env.VITE_ADMIN_JWT ?? ''
 const SEARCH_URL = (import.meta.env.VITE_SEARCH_API_BASE_URL ?? '').replace(/\/$/, '')
 
 // ---------------------------------------------------------------------------
@@ -123,7 +123,7 @@ function SearchView() {
     setError(null)
     try {
       const res = await fetch(`${SEARCH_URL}/api/v1/search?q=${encodeURIComponent(q.trim())}`, {
-        headers: { Authorization: `Bearer ${ADMIN_JWT}` },
+        headers: { Authorization: `Bearer ${resolveAdminToken()}` },
       })
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
       const data: SearchResult[] = await res.json()

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PageLayout } from './PageLayout'
+import { resolveAdminToken } from '../config'
 
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
 const ADMIN_KEY = import.meta.env.VITE_ADMIN_KEY ?? 'dev-admin'
-const ADMIN_JWT = import.meta.env.VITE_ADMIN_JWT ?? ''
 const AUDIT_URL = (import.meta.env.VITE_AUDIT_API_BASE_URL ?? '').replace(/\/$/, '')
 
 // ---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ async function api<T>(url: string, opts: RequestInit = {}): Promise<T> {
     ...opts,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${ADMIN_JWT}`,
+      Authorization: `Bearer ${resolveAdminToken()}`,
       ...opts.headers,
     },
   })
