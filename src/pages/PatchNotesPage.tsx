@@ -39,6 +39,8 @@ const COMPLETION_STYLES: Record<CompletionState, { badge: string; label: string 
 
 // Groups for section headers
 const GROUP_META: Record<string, { label: string; status: string }> = {
+  'v1.3': { label: 'Autonomous Operations',       status: 'In Progress' },
+  'v1.2': { label: 'Operational Maturity',        status: 'Complete' },
   'v1.1': { label: 'Developer Experience & AI Research', status: 'Complete' },
   'v1.0': { label: 'Client Portal',              status: 'Complete' },
   'v0.5': { label: 'Platform Completeness',       status: 'Complete' },
@@ -46,6 +48,147 @@ const GROUP_META: Record<string, { label: string; status: string }> = {
 }
 
 const VERSIONS: Version[] = [
+  {
+    tag: 'v1.3.1',
+    date: '2026-04-12',
+    label: 'Productionizer Agent',
+    completionState: 'implemented',
+    group: 'v1.3',
+    summary:
+      'Autonomous Gemini 2.5 Flash agent runs on a daily GitHub Actions cron. Each run picks one microservice + one gap from a 55-task matrix (11 services × 5 gap types), generates the fix via tool calling (read_file / write_file / run_shell), verifies it with cargo clippy + cargo test, and opens a PR against the microservices repo. The agent self-reverts on any verification failure — no bad code ever reaches a branch.',
+    highlights: [
+      {
+        heading: 'Agent architecture',
+        items: [
+          'agents/productionizer/ — Python module using google-genai SDK with gemini-2.5-flash.',
+          '55-task matrix: 11 Rust/Axum services × 5 gap types iterated gap-first so all services receive the highest-priority improvement before any receive the second.',
+          'Three tools exposed to Gemini: read_file (workspace inspection), write_file (guarded — blocks auth.rs, Cargo.toml, and cross-service writes), run_shell (read-only commands only).',
+          'Verification pipeline: cargo clippy -D warnings → cargo test --test integration_test → commit → push → gh pr create. Any step failure triggers git checkout HEAD -- <service>/ revert.',
+        ],
+      },
+      {
+        heading: 'Gap types addressed',
+        items: [
+          'structured-logging: tracing::info! on mutations, tracing::debug! on reads, tracing::warn! on degraded paths.',
+          'dynamic-health: /health and /ready perform a live sqlx DB ping; return HTTP 503 on failure instead of hardcoded "ok".',
+          'error-details: ApiError.details populated with serde_json::json!() field/constraint context on all validation errors.',
+          'audit-error-handling: silent let _ = emit_audit() replaced with match + tracing::warn! logging.',
+          'error-path-tests: integration test coverage for missing 400/404 paths (reads existing tests first to avoid duplicates).',
+        ],
+      },
+      {
+        heading: 'GitHub Actions workflow',
+        items: [
+          'productionizer.yml: daily cron at 06:00 UTC + workflow_dispatch with force_service / force_gap overrides.',
+          'State persisted in Actions cache (state.json) — skips already-completed tasks across runs.',
+          'Postgres 16 service container spun up per run for integration test verification.',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v1.2.4',
+    date: '2026-04-11',
+    label: 'Service Resilience & Testing',
+    completionState: 'published',
+    group: 'v1.2',
+    summary:
+      'Integration tests added for all 11 Rust/Axum services — every service now has full error-path coverage. A k6 load test suite covers smoke, load, and spike scenarios with a p95 < 2 s threshold. A chaos engineering runbook documents cold-start behavior, Cloud SQL connection exhaustion, fail-open degradation paths, and the crash-loop rollback SOP.',
+    highlights: [
+      {
+        heading: 'Test coverage',
+        items: [
+          'audit-service, spend-service, and projects-service integration tests added — completing coverage across all 11 services.',
+          'Error-path tests: 401 on missing/invalid JWT, 400 on validation failures, 404 on nonexistent resources.',
+        ],
+      },
+      {
+        heading: 'Load testing & chaos',
+        items: [
+          'scripts/load-test.js: k6 smoke (1 VU, 30s), load (50 VUs, 5 min), and spike (200 VUs, 30s) scenarios. p95 latency threshold: 2 s.',
+          'docs/chaos-runbook.md: cold-start characterization, Cloud SQL max-connections exhaustion (PgPoolOptions max = 5), fail-open cross-service call behavior, and Cloud Run traffic-split rollback SOP.',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v1.2.3',
+    date: '2026-04-11',
+    label: 'Portfolio Observability',
+    completionState: 'published',
+    group: 'v1.2',
+    summary:
+      'CRM services now emit structured events to Observaboard after every successful mutation. A new admin health dashboard polls all 11 service /health endpoints with 30-second auto-refresh, giving a live view of platform status.',
+    highlights: [
+      {
+        heading: 'Event pipeline',
+        items: [
+          'audit-service fire-and-forgets CRM events to Observaboard POST /api/ingest/ after each successful DB insert.',
+          'Payload: { source: "infraportal-crm", event_type: "<entity>.<action>", payload: { audit_event_id, ... } }.',
+          'Auth: Authorization: Api-Key <key> — key stored in Cloud Run env via Terraform (terraform.tfvars → terraform apply).',
+        ],
+      },
+      {
+        heading: 'Admin health dashboard',
+        items: [
+          '#/admin/health page in infraportal: polls all 11 service /health endpoints in parallel.',
+          '30-second auto-refresh; per-service status badges (green / degraded / unreachable).',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v1.2.2',
+    date: '2026-04-11',
+    label: 'Audit Trail & Compliance',
+    completionState: 'published',
+    group: 'v1.2',
+    summary:
+      'New Rust/Axum audit-service stores an immutable CRM mutation log in PostgreSQL (Cloud SQL). All CRM services fire-and-forget audit events to it after each successful write. A new admin audit trail page lets admins review the full mutation history.',
+    highlights: [
+      {
+        heading: 'audit-service',
+        items: [
+          'New Rust/Axum service deployed to GCP Cloud Run (us-central1) with PostgreSQL persistence.',
+          'POST /api/v1/audit-events: receives entity_type, entity_id, action, actor, and payload; stores with immutable timestamp.',
+          'GET /api/v1/audit-events: paginated list with entity_type / entity_id / actor filters; JWT-authenticated.',
+        ],
+      },
+      {
+        heading: 'CRM integration & frontend',
+        items: [
+          'All 9 CRM handlers call emit_audit() as a fire-and-forget tokio::spawn after each successful mutation.',
+          'Admin audit trail page in infraportal: searchable table of audit events with entity type / actor filters.',
+        ],
+      },
+    ],
+  },
+  {
+    tag: 'v1.2.1',
+    date: '2026-04-11',
+    label: 'Data Export Pipeline',
+    completionState: 'published',
+    group: 'v1.2',
+    summary:
+      'Bulk CSV and JSON export from reporting-service — admins can export the full CRM dataset or a filtered slice. A new export modal in the admin reports page drives the download.',
+    highlights: [
+      {
+        heading: 'reporting-service',
+        items: [
+          'GET /api/v1/reports/export?format=csv|json: streams the full aggregated report dataset as a file download.',
+          'Supports the same status and date-range filters as the list endpoint.',
+          'Content-Disposition header set for browser download; chunked transfer for large datasets.',
+        ],
+      },
+      {
+        heading: 'Frontend',
+        items: [
+          'Export button added to admin reports page; triggers a modal to select format (CSV / JSON) and optional filters.',
+          'Download handled via a signed URL blob — no polling required.',
+        ],
+      },
+    ],
+  },
   {
     tag: 'v1.1',
     date: '2026-04-09',
