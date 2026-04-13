@@ -56,6 +56,11 @@ interface Milestone {
 interface Deliverable {
   id: string; milestone_id: string; name: string
   description: string | null; status: string
+  estimated_hours?: number | null
+}
+interface ProjectLink {
+  id: string; project_id: string; link_type: string
+  label: string; url: string; sort_order: number
 }
 interface PMessage {
   id: string; project_id: string; author_id: string
@@ -935,7 +940,12 @@ function ProjectsTab() {
 
   // deliverable create form
   const [showDeliverable, setShowDeliverable] = useState<string | null>(null) // milestone id
-  const [dlForm, setDlForm] = useState({ name: '', description: '', status: 'pending' })
+  const [dlForm, setDlForm] = useState({ name: '', description: '', status: 'pending', estimated_hours: '' })
+
+  // project links
+  const [links, setLinks] = useState<ProjectLink[]>([])
+  const [linkForm, setLinkForm] = useState({ link_type: 'other', label: '', url: '' })
+  const [savingLink, setSavingLink] = useState(false)
 
   const loadProjects = useCallback(async () => {
     if (!PROJECTS_URL) return
@@ -951,15 +961,17 @@ function ProjectsTab() {
   }, [])
 
   const loadProject = useCallback(async (p: Project) => {
-    setSelected(p); setMilestones([]); setDeliverables({}); setMessages([])
+    setSelected(p); setMilestones([]); setDeliverables({}); setMessages([]); setLinks([])
     try {
-      const [ms, msgs] = await Promise.all([
+      const [ms, msgs, lnks] = await Promise.all([
         api<Milestone[]>(`${PROJECTS_URL}/api/v1/projects/${p.id}/milestones`),
         api<PMessage[]>(`${PROJECTS_URL}/api/v1/projects/${p.id}/messages`),
+        api<ProjectLink[]>(`${PROJECTS_URL}/api/v1/projects/${p.id}/links`).catch(() => [] as ProjectLink[]),
       ])
       const sorted = [...ms].sort((a, b) => a.sort_order - b.sort_order)
       setMilestones(sorted)
       setMessages(msgs)
+      setLinks(lnks)
       const dlMap: Record<string, Deliverable[]> = {}
       await Promise.all(sorted.map(async (m) => {
         const ds = await api<Deliverable[]>(`${PROJECTS_URL}/api/v1/milestones/${m.id}/deliverables`).catch(() => [])
@@ -1019,15 +1031,39 @@ function ProjectsTab() {
       await api(`${PROJECTS_URL}/api/v1/milestones/${showDeliverable}/deliverables`, { method: 'POST', body: JSON.stringify({
         name: dlForm.name, status: dlForm.status,
         description: dlForm.description || null,
+        estimated_hours: dlForm.estimated_hours ? parseFloat(dlForm.estimated_hours) : null,
       })})
       setShowDeliverable(null)
-      setDlForm({ name: '', description: '', status: 'pending' })
+      setDlForm({ name: '', description: '', status: 'pending', estimated_hours: '' })
       if (selected) loadProject(selected)
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Save failed')
     } finally {
       setSaving(false)
     }
+  }
+
+  const createLink = async (e: React.FormEvent) => {
+    if (!selected) return
+    e.preventDefault(); setSavingLink(true)
+    try {
+      await api(`${PROJECTS_URL}/api/v1/projects/${selected.id}/links`, { method: 'POST', body: JSON.stringify({
+        link_type: linkForm.link_type, label: linkForm.label, url: linkForm.url,
+      })})
+      setLinkForm({ link_type: 'other', label: '', url: '' })
+      const lnks = await api<ProjectLink[]>(`${PROJECTS_URL}/api/v1/projects/${selected.id}/links`).catch(() => [] as ProjectLink[])
+      setLinks(lnks)
+    } catch { /* silent */ } finally {
+      setSavingLink(false)
+    }
+  }
+
+  const deleteLink = async (linkId: string) => {
+    if (!selected) return
+    try {
+      await api(`${PROJECTS_URL}/api/v1/links/${linkId}`, { method: 'DELETE' })
+      setLinks(prev => prev.filter(l => l.id !== linkId))
+    } catch { /* silent */ }
   }
 
   const sendReply = async (e: React.FormEvent) => {
@@ -1116,13 +1152,43 @@ function ProjectsTab() {
               {(deliverables[m.id] ?? []).map(d => (
                 <div key={d.id} className="flex items-center justify-between gap-2 rounded-lg bg-zinc-900/40 px-3 py-1.5 text-xs">
                   <span className="text-zinc-300">{d.name}</span>
-                  <span className={`rounded-full px-2 py-0.5 ${STATUS_PILL[d.status] ?? 'bg-zinc-700/40 text-zinc-400'}`}>
-                    {d.status.replace('_', ' ')}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {d.estimated_hours != null && d.estimated_hours > 0 && (
+                      <span className="text-zinc-500">{d.estimated_hours}h</span>
+                    )}
+                    <span className={`rounded-full px-2 py-0.5 ${STATUS_PILL[d.status] ?? 'bg-zinc-700/40 text-zinc-400'}`}>
+                      {d.status.replace('_', ' ')}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           ))}
+
+          {/* Project links */}
+          <div className="space-y-2">
+            <h5 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Project links</h5>
+            {links.map(lnk => (
+              <div key={lnk.id} className="flex items-center justify-between gap-2 rounded-lg bg-zinc-900/40 px-3 py-1.5 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-zinc-500">{lnk.link_type}</span>
+                  <a href={lnk.url} target="_blank" rel="noopener noreferrer" className="truncate text-amber-400 hover:text-amber-300">{lnk.label}</a>
+                </div>
+                <button type="button" onClick={() => deleteLink(lnk.id)} className="shrink-0 text-zinc-600 hover:text-red-400">✕</button>
+              </div>
+            ))}
+            <form onSubmit={createLink} className="flex flex-wrap gap-2 pt-1">
+              <select value={linkForm.link_type} onChange={e => setLinkForm(f => ({ ...f, link_type: e.target.value }))}
+                className="rounded-lg border border-zinc-700 bg-zinc-800/60 px-2 py-1.5 text-xs text-zinc-200 outline-none focus:border-amber-500/60">
+                {['upwork', 'drive', 'github', 'figma', 'other'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <input placeholder="Label" value={linkForm.label} onChange={e => setLinkForm(f => ({ ...f, label: e.target.value }))}
+                className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-800/60 px-2 py-1.5 text-xs text-zinc-200 outline-none focus:border-amber-500/60 placeholder-zinc-500" />
+              <input placeholder="URL" value={linkForm.url} onChange={e => setLinkForm(f => ({ ...f, url: e.target.value }))}
+                className="min-w-0 flex-[2] rounded-lg border border-zinc-700 bg-zinc-800/60 px-2 py-1.5 text-xs text-zinc-200 outline-none focus:border-amber-500/60 placeholder-zinc-500" />
+              <button type="submit" disabled={savingLink || !linkForm.label || !linkForm.url} className="btn-accent btn-sm disabled:opacity-50">Add link</button>
+            </form>
+          </div>
 
           {/* Messages */}
           <div className="space-y-2">
@@ -1198,6 +1264,9 @@ function ProjectsTab() {
               <select value={dlForm.status} onChange={e => setDlForm(f => ({ ...f, status: e.target.value }))} className={INPUT_CLS}>
                 {DELIVERABLE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
+            </FormField>
+            <FormField label="Estimated hours">
+              <input type="number" min="0" step="0.5" placeholder="e.g. 4.5" value={dlForm.estimated_hours} onChange={e => setDlForm(f => ({ ...f, estimated_hours: e.target.value }))} className={INPUT_CLS} />
             </FormField>
             <FormField label="Description"><textarea value={dlForm.description} onChange={e => setDlForm(f => ({ ...f, description: e.target.value }))} rows={2} className={INPUT_CLS} /></FormField>
             {saveError && <SaveError message={saveError} />}

@@ -30,6 +30,7 @@ interface Deliverable {
   name: string
   description: string | null
   status: string
+  estimated_hours?: number | null
 }
 
 interface Message {
@@ -39,6 +40,24 @@ interface Message {
   author_role: string
   body: string
   created_at: string
+}
+
+interface ProjectLink {
+  id: string
+  link_type: string
+  label: string
+  url: string
+  sort_order: number
+}
+
+interface ProjectEmail {
+  id: string
+  thread_id: string
+  subject: string
+  from_email: string
+  snippet: string | null
+  body_html: string | null
+  received_at: string
 }
 
 // --- API helper ---
@@ -82,6 +101,165 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+function ProjectSummaryCard({
+  project,
+  deliverablesByMilestone,
+}: {
+  project: Project
+  deliverablesByMilestone: Record<string, Deliverable[]>
+}) {
+  const allDeliverables = Object.values(deliverablesByMilestone).flat()
+  const total = allDeliverables.length
+  const doneCount = allDeliverables.filter((d) => d.status === 'completed' || d.status === 'done').length
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0
+
+  const totalHours = allDeliverables.reduce((s, d) => s + (d.estimated_hours ?? 0), 0)
+  const doneHours = allDeliverables
+    .filter((d) => d.status === 'completed' || d.status === 'done')
+    .reduce((s, d) => s + (d.estimated_hours ?? 0), 0)
+
+  const daysLeft = project.target_end_date
+    ? Math.ceil(
+        (new Date(project.target_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      )
+    : null
+
+  return (
+    <div className="forge-panel surface-card-strong p-5 space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-zinc-100">{project.name}</h2>
+          {project.description && (
+            <p className="mt-1 text-sm text-zinc-400">{project.description}</p>
+          )}
+        </div>
+        <StatusBadge status={project.status} />
+      </div>
+
+      {/* Progress bar */}
+      {total > 0 && (
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-zinc-400">
+            <span>Overall progress</span>
+            <span>{doneCount}/{total} deliverables ({pct}%)</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Stats row */}
+      <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
+        {project.start_date && (
+          <span>Started <span className="text-zinc-300">{project.start_date.slice(0, 10)}</span></span>
+        )}
+        {project.target_end_date && daysLeft !== null && (
+          <span>
+            Target{' '}
+            <span className="text-zinc-300">{project.target_end_date.slice(0, 10)}</span>
+            {' — '}
+            <span className={daysLeft < 0 ? 'text-red-400' : 'text-zinc-300'}>
+              {daysLeft < 0 ? `${Math.abs(daysLeft)}d overdue` : `${daysLeft}d remaining`}
+            </span>
+          </span>
+        )}
+        {totalHours > 0 && (
+          <span>
+            Est. effort{' '}
+            <span className="text-zinc-300">{doneHours.toFixed(1)}h / {totalHours.toFixed(1)}h</span>
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const LINK_TYPE_ICONS: Record<string, string> = {
+  upwork:  '💼',
+  drive:   '📁',
+  github:  '⚙',
+  figma:   '🎨',
+  other:   '🔗',
+}
+
+function LinksSection({ links }: { links: ProjectLink[] }) {
+  if (!links.length) return null
+  return (
+    <div className="forge-panel surface-card-strong p-4">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-400">Project links</h3>
+      <div className="flex flex-wrap gap-2">
+        {links.map((link) => (
+          <a
+            key={link.id}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-full border border-zinc-600/40 bg-zinc-800/60 px-3 py-1.5 text-xs text-zinc-200 transition hover:border-amber-400/50 hover:text-amber-300"
+          >
+            <span>{LINK_TYPE_ICONS[link.link_type] ?? '🔗'}</span>
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function EmailsSection({ emails }: { emails: ProjectEmail[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+  if (!emails.length) return null
+
+  return (
+    <div className="forge-panel surface-card-strong overflow-hidden">
+      <div className="border-b border-zinc-700/40 px-4 py-3">
+        <h3 className="text-sm font-semibold text-zinc-200">Project emails</h3>
+      </div>
+      <div className="divide-y divide-zinc-700/20">
+        {emails.map((email) => {
+          const isOpen = expanded === email.id
+          return (
+            <div key={email.id}>
+              <button
+                type="button"
+                onClick={() => setExpanded(isOpen ? null : email.id)}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-zinc-800/30"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-zinc-200">{email.subject}</p>
+                  <p className="text-xs text-zinc-500">{email.from_email}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-xs text-zinc-500">{email.received_at.slice(0, 10)}</span>
+                  <span className="text-xs text-zinc-500">{isOpen ? '▲' : '▼'}</span>
+                </div>
+              </button>
+              {isOpen && (
+                <div className="border-t border-zinc-700/20 px-4 py-3">
+                  {email.body_html ? (
+                    <div
+                      className="prose prose-invert prose-sm max-w-none text-zinc-300"
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: email.body_html }}
+                    />
+                  ) : email.snippet ? (
+                    <p className="text-sm text-zinc-400">{email.snippet}</p>
+                  ) : (
+                    <p className="text-xs text-zinc-500">No content available.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function DeliverableRow({ d }: { d: Deliverable }) {
   const done = d.status === 'completed' || d.status === 'done'
   return (
@@ -91,10 +269,13 @@ function DeliverableRow({ d }: { d: Deliverable }) {
       }`}>
         {done ? '✓' : ''}
       </span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className={`text-sm ${done ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>{d.name}</p>
         {d.description && <p className="mt-0.5 text-xs text-zinc-500">{d.description}</p>}
       </div>
+      {d.estimated_hours != null && d.estimated_hours > 0 && (
+        <span className="shrink-0 text-xs text-zinc-500">{d.estimated_hours}h</span>
+      )}
       <StatusBadge status={d.status} />
     </div>
   )
@@ -104,6 +285,11 @@ function MilestoneCard({ milestone, deliverables }: { milestone: Milestone; deli
   const [open, setOpen] = useState(true)
   const total = deliverables.length
   const done = deliverables.filter((d) => d.status === 'completed' || d.status === 'done').length
+
+  const totalHours = deliverables.reduce((s, d) => s + (d.estimated_hours ?? 0), 0)
+  const doneHours = deliverables
+    .filter((d) => d.status === 'completed' || d.status === 'done')
+    .reduce((s, d) => s + (d.estimated_hours ?? 0), 0)
 
   return (
     <div className="forge-panel surface-card-strong overflow-hidden">
@@ -122,6 +308,9 @@ function MilestoneCard({ milestone, deliverables }: { milestone: Milestone; deli
           )}
           {total > 0 && (
             <span className="text-xs text-zinc-400">{done}/{total}</span>
+          )}
+          {totalHours > 0 && (
+            <span className="text-xs text-zinc-500">{doneHours.toFixed(1)}/{totalHours.toFixed(1)}h</span>
           )}
           <span className="text-xs text-zinc-500">{open ? '▲' : '▼'}</span>
         </div>
@@ -246,6 +435,8 @@ export function PortalPage() {
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [deliverablesByMilestone, setDeliverablesByMilestone] = useState<Record<string, Deliverable[]>>({})
   const [messages, setMessages] = useState<Message[]>([])
+  const [links, setLinks] = useState<ProjectLink[]>([])
+  const [emails, setEmails] = useState<ProjectEmail[]>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'no_project'>('idle')
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
@@ -272,14 +463,18 @@ export function PortalPage() {
       const p = projects[0]
       setProject(p)
 
-      const [ms, msgs] = await Promise.all([
+      const [ms, msgs, lnks, emls] = await Promise.all([
         api<Milestone[]>(`/api/v1/projects/${p.id}/milestones`, token),
         api<Message[]>(`/api/v1/projects/${p.id}/messages`, token),
+        api<ProjectLink[]>(`/api/v1/projects/${p.id}/links`, token).catch(() => [] as ProjectLink[]),
+        api<ProjectEmail[]>(`/api/v1/projects/${p.id}/emails`, token).catch(() => [] as ProjectEmail[]),
       ])
 
       const sorted = [...ms].sort((a, b) => a.sort_order - b.sort_order)
       setMilestones(sorted)
       setMessages(msgs)
+      setLinks(lnks)
+      setEmails(emls)
 
       const deliverables = await Promise.all(
         sorted.map((m) =>
@@ -355,24 +550,14 @@ export function PortalPage() {
 
       {status === 'idle' && project && (
         <div className="space-y-5">
-          {/* Project header */}
-          <div className="forge-panel surface-card-strong p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-zinc-100">{project.name}</h2>
-                {project.description && (
-                  <p className="mt-1 text-sm text-zinc-400">{project.description}</p>
-                )}
-              </div>
-              <StatusBadge status={project.status} />
-            </div>
-            {(project.start_date || project.target_end_date) && (
-              <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500">
-                {project.start_date && <span>Started {project.start_date.slice(0, 10)}</span>}
-                {project.target_end_date && <span>Target {project.target_end_date.slice(0, 10)}</span>}
-              </div>
-            )}
-          </div>
+          {/* Project summary — progress, hours, timeline */}
+          <ProjectSummaryCard
+            project={project}
+            deliverablesByMilestone={deliverablesByMilestone}
+          />
+
+          {/* Quick links */}
+          <LinksSection links={links} />
 
           {/* Milestones */}
           {milestones.length > 0 ? (
@@ -389,6 +574,9 @@ export function PortalPage() {
           ) : (
             <p className="text-sm text-zinc-500">No milestones have been set yet.</p>
           )}
+
+          {/* Email threads */}
+          <EmailsSection emails={emails} />
 
           {/* Messages */}
           <MessageThread
