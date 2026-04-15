@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import type React from 'react'
 import { PageLayout } from './PageLayout'
 import { useAuth } from '../features/auth/AuthContext'
 import { PROJECTS_API_BASE_URL, AUTH_SERVICE_URL } from '../config'
@@ -10,6 +11,7 @@ interface Project {
   name: string
   description: string | null
   status: string
+  budget: number | null
   start_date: string | null
   target_end_date: string | null
 }
@@ -39,6 +41,22 @@ interface Message {
   author_id: string
   author_role: string
   body: string
+  created_at: string
+}
+
+interface Collaborator {
+  id: string
+  project_id: string
+  name: string
+  role: string
+  avatar_url: string | null
+  created_at: string
+}
+
+interface ProgressUpdate {
+  id: string
+  project_id: string
+  content: string
   created_at: string
 }
 
@@ -100,6 +118,7 @@ function GoogleIcon() {
 }
 
 function ClientLoginGate() {
+  const { login } = useAuth()
   const callback = encodeURIComponent(
     `${window.location.origin}${window.location.pathname}?#/portal`
   )
@@ -107,41 +126,137 @@ function ClientLoginGate() {
     return `${AUTH_SERVICE_URL}/user/oauth/${provider}?scope=client_portal&redirect_uri=${callback}`
   }
 
+  const [tab, setTab] = useState<'oauth' | 'email'>('oauth')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!AUTH_SERVICE_URL) return
+    setError(null)
+    setSubmitting(true)
+    try {
+      const res = await fetch(`${AUTH_SERVICE_URL}/auth/login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.detail ?? 'Login failed. Please check your credentials.')
+        return
+      }
+      if (data.access_token) login(data.access_token)
+    } catch {
+      setError('Unable to reach the auth service.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="flex min-h-[55vh] items-center justify-center px-4">
-      <div className="forge-panel surface-card-strong w-full max-w-sm rounded-3xl p-8 shadow-2xl shadow-black/50 space-y-6">
+      <div className="forge-panel surface-card-strong w-full max-w-sm rounded-3xl p-8 shadow-2xl shadow-black/50 space-y-5">
         <div>
           <h2 className="text-base font-semibold text-zinc-100">Client portal</h2>
           <p className="mt-1 text-xs text-zinc-400">
-            Sign in with the account associated with your project to view your project status.
+            Sign in with the account associated with your project.
           </p>
         </div>
-        {AUTH_SERVICE_URL ? (
-          <div className="space-y-3">
-            <a
-              href={oauthUrl('github')}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
-            >
-              <GithubIcon />
-              Continue with GitHub
-            </a>
-            <a
-              href={oauthUrl('google')}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
-            >
-              <GoogleIcon />
-              Continue with Google
-            </a>
-          </div>
-        ) : (
-          <p className="text-xs text-amber-400">
-            Auth service not configured (VITE_AUTH_SERVICE_URL).
-          </p>
+
+        <div className="flex rounded-lg border border-zinc-700/50 bg-zinc-800/40 p-0.5 text-xs">
+          <button
+            type="button"
+            onClick={() => setTab('oauth')}
+            className={`flex-1 rounded-md py-1.5 font-medium transition ${tab === 'oauth' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'}`}
+          >
+            Social sign-in
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('email')}
+            className={`flex-1 rounded-md py-1.5 font-medium transition ${tab === 'email' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'}`}
+          >
+            Email & password
+          </button>
+        </div>
+
+        {tab === 'oauth' && (
+          AUTH_SERVICE_URL ? (
+            <div className="space-y-3">
+              <a
+                href={oauthUrl('github')}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
+              >
+                <GithubIcon />
+                Continue with GitHub
+              </a>
+              <a
+                href={oauthUrl('google')}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </a>
+            </div>
+          ) : (
+            <p className="text-xs text-amber-400">Auth service not configured (VITE_AUTH_SERVICE_URL).</p>
+          )
         )}
+
+        {tab === 'email' && (
+          <form onSubmit={handleEmailLogin} className="space-y-3">
+            {error && (
+              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                {error}
+              </p>
+            )}
+            <div>
+              <label className="mb-1 block text-xs text-zinc-400">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="w-full rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400/50 focus:outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-zinc-400">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400/50 focus:outline-none"
+                placeholder="••••••••"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-accent w-full disabled:opacity-50"
+            >
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </button>
+            <div className="flex justify-center">
+              <a href="#/portal/forgot-password" className="text-xs text-zinc-500 hover:text-amber-300 transition">
+                Forgot password?
+              </a>
+            </div>
+          </form>
+        )}
+
         <p className="text-center text-xs text-zinc-500">
-          Don't have access?{' '}
-          <a href="#/contact" className="text-amber-400 hover:text-amber-300">
-            Get in touch
+          Have an invite?{' '}
+          <a href="#/portal/register" className="text-amber-400 hover:text-amber-300">
+            Create your account
           </a>
         </p>
       </div>
@@ -263,6 +378,14 @@ function ProjectSummaryCard({
           <span>
             Est. effort{' '}
             <span className="text-zinc-300">{doneHours.toFixed(1)}h / {totalHours.toFixed(1)}h</span>
+          </span>
+        )}
+        {project.budget != null && (
+          <span>
+            Budget{' '}
+            <span className="text-zinc-300">
+              {project.budget.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+            </span>
           </span>
         )}
       </div>
@@ -432,6 +555,51 @@ function MilestoneCard({ milestone, deliverables }: { milestone: Milestone; deli
   )
 }
 
+function CollaboratorsSection({ collaborators }: { collaborators: Collaborator[] }) {
+  if (!collaborators.length) return null
+  return (
+    <div className="forge-panel surface-card-strong p-4">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-400">Team</h3>
+      <div className="flex flex-wrap gap-3">
+        {collaborators.map((c) => (
+          <div key={c.id} className="flex items-center gap-2 rounded-full border border-zinc-600/40 bg-zinc-800/60 px-3 py-1.5">
+            {c.avatar_url ? (
+              <img src={c.avatar_url} alt={c.name} className="h-5 w-5 rounded-full object-cover" />
+            ) : (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-semibold text-amber-300">
+                {c.name[0]?.toUpperCase() ?? '?'}
+              </span>
+            )}
+            <div>
+              <p className="text-xs font-medium text-zinc-200">{c.name}</p>
+              <p className="text-[10px] text-zinc-500">{c.role}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ProgressUpdatesSection({ updates }: { updates: ProgressUpdate[] }) {
+  if (!updates.length) return null
+  return (
+    <div className="forge-panel surface-card-strong overflow-hidden">
+      <div className="border-b border-zinc-700/40 px-4 py-3">
+        <h3 className="text-sm font-semibold text-zinc-200">Project updates</h3>
+      </div>
+      <div className="divide-y divide-zinc-700/20">
+        {updates.map((u) => (
+          <div key={u.id} className="px-4 py-3">
+            <p className="text-xs text-zinc-500">{u.created_at.slice(0, 10)}</p>
+            <p className="mt-1 text-sm text-zinc-300 whitespace-pre-line">{u.content}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function MessageThread({
   messages,
   onSend,
@@ -563,6 +731,8 @@ export function PortalPage() {
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [deliverablesByMilestone, setDeliverablesByMilestone] = useState<Record<string, Deliverable[]>>({})
   const [messages, setMessages] = useState<Message[]>([])
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const [progressUpdates, setProgressUpdates] = useState<ProgressUpdate[]>([])
   const [links, setLinks] = useState<ProjectLink[]>([])
   const [emails, setEmails] = useState<ProjectEmail[]>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'no_project'>('idle')
@@ -584,11 +754,13 @@ export function PortalPage() {
       const p = projects[0]
       setProject(p)
 
-      const [ms, msgs, lnks, emls] = await Promise.all([
+      const [ms, msgs, lnks, emls, collabs, updates] = await Promise.all([
         api<Milestone[]>(`/api/v1/projects/${p.id}/milestones`, token),
         api<Message[]>(`/api/v1/projects/${p.id}/messages`, token),
         api<ProjectLink[]>(`/api/v1/projects/${p.id}/links`, token).catch(() => [] as ProjectLink[]),
         api<ProjectEmail[]>(`/api/v1/projects/${p.id}/emails`, token).catch(() => [] as ProjectEmail[]),
+        api<Collaborator[]>(`/api/v1/projects/${p.id}/collaborators`, token).catch(() => [] as Collaborator[]),
+        api<ProgressUpdate[]>(`/api/v1/projects/${p.id}/progress-updates`, token).catch(() => [] as ProgressUpdate[]),
       ])
 
       const sorted = [...ms].sort((a, b) => a.sort_order - b.sort_order)
@@ -596,6 +768,8 @@ export function PortalPage() {
       setMessages(msgs)
       setLinks(lnks)
       setEmails(emls)
+      setCollaborators(collabs)
+      setProgressUpdates(updates)
 
       const deliverables = await Promise.all(
         sorted.map((m) =>
@@ -678,6 +852,8 @@ export function PortalPage() {
             project={project}
             deliverablesByMilestone={deliverablesByMilestone}
           />
+          <CollaboratorsSection collaborators={collaborators} />
+          <ProgressUpdatesSection updates={progressUpdates} />
           <LinksSection links={links} />
 
           {milestones.length > 0 ? (

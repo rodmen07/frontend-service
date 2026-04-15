@@ -22,6 +22,9 @@ import { ReportsPage } from './pages/ReportsPage'
 import { ObservaboardPage } from './pages/ObservaboardPage'
 import { PortalPage } from './pages/PortalPage'
 import { PortalLoginPage } from './pages/PortalLoginPage'
+import { PortalRegisterPage } from './pages/PortalRegisterPage'
+import { PortalForgotPasswordPage } from './pages/PortalForgotPasswordPage'
+import { PortalResetPasswordPage } from './pages/PortalResetPasswordPage'
 import { AuditPage } from './pages/AuditPage'
 import { ServiceHealthPage } from './pages/ServiceHealthPage'
 
@@ -129,6 +132,9 @@ function Root() {
   if (hash === '#/crm/dashboard') return <UserDashboardPage />
   if (hash === '#/crm/reports') return <ReportsPage />
   if (hash === '#/portal/login') return <PortalLoginPage />
+  if (hash.startsWith('#/portal/register')) return <PortalRegisterPage />
+  if (hash.startsWith('#/portal/forgot-password')) return <PortalForgotPasswordPage />
+  if (hash.startsWith('#/portal/reset-password')) return <PortalResetPasswordPage />
   if (hash === '#/portal' || hash.startsWith('#/portal/')) return <PortalPage />
   if (hash === '#/observaboard') return <ObservaboardPage />
   if (hash === '#/admin/audit') return <AuditPage />

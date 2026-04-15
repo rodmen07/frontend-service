@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { PageLayout } from './PageLayout'
 import { useAuth } from '../features/auth/AuthContext'
 import { AUTH_SERVICE_URL } from '../config'
@@ -11,7 +11,12 @@ function oauthUrl(provider: 'github' | 'google') {
 }
 
 export function PortalLoginPage() {
-  const { isClient } = useAuth()
+  const { isClient, login } = useAuth()
+  const [tab, setTab] = useState<'oauth' | 'email'>('oauth')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (isClient) {
@@ -19,10 +24,37 @@ export function PortalLoginPage() {
     }
   }, [isClient])
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!AUTH_SERVICE_URL) return
+    setError(null)
+    setSubmitting(true)
+    try {
+      const res = await fetch(`${AUTH_SERVICE_URL}/auth/login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.detail ?? 'Login failed. Please check your credentials.')
+        return
+      }
+      if (data.access_token) {
+        login(data.access_token)
+      }
+    } catch {
+      setError('Unable to reach the auth service. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <PageLayout title="Client portal">
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="forge-panel surface-card-strong w-full max-w-sm space-y-6 p-8">
+        <div className="forge-panel surface-card-strong w-full max-w-sm space-y-5 p-8">
           <div>
             <h2 className="text-base font-semibold text-zinc-100">Welcome back</h2>
             <p className="mt-1 text-xs text-zinc-400">
@@ -30,35 +62,101 @@ export function PortalLoginPage() {
             </p>
           </div>
 
-          <div className="space-y-3">
-            {AUTH_SERVICE_URL ? (
-              <>
-                <a
-                  href={oauthUrl('github')}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
-                >
-                  <GithubIcon />
-                  Continue with GitHub
-                </a>
-                <a
-                  href={oauthUrl('google')}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
-                >
-                  <GoogleIcon />
-                  Continue with Google
-                </a>
-              </>
-            ) : (
-              <p className="text-xs text-amber-400">
-                Auth service URL is not configured (VITE_AUTH_SERVICE_URL).
-              </p>
-            )}
+          {/* Tab switcher */}
+          <div className="flex rounded-lg border border-zinc-700/50 bg-zinc-800/40 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setTab('oauth')}
+              className={`flex-1 rounded-md py-1.5 font-medium transition ${tab === 'oauth' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'}`}
+            >
+              Social sign-in
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('email')}
+              className={`flex-1 rounded-md py-1.5 font-medium transition ${tab === 'email' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'}`}
+            >
+              Email & password
+            </button>
           </div>
 
+          {tab === 'oauth' && (
+            <div className="space-y-3">
+              {AUTH_SERVICE_URL ? (
+                <>
+                  <a
+                    href={oauthUrl('github')}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
+                  >
+                    <GithubIcon />
+                    Continue with GitHub
+                  </a>
+                  <a
+                    href={oauthUrl('google')}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60"
+                  >
+                    <GoogleIcon />
+                    Continue with Google
+                  </a>
+                </>
+              ) : (
+                <p className="text-xs text-amber-400">
+                  Auth service URL is not configured (VITE_AUTH_SERVICE_URL).
+                </p>
+              )}
+            </div>
+          )}
+
+          {tab === 'email' && (
+            <form onSubmit={handleEmailLogin} className="space-y-3">
+              {error && (
+                <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                  {error}
+                </p>
+              )}
+              <div>
+                <label className="mb-1 block text-xs text-zinc-400">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className="w-full rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400/50 focus:outline-none"
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-zinc-400">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="w-full rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400/50 focus:outline-none"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-accent w-full disabled:opacity-50"
+              >
+                {submitting ? 'Signing in…' : 'Sign in'}
+              </button>
+              <div className="flex justify-center">
+                <a href="#/portal/forgot-password" className="text-xs text-zinc-500 hover:text-amber-300 transition">
+                  Forgot password?
+                </a>
+              </div>
+            </form>
+          )}
+
           <p className="text-center text-xs text-zinc-500">
-            Don't have an account?{' '}
-            <a href="#/contact" className="text-amber-400 hover:text-amber-300">
-              Get in touch
+            Have an invite?{' '}
+            <a href="#/portal/register" className="text-amber-400 hover:text-amber-300">
+              Create your account
             </a>
           </p>
         </div>
