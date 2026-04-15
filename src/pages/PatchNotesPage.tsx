@@ -50,9 +50,9 @@ const GROUP_META: Record<string, { label: string; status: string }> = {
 const VERSIONS: Version[] = [
   {
     tag: 'v1.3.1',
-    date: '2026-04-12',
+    date: '2026-04-15',
     label: 'Productionizer Agent',
-    completionState: 'implemented',
+    completionState: 'published',
     group: 'v1.3',
     summary:
       'Autonomous Gemini 2.5 Flash agent runs on a daily GitHub Actions cron. Each run picks one microservice + one gap from a 55-task matrix (11 services × 5 gap types), generates the fix via tool calling (read_file / write_file / run_shell), verifies it with cargo clippy + cargo test, and opens a PR against the microservices repo. The agent self-reverts on any verification failure — no bad code ever reaches a branch.',
