@@ -107,7 +107,7 @@ async function api<T>(url: string, opts: RequestInit = {}): Promise<T> {
 // ---------------------------------------------------------------------------
 // Shared UI primitives
 // ---------------------------------------------------------------------------
-const INPUT_CLS = 'w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30'
+const INPUT_CLS = 'w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition hover:border-zinc-600 hover:bg-zinc-800/80 focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/30'
 
 function Spinner({ label }: { label: string }) {
   return (
@@ -150,11 +150,17 @@ function EmptyState({ label, onRefresh }: { label: string; onRefresh: () => void
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onMouseDown={onClose}>
-      <div className="forge-panel surface-card-strong w-full max-w-md rounded-3xl p-6 shadow-2xl shadow-black/60" onMouseDown={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onMouseDown={onClose} role="presentation">
+      <div
+        className="forge-panel surface-card-strong w-full max-w-md rounded-3xl p-6 shadow-2xl shadow-black/60"
+        onMouseDown={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">{title}</h3>
-          <button type="button" onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">✕</button>
+          <h3 id="modal-title" className="text-base font-bold text-white">{title}</h3>
+          <button type="button" onClick={onClose} aria-label="Close dialog" className="text-zinc-500 hover:text-white transition-colors">✕</button>
         </div>
         {children}
       </div>
@@ -165,7 +171,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-zinc-400">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-zinc-400">{label}</label>
       {children}
     </div>
   )
@@ -195,8 +201,8 @@ function DeleteModal({ label, onConfirm, onClose, saving, error }: {
       {error && <SaveError message={error} />}
       <div className="mt-5 flex justify-end gap-2">
         <button type="button" onClick={onClose} className="btn-neutral px-4 py-2 text-sm">Cancel</button>
-        <button type="button" onClick={onConfirm} disabled={saving} className="btn-accent px-4 py-2 text-sm disabled:opacity-50">
-          {saving ? 'Deleting…' : 'Delete'}
+        <button type="button" onClick={onConfirm} disabled={saving} className="rounded-lg border border-red-500/50 bg-red-500/15 px-4 py-2 text-sm font-medium text-red-300 transition hover:border-red-500/70 hover:bg-red-500/25 disabled:cursor-not-allowed disabled:opacity-50">
+          {saving ? 'Deleting…' : 'Delete permanently'}
         </button>
       </div>
     </Modal>

@@ -11,9 +11,22 @@ export function ContactPage() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [phase, setPhase] = useState<Phase>('idle')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  const validate = () => {
+    const errors: Record<string, string> = {}
+    if (!name.trim()) errors.name = 'Required'
+    if (!email.trim()) errors.email = 'Required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Enter a valid email'
+    if (!message.trim()) errors.message = 'Required'
+    else if (message.trim().length < 10) errors.message = 'At least 10 characters'
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validate()) return
     setPhase('sending')
     try {
       const res = await fetch(`${MONITORING_URL}/api/contact`, {
@@ -31,8 +44,9 @@ export function ContactPage() {
     }
   }
 
-  const fieldClass = 'w-full rounded-lg border border-zinc-700/60 bg-zinc-800/70 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition focus:border-amber-400/55 focus:ring-1 focus:ring-amber-400/35'
-  const labelClass = 'mb-1.5 block text-xs font-medium text-zinc-400'
+  const fieldClass = (hasError: boolean) =>
+    `w-full rounded-lg border ${hasError ? 'border-red-500/60 bg-red-500/8' : 'border-zinc-700/60 bg-zinc-800/70'} px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition hover:border-zinc-600 focus:border-amber-400/55 focus:ring-2 focus:ring-amber-400/35`
+  const labelClass = 'mb-1.5 block text-sm font-medium text-zinc-400'
 
   return (
     <PageLayout>
@@ -53,53 +67,64 @@ export function ContactPage() {
         </div>
 
         {phase === 'sent' ? (
-          <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-300">
-            Message sent — I'll be in touch within 1 business day.
+          <div className="mt-8 space-y-4">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-300">
+              ✓ Message sent — I'll be in touch within 1 business day.
+            </div>
+            <button
+              type="button"
+              onClick={() => setPhase('idle')}
+              className="btn-neutral px-5 py-2 text-sm"
+            >
+              Send another message
+            </button>
           </div>
         ) : (
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label htmlFor="name" className={labelClass}>Your name</label>
+              <label htmlFor="name" className={labelClass}>Your name <span className="text-red-400">*</span></label>
               <input
                 id="name"
                 type="text"
-                required
                 placeholder="Jane Smith"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={fieldClass}
+                onChange={(e) => { setName(e.target.value); setFieldErrors(fe => ({ ...fe, name: '' })) }}
+                className={fieldClass(!!fieldErrors.name)}
               />
+              {fieldErrors.name && <p className="mt-1 text-xs text-red-400">{fieldErrors.name}</p>}
             </div>
             <div>
-              <label htmlFor="email" className={labelClass}>Email</label>
+              <label htmlFor="email" className={labelClass}>Email <span className="text-red-400">*</span></label>
               <input
                 id="email"
                 type="email"
-                required
                 placeholder="jane@company.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={fieldClass}
+                onChange={(e) => { setEmail(e.target.value); setFieldErrors(fe => ({ ...fe, email: '' })) }}
+                className={fieldClass(!!fieldErrors.email)}
               />
+              {fieldErrors.email && <p className="mt-1 text-xs text-red-400">{fieldErrors.email}</p>}
             </div>
           </div>
 
           <div>
-            <label htmlFor="message" className={labelClass}>Message</label>
+            <label htmlFor="message" className={labelClass}>Message <span className="text-red-400">*</span></label>
             <textarea
               id="message"
-              required
               rows={5}
               placeholder="Tell me a bit about your stack, what you're trying to solve, and your rough timeline..."
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className={`${fieldClass} resize-none`}
+              onChange={(e) => { setMessage(e.target.value); setFieldErrors(fe => ({ ...fe, message: '' })) }}
+              className={`${fieldClass(!!fieldErrors.message)} resize-none`}
             />
+            {fieldErrors.message && <p className="mt-1 text-xs text-red-400">{fieldErrors.message}</p>}
           </div>
 
           {phase === 'error' && (
-            <p className="text-sm text-red-400">Something went wrong — please try again or reach out directly below.</p>
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              Something went wrong — please try again or reach out directly below.
+            </div>
           )}
 
           <button
