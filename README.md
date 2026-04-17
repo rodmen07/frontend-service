@@ -136,3 +136,51 @@ Vite production base path is configured for this repo path (`/infraportal/`) in 
 - Relative time formatting now safely handles invalid and future timestamps.
 - Applied non-breaking dependency remediations via `npm audit fix`.
 - Remaining audit findings are tied to Vite major upgrades and should be addressed in a coordinated framework upgrade.
+
+
+<!-- PRODUCTIONIZER:START -->
+## Productionizer Agent
+
+Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each workflow run picks the next pending task from the matrix below, applies the fix, verifies with `tsc` + `eslint`, and opens a PR against this repo.
+
+**Source**: [rodmen07/portfolio — agents/productionizer](https://github.com/rodmen07/portfolio/tree/main/agents/productionizer) · Triggered manually via `workflow_dispatch` · Runs in 15–60 min windows
+
+---
+
+### Progress
+
+**0 / 30 tasks complete** (0%)
+
+`░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░`
+
+### Task Matrix
+
+| Gap | Audit | CrmAdmin | EventLog | PageFrame | SearchPage | ServiceHealth | Settings | SiteHome | UserDashboard | UserProfile |
+|-----|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `loading-skeleton` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `empty-state` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| `error-ux` | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+
+> ✅ = PR opened (or task already satisfied) · ⬜ = pending
+
+### Next task
+
+`AuditPage` / `loading-skeleton`
+
+### Recently completed
+
+*(none yet)*
+
+### Stop conditions
+
+The agent pauses automatically when:
+- ⏱ The configured time window (15 / 30 / 45 / 60 min) is exhausted
+- ⚠️ 5 or more open PRs are awaiting review
+- ❌ An unrecoverable error occurs
+
+### Last run
+
+never
+
+*Updated automatically by productionizer-bot · Do not edit between these markers*
+<!-- PRODUCTIONIZER:END -->
