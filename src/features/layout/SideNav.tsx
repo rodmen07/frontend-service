@@ -52,7 +52,6 @@ function SideNavComponent() {
       <div className="mt-4 border-t border-zinc-700/40 pt-4 space-y-1">
         {[
           { label: 'Admin →', href: '#/crm/admin' },
-          { label: 'Service Health', href: '#/admin/health' },
         ].map(item => (
           <a
             key={item.href}

@@ -308,7 +308,7 @@ function ServiceCard({ svc }: { svc: ServiceHealth }) {
 // ---------------------------------------------------------------------------
 // Health dashboard
 // ---------------------------------------------------------------------------
-function HealthView() {
+export function HealthView() {
   const initialResults = (): ServiceHealth[] =>
     SERVICES.map(s => ({
       name: s.name,

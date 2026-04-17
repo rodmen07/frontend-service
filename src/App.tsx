@@ -2,7 +2,6 @@ import TopNav from './features/layout/TopNav'
 import { SideNav } from './features/layout/SideNav'
 import { FocusCard } from './features/layout/FocusCard'
 import { HowItWorksSection } from './features/site/HowItWorksSection'
-import { BuildStatusSection } from './features/site/BuildStatusSection'
 import { AskAISection } from './features/site/AskAISection'
 import { MedallionDemo } from './features/site/MedallionDemo'
 import { HeroSection } from './features/site/HeroSection'
@@ -35,9 +34,6 @@ function App() {
         </FocusCard>
         <FocusCard>
           <HowItWorksSection />
-        </FocusCard>
-        <FocusCard>
-          <BuildStatusSection />
         </FocusCard>
         <FocusCard>
           <MedallionDemo defaultLayer="gold" />

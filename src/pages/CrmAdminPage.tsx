@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
 import { PageLayout } from './PageLayout'
 import { resolveAdminToken, AUTH_SERVICE_URL } from '../config'
 import { useAuth } from '../features/auth/AuthContext'
+import { HealthView } from './ServiceHealthPage'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -87,7 +87,7 @@ interface SpendSummary {
 interface SpendListResponse { data: SpendRecord[]; total: number; limit: number; offset: number }
 interface SyncResult { platform: string; records_imported: number; records_skipped: number; errors: string[] }
 
-type Tab = 'leads' | 'contacts' | 'accounts' | 'opportunities' | 'activities' | 'live-feed' | 'projects' | 'spend'
+type Tab = 'leads' | 'contacts' | 'accounts' | 'opportunities' | 'activities' | 'live-feed' | 'projects' | 'spend' | 'health'
 type ModalMode<T> = null | { mode: 'create' } | { mode: 'edit'; record: T } | { mode: 'delete'; id: string; label: string }
 
 // ---------------------------------------------------------------------------
@@ -1821,6 +1821,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'live-feed',     label: 'Live Feed' },
   { id: 'projects',      label: 'Projects' },
   { id: 'spend',          label: 'Spend' },
+  { id: 'health',         label: 'Service Health' },
 ]
 
 export function CrmAdminPage() {
@@ -1868,6 +1869,7 @@ export function CrmAdminPage() {
         {tab === 'live-feed'     && <LiveFeedTab />}
         {tab === 'projects'      && <ProjectsTab />}
         {tab === 'spend'         && <SpendTab />}
+        {tab === 'health'        && <HealthView />}
       </section>
     </PageLayout>
   )
