@@ -138,11 +138,67 @@ function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }
   )
 }
 
-function EmptyState({ label, onRefresh }: { label: string; onRefresh: () => void }) {
+// Generic List/Document icon
+const DocumentIcon = () => (
+  <svg className="h-8 w-8 text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375H12a.75.75 0 01-.75-.75V1.5M4.5 19.5h15" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v2.625c0 1.142-.444 2.207-1.237 3.001L15 22.5M4.5 19.5a2.25 2.25 0 01-2.25-2.25V7.5A2.25 2.25 0 014.5 5.25h9A2.25 2.25 0 0115.75 7.5v.75" />
+  </svg>
+);
+
+// Lightning bolt icon for Live Feed
+const LightningBoltIcon = () => (
+  <svg className="h-8 w-8 text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+  </svg>
+);
+
+// Folder/Project icon for Projects
+const ProjectIcon = () => (
+  <svg className="h-8 w-8 text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-4.5-9v.75a2.25 2.25 0 01-2.25 2.25H9.75A2.25 2.25 0 017.5 12V3m-3.75 12V5.25A2.25 2.25 0 014.5 3h15.25a.75.75 0 01.75.75v12.75m-16.5-9H1.5m.75 12a1.5 1.5 0 001.5 1.5h15.75a1.5 1.5 0 001.5-1.5V16.5m-19.5 0V7.5m2.25 9V7.5m1.5 9V7.5m3 9V7.5" />
+  </svg>
+);
+
+// Milestone / Flag icon
+const FlagIcon = () => (
+  <svg className="h-8 w-8 text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+  </svg>
+);
+
+// Collaborators / Users icon
+const UsersIcon = () => (
+  <svg className="h-8 w-8 text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.75c-.249 0-.472-.03-.692-.081A4.5 4.5 0 0112 15c-1.637 0-3.18-.545-4.308-1.428-.22-.05-.443-.081-.692-.081a2.25 2.25 0 00-2.25 2.25v2.25a2.25 2.25 0 002.25 2.25h13.5a2.25 2.25 0 002.25-2.25V17.25a2.25 2.25 0 00-2.25-2.25zm-2.25-9a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+  </svg>
+);
+
+interface CustomEmptyStateProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onRefresh?: () => void;
+  ctaText?: string;
+  onCtaClick?: () => void;
+}
+
+function CustomEmptyState({ icon, title, description, onRefresh, ctaText, onCtaClick }: CustomEmptyStateProps) {
   return (
-    <div className="py-8 text-center text-sm text-zinc-500">
-      No {label} found.{' '}
-      <button type="button" onClick={onRefresh} className="text-amber-400 hover:underline">Refresh</button>
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      {icon}
+      <p className="text-sm font-medium text-zinc-400">{title}</p>
+      <p className="text-xs text-zinc-600 text-center">{description}</p>
+      {onRefresh && (
+        <button type="button" onClick={onRefresh} className="mt-2 text-xs text-amber-400 underline underline-offset-2 hover:text-amber-300">
+          Refresh
+        </button>
+      )}
+      {ctaText && onCtaClick && (
+        <button type="button" onClick={onCtaClick} className="btn-accent px-3 py-1.5 text-xs">
+          {ctaText}
+        </button>
+      )}
     </div>
   )
 }
@@ -308,7 +364,16 @@ function ContactsTab({ stageFilter }: { stageFilter?: string }) {
     <>
       {loading && <Spinner label={`Loading ${entity}s…`} />}
       {error   && <ErrorBox message={error} onRetry={load} />}
-      {!loading && !error && rows.length === 0 && <EmptyState label={`${entity}s`} onRefresh={load} />}
+      {!loading && !error && rows.length === 0 && (
+        <CustomEmptyState
+          icon={<DocumentIcon />}
+          title={`No ${entity}s yet`}
+          description={`Create your first ${entity} to get started.`}
+          onRefresh={load}
+          ctaText={`+ New ${entity}`}
+          onCtaClick={openCreate}
+        />
+      )}
       {!loading && !error && rows.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
@@ -344,11 +409,6 @@ function ContactsTab({ stageFilter }: { stageFilter?: string }) {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-      {!loading && !error && rows.length === 0 && (
-        <div className="mt-3 flex justify-end">
-          <button type="button" onClick={openCreate} className="btn-accent px-3 py-1.5 text-xs">+ New {entity}</button>
         </div>
       )}
 
@@ -447,7 +507,16 @@ function AccountsTab() {
     <>
       {loading && <Spinner label="Loading accounts…" />}
       {error   && <ErrorBox message={error} onRetry={load} />}
-      {!loading && !error && rows.length === 0 && <EmptyState label="accounts" onRefresh={load} />}
+      {!loading && !error && rows.length === 0 && (
+        <CustomEmptyState
+          icon={<DocumentIcon />}
+          title="No accounts yet"
+          description="Create your first account to get started."
+          onRefresh={load}
+          ctaText="+ New account"
+          onCtaClick={openCreate}
+        />
+      )}
       {!loading && !error && rows.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
@@ -481,11 +550,6 @@ function AccountsTab() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-      {!loading && !error && rows.length === 0 && (
-        <div className="mt-3 flex justify-end">
-          <button type="button" onClick={openCreate} className="btn-accent px-3 py-1.5 text-xs">+ New account</button>
         </div>
       )}
 
@@ -544,8 +608,7 @@ function OpportunitiesTab() {
   function openCreate() { setForm({ name: '', account_id: '', stage: 'qualification', amount: '', close_date: '' }); setSaveErr(null); setModal({ mode: 'create' }) }
   function openEdit(o: Opportunity) {
     setForm({ name: o.name, account_id: o.account_id, stage: o.stage, amount: o.amount > 0 ? String(o.amount) : '', close_date: o.close_date?.slice(0, 10) ?? '' })
-    setSaveErr(null); setModal({ mode: 'edit', record: o })
-  }
+    setSaveErr(null); setModal({ mode: 'edit', record: o }) }
   function openDelete(o: Opportunity) { setSaveErr(null); setModal({ mode: 'delete', id: o.id, label: o.name }) }
 
   async function handleSave(e: React.FormEvent) {
@@ -573,7 +636,16 @@ function OpportunitiesTab() {
     <>
       {loading && <Spinner label="Loading opportunities…" />}
       {error   && <ErrorBox message={error} onRetry={load} />}
-      {!loading && !error && rows.length === 0 && <EmptyState label="opportunities" onRefresh={load} />}
+      {!loading && !error && rows.length === 0 && (
+        <CustomEmptyState
+          icon={<DocumentIcon />}
+          title="No opportunities yet"
+          description="Create your first opportunity to track deals."
+          onRefresh={load}
+          ctaText="+ New opportunity"
+          onCtaClick={openCreate}
+        />
+      )}
       {!loading && !error && rows.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
@@ -612,11 +684,6 @@ function OpportunitiesTab() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-      {!loading && !error && rows.length === 0 && (
-        <div className="mt-3 flex justify-end">
-          <button type="button" onClick={openCreate} className="btn-accent px-3 py-1.5 text-xs">+ New opportunity</button>
         </div>
       )}
 
@@ -683,8 +750,7 @@ function ActivitiesTab() {
   function openCreate() { setForm({ activity_type: 'email', subject: '', account_id: '', contact_id: '', notes: '', due_at: '', completed: false }); setSaveErr(null); setModal({ mode: 'create' }) }
   function openEdit(a: Activity) {
     setForm({ activity_type: a.activity_type, subject: a.subject, account_id: a.account_id ?? '', contact_id: a.contact_id ?? '', notes: a.notes ?? '', due_at: a.due_at ? a.due_at.slice(0, 16) : '', completed: a.completed })
-    setSaveErr(null); setModal({ mode: 'edit', record: a })
-  }
+    setSaveErr(null); setModal({ mode: 'edit', record: a }) }
   function openDelete(a: Activity) { setSaveErr(null); setModal({ mode: 'delete', id: a.id, label: a.subject }) }
 
   async function handleSave(e: React.FormEvent) {
@@ -710,7 +776,16 @@ function ActivitiesTab() {
     <>
       {loading && <Spinner label="Loading activities…" />}
       {error   && <ErrorBox message={error} onRetry={load} />}
-      {!loading && !error && rows.length === 0 && <EmptyState label="activities" onRefresh={load} />}
+      {!loading && !error && rows.length === 0 && (
+        <CustomEmptyState
+          icon={<DocumentIcon />}
+          title="No activities yet"
+          description="Create your first activity to log interactions."
+          onRefresh={load}
+          ctaText="+ New activity"
+          onCtaClick={openCreate}
+        />
+      )}
       {!loading && !error && rows.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
@@ -746,11 +821,6 @@ function ActivitiesTab() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-      {!loading && !error && rows.length === 0 && (
-        <div className="mt-3 flex justify-end">
-          <button type="button" onClick={openCreate} className="btn-accent px-3 py-1.5 text-xs">+ New activity</button>
         </div>
       )}
 
@@ -809,12 +879,19 @@ type FeedStatus = 'no-url' | 'connecting' | 'connected' | 'error'
 
 function LiveFeedTab() {
   const [events, setEvents] = useState<StreamEvent[]>([])
-  const [status, setStatus] = useState<FeedStatus>('no-url')
+  // Initialize status based on STREAM_URL directly
+  const [status, setStatus] = useState<FeedStatus>(() => STREAM_URL ? 'connecting' : 'no-url')
   const esRef = useRef<EventSource | null>(null)
 
   useEffect(() => {
-    if (!STREAM_URL) { setStatus('no-url'); return }
-    setStatus('connecting')
+    // If STREAM_URL is not configured, the initial state 'no-url' is already set.
+    // We should not proceed to create EventSource if URL is missing.
+    if (!STREAM_URL) {
+      return // Exit early, status is already 'no-url'
+    }
+
+    // The status is already 'connecting' from the initial useState call if STREAM_URL is present.
+    // No need to setStatus('connecting') again.
 
     const es = new EventSource(`${STREAM_URL}/events/stream`)
     esRef.current = es
@@ -829,7 +906,7 @@ function LiveFeedTab() {
     es.onerror = () => setStatus('error')
 
     return () => { es.close(); esRef.current = null }
-  }, [])
+  }, []) // Empty dependency array as STREAM_URL is a constant.
 
   const SOURCE_COLORS: Record<string, string> = {
     'accounts-service':     'bg-blue-500/15 text-blue-300 ring-blue-500/30',
@@ -850,13 +927,19 @@ function LiveFeedTab() {
       </div>
 
       {status === 'no-url' && (
-        <div className="py-8 text-center text-xs text-zinc-500">
-          Set <code className="rounded bg-zinc-800 px-1 py-0.5">VITE_EVENT_STREAM_URL</code> to enable the live feed.
-        </div>
+        <CustomEmptyState
+          icon={<LightningBoltIcon />}
+          title="Event stream URL not configured"
+          description="Set VITE_EVENT_STREAM_URL to enable the live feed."
+        />
       )}
 
       {(status === 'connecting' || status === 'connected') && events.length === 0 && (
-        <div className="py-8 text-center text-xs text-zinc-500">Waiting for events…</div>
+        <CustomEmptyState
+          icon={<LightningBoltIcon />}
+          title="Waiting for events…"
+          description="New events will appear here as services record activity."
+        />
       )}
 
       {events.length > 0 && (
@@ -1020,7 +1103,7 @@ function ProjectsTab() {
       })})
       setShowMilestone(false)
       setMsForm({ name: '', due_date: '', status: 'pending', sort_order: '0', description: '' })
-      loadProject(selected)
+      if (selected) loadProject(selected)
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Save failed')
     } finally {
@@ -1118,7 +1201,11 @@ function ProjectsTab() {
   }
 
   if (!PROJECTS_URL) return (
-    <div className="py-6 text-xs text-zinc-500">Set <code className="rounded bg-zinc-800 px-1 py-0.5">VITE_PROJECTS_API_BASE_URL</code> to enable this tab.</div>
+    <CustomEmptyState
+      icon={<ProjectIcon />}
+      title="Project service URL not configured"
+      description="Set VITE_PROJECTS_API_BASE_URL to enable this tab."
+    />
   )
 
   return (
@@ -1126,11 +1213,23 @@ function ProjectsTab() {
       {/* Project list */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-zinc-200">Projects</h3>
-        <button className="btn-accent btn-sm" onClick={() => setShowCreate(true)}>+ New project</button>
+        {projects.length > 0 && (
+          <button className="btn-accent btn-sm" onClick={() => setShowCreate(true)}>+ New project</button>
+        )}
       </div>
 
-      {loading && <p className="text-xs text-zinc-400">Loading…</p>}
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {loading && <Spinner label="Loading projects…" />}
+      {error && <ErrorBox message={error} onRetry={loadProjects} />}
+
+      {!loading && projects.length === 0 && (
+        <CustomEmptyState
+          icon={<ProjectIcon />}
+          title="No projects yet"
+          description="Create your first project to organize work."
+          ctaText="+ New project"
+          onCtaClick={() => setShowCreate(true)}
+        />
+      )}
 
       {projects.length > 0 && (
         <div className="space-y-1">
@@ -1150,10 +1249,6 @@ function ProjectsTab() {
         </div>
       )}
 
-      {!loading && projects.length === 0 && (
-        <p className="text-xs text-zinc-500">No projects yet.</p>
-      )}
-
       {/* Selected project detail */}
       {selected && (
         <div className="space-y-4 border-t border-zinc-700/40 pt-4">
@@ -1171,7 +1266,15 @@ function ProjectsTab() {
           </div>
 
           {/* Milestones */}
-          {milestones.length === 0 && <p className="text-xs text-zinc-500">No milestones yet.</p>}
+          {milestones.length === 0 && (
+            <CustomEmptyState
+              icon={<FlagIcon />}
+              title="No milestones yet"
+              description="Add milestones to track key project phases."
+              ctaText="+ Milestone"
+              onCtaClick={() => setShowMilestone(true)}
+            />
+          )}
           {milestones.map(m => (
             <div key={m.id} className="rounded-xl border border-zinc-700/30 bg-zinc-800/20 p-3 space-y-2">
               <div className="flex items-center justify-between gap-2">
@@ -1205,6 +1308,7 @@ function ProjectsTab() {
           {/* Project links */}
           <div className="space-y-2">
             <h5 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Project links</h5>
+            {links.length === 0 && <p className="text-xs text-zinc-500">No links yet.</p>}
             {links.map(lnk => (
               <div key={lnk.id} className="flex items-center justify-between gap-2 rounded-lg bg-zinc-900/40 px-3 py-1.5 text-xs">
                 <div className="flex items-center gap-2 min-w-0">
@@ -1230,7 +1334,13 @@ function ProjectsTab() {
           {/* Collaborators */}
           <div className="space-y-2">
             <h5 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Collaborators</h5>
-            {collaborators.length === 0 && <p className="text-xs text-zinc-500">No collaborators yet.</p>}
+            {collaborators.length === 0 && (
+              <CustomEmptyState
+                icon={<UsersIcon />}
+                title="No collaborators yet"
+                description="Add team members to collaborate on this project."
+              />
+            )}
             {collaborators.map(c => (
               <div key={c.id} className="flex items-center gap-3 rounded-lg bg-zinc-900/40 px-3 py-1.5 text-xs">
                 <span className="h-5 w-5 shrink-0 rounded-full bg-amber-500/20 text-center text-[10px] leading-5 text-amber-300">
@@ -1254,7 +1364,13 @@ function ProjectsTab() {
           {/* Progress updates */}
           <div className="space-y-2">
             <h5 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Progress updates</h5>
-            {progressUpdates.length === 0 && <p className="text-xs text-zinc-500">No updates yet.</p>}
+            {progressUpdates.length === 0 && (
+              <CustomEmptyState
+                icon={<DocumentIcon />}
+                title="No updates yet"
+                description="Post progress updates to keep everyone informed."
+              />
+            )}
             {progressUpdates.map(u => (
               <div key={u.id} className="rounded-xl bg-zinc-900/40 px-3 py-2 text-xs">
                 <p className="text-zinc-200">{u.content}</p>
@@ -1271,7 +1387,13 @@ function ProjectsTab() {
           {/* Messages */}
           <div className="space-y-2">
             <h5 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Messages</h5>
-            {messages.length === 0 && <p className="text-xs text-zinc-500">No messages.</p>}
+            {messages.length === 0 && (
+              <CustomEmptyState
+                icon={<DocumentIcon />}
+                title="No messages"
+                description="Messages will appear here as client and team communicate."
+              />
+            )}
             {messages.map(m => (
               <div key={m.id} className={`rounded-xl px-3 py-2 text-sm ${m.author_role === 'admin' ? 'bg-amber-500/10 text-amber-100 ml-6' : 'bg-zinc-800/40 text-zinc-200 mr-6'}`}>
                 <p>{m.body}</p>
@@ -1509,7 +1631,9 @@ function SpendTab() {
           {syncing === 'aws' ? 'Syncing…' : 'Sync AWS'}
         </button>
         <div className="flex-1" />
-        <button type="button" onClick={() => { setModal({ mode: 'create' }); setSaveError(null) }} className="btn-accent px-3 py-1.5 text-xs">+ Manual Entry</button>
+        {rows.length > 0 && ( /* Only show if there are rows, otherwise the empty state has it */
+          <button type="button" onClick={() => { setModal({ mode: 'create' }); setSaveError(null) }} className="btn-accent px-3 py-1.5 text-xs">+ Manual Entry</button>
+        )}
       </div>
 
       {syncMsg && (
@@ -1531,7 +1655,16 @@ function SpendTab() {
       </div>
 
       {/* Table */}
-      {rows.length === 0 ? <EmptyState label="spend records" onRefresh={load} /> : (
+      {rows.length === 0 ? (
+        <CustomEmptyState
+          icon={<DocumentIcon />}
+          title="No spend records found"
+          description="Add a manual entry or sync from a platform."
+          onRefresh={load}
+          ctaText="+ Manual Entry"
+          onCtaClick={() => { setModal({ mode: 'create' }); setSaveError(null) }}
+        />
+      ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-700/50">
           <table className="w-full text-left text-sm">
             <thead>
@@ -1653,7 +1786,7 @@ function PortalLoginGate() {
             <a href={oauthUrl('github')}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600/50 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-zinc-500/60 hover:bg-zinc-700/60">
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
               </svg>
               Continue with GitHub
             </a>
