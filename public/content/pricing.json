@@ -17,10 +17,10 @@
     },
     {
       "tier": "Retainer",
-      "price": "$2,000/week · 20 hrs/week",
+      "price": "$1,000–$1,500/week · 10–15 hrs/week",
       "description": "Dedicated capacity for ongoing engineering support. Buy availability and responsiveness, not just tracked hours. (~$100/hr — 20% off hourly)",
       "features": [
-        "20 hrs/week of hands-on work",
+        "10–15 hrs/week of hands-on work",
         "Priority response (same business day)",
         "Weekly sync and progress update",
         "Slack/Discord access during business hours"
@@ -31,7 +31,7 @@
     },
     {
       "tier": "Project",
-      "price": "$3,400/month · 4-week minimum",
+      "price": "$3,400–$5,100/month · 4-week minimum",
       "description": "Fixed-scope delivery billed as a monthly retainer. CI/CD pipelines, IaC, containerisation, cloud migrations, and compliance readiness. 10–15 hrs/week dedicated capacity. (~$85/hr — 32% off hourly)",
       "features": [
         "Scoped proposal with timeline",
