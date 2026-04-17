@@ -28,8 +28,6 @@ export function HowItWorksSection() {
       <h2 className="mb-6 text-center text-xl font-semibold text-white">How an engagement works</h2>
 
       <div className="relative grid gap-4 sm:grid-cols-3">
-        <div className="absolute left-0 right-0 top-10 hidden h-px bg-amber-500/20 sm:block" />
-
         {STEPS.map((step) => (
           <article
             key={step.number}

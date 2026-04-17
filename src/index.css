@@ -374,3 +374,84 @@ textarea:disabled {
 /* Note: zinc-500 (#71717a) on zinc-900 (#18181b) = 3.5:1 — fails AA for body text.
    Components should use text-zinc-400 (#a1a1aa) for muted body text on dark.
    This rule won't fire in light mode (overridden above). */
+
+/* ── Additional light-mode dark-island remediation ──────────────────────── */
+
+/* Text: missing semantic colour overrides */
+[data-theme="light"] .text-emerald-300 { color: #065f46 !important; } /* emerald-800 10.5:1 */
+[data-theme="light"] .text-red-300     { color: #991b1b !important; } /* red-800     */
+[data-theme="light"] .text-orange-300  { color: #9a3412 !important; } /* orange-800  */
+[data-theme="light"] .text-blue-400    { color: #1d4ed8 !important; } /* blue-700    */
+
+/* Opacity-modified category chip colours (IntegrationsSection) */
+[data-theme="light"] .text-blue-400\/70   { color: #1d4ed8 !important; }
+[data-theme="light"] .text-purple-400\/70 { color: #7e22ce !important; }
+[data-theme="light"] .text-teal-400\/70   { color: #0f766e !important; }
+[data-theme="light"] .text-orange-400\/70 { color: #c2410c !important; }
+[data-theme="light"] .text-rose-400\/70   { color: #be123c !important; }
+[data-theme="light"] .text-amber-400\/70  { color: #92400e !important; }
+
+/* Opacity-modified step-number ambers (HowItWorksSection) */
+[data-theme="light"] .text-amber-500\/50,
+[data-theme="light"] .text-amber-500\/40,
+[data-theme="light"] .text-amber-500\/30 { color: #b45309 !important; } /* amber-700 5.2:1 */
+
+/* Background: dark tiles → near-transparent light equivalents */
+[data-theme="light"] .bg-zinc-900\/60  { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .bg-zinc-900\/40  { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .bg-zinc-800\/80  { background-color: rgba(0,0,0,0.07) !important; }
+[data-theme="light"] .bg-zinc-800\/50  { background-color: rgba(0,0,0,0.04) !important; }
+[data-theme="light"] .bg-zinc-800\/40  { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .bg-zinc-800\/30  { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .bg-zinc-800\/20  { background-color: rgba(0,0,0,0.02) !important; }
+[data-theme="light"] .bg-zinc-800\/10  { background-color: rgba(0,0,0,0.02) !important; }
+[data-theme="light"] .bg-zinc-800      { background-color: rgba(0,0,0,0.07) !important; }
+[data-theme="light"] .bg-zinc-700\/30  { background-color: rgba(0,0,0,0.04) !important; }
+[data-theme="light"] .bg-zinc-700\/20  { background-color: rgba(0,0,0,0.03) !important; }
+
+/* Semantic pill/badge backgrounds in light mode */
+[data-theme="light"] .bg-amber-900\/20  { background-color: rgba(245,158,11,0.08)  !important; }
+[data-theme="light"] .bg-orange-900\/20 { background-color: rgba(249,115,22,0.08)  !important; }
+[data-theme="light"] .bg-yellow-900\/20 { background-color: rgba(234,179,8,0.08)   !important; }
+[data-theme="light"] .bg-red-950\/20    { background-color: rgba(239,68,68,0.06)   !important; }
+[data-theme="light"] .bg-red-900\/20    { background-color: rgba(239,68,68,0.08)   !important; }
+[data-theme="light"] .bg-blue-900\/20   { background-color: rgba(59,130,246,0.07)  !important; }
+
+/* Skeleton pulse loaders: stay visible after generic bg override */
+[data-theme="light"] .animate-pulse.bg-zinc-800\/60,
+[data-theme="light"] .animate-pulse.bg-zinc-800\/50,
+[data-theme="light"] .animate-pulse.bg-zinc-800\/40,
+[data-theme="light"] .animate-pulse.bg-zinc-800 { background-color: rgba(0,0,0,0.1) !important; }
+
+/* Border: missing dark border overrides */
+[data-theme="light"] .border-zinc-800\/60  { border-color: rgba(0,0,0,0.08) !important; }
+[data-theme="light"] .border-zinc-700\/60  { border-color: rgba(0,0,0,0.12) !important; }
+[data-theme="light"] .border-zinc-700\/50  { border-color: rgba(0,0,0,0.10) !important; }
+[data-theme="light"] .border-zinc-600\/60  { border-color: rgba(0,0,0,0.14) !important; }
+[data-theme="light"] .border-zinc-500\/40  { border-color: rgba(0,0,0,0.12) !important; }
+[data-theme="light"] .border-red-500\/30   { border-color: rgba(239,68,68,0.30)    !important; }
+[data-theme="light"] .border-orange-500\/40{ border-color: rgba(249,115,22,0.40)   !important; }
+[data-theme="light"] .border-yellow-500\/40{ border-color: rgba(234,179,8,0.40)    !important; }
+[data-theme="light"] .border-blue-500\/40  { border-color: rgba(59,130,246,0.40)   !important; }
+
+/* Divide / separator lines */
+[data-theme="light"] .divide-zinc-800\/40 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Hover states */
+[data-theme="light"] .hover\:bg-zinc-900\/40:hover { background-color: rgba(0,0,0,0.04) !important; }
+[data-theme="light"] .hover\:bg-zinc-800:hover      { background-color: rgba(0,0,0,0.06) !important; }
+[data-theme="light"] .hover\:text-zinc-300:hover    { color: #27272a !important; }
+[data-theme="light"] .hover\:text-zinc-200:hover    { color: #18181b !important; }
+[data-theme="light"] .hover\:text-zinc-100:hover    { color: #18181b !important; }
+[data-theme="light"] .hover\:text-amber-300:hover   { color: #b45309 !important; }
+[data-theme="light"] .hover\:text-amber-100:hover   { color: #78350f !important; }
+[data-theme="light"] .hover\:border-zinc-600\/50:hover { border-color: rgba(0,0,0,0.16) !important; }
+[data-theme="light"] .hover\:border-zinc-500\/50:hover { border-color: rgba(0,0,0,0.14) !important; }
+
+/* Code blocks: keep dark on both themes.
+   Higher-specificity selectors beat Tailwind text-* class overrides above. */
+[data-theme="light"] pre.text-zinc-300,
+[data-theme="light"] pre.text-zinc-200,
+[data-theme="light"] pre.text-zinc-400 { color: #cdd6f4 !important; background: #1e1e2e !important; }
