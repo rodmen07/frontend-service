@@ -138,7 +138,7 @@ Vite production base path is configured for this repo path (`/infraportal/`) in 
 - Remaining audit findings are tied to Vite major upgrades and should be addressed in a coordinated framework upgrade.
 
 
-| `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ |<!-- PRODUCTIONIZER:START -->
+| `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |<!-- PRODUCTIONIZER:START -->
 ## Productionizer Agent
 
 Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each workflow run picks the next pending task from the matrix below, applies the fix, verifies with `tsc` + `eslint`, and opens a PR against this repo.
@@ -149,7 +149,7 @@ Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each wo
 
 ### Progress
 
-**9 / 30 tasks complete** (30%)
+**10 / 30 tasks complete** (33%)
 
 `█████████░░░░░░░░░░░░░░░░░░░░░`
 
@@ -169,7 +169,7 @@ Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each wo
 
 ### Progress
 
-**9 / 30 tasks complete** (30%)
+**10 / 30 tasks complete** (33%)
 
 `█████████░░░░░░░░░░░░░░░░░░░░░`
 
@@ -184,7 +184,7 @@ Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each wo
 
 ### Next task
 
-`ContactPage` / `loading-skeleton`
+`PortalPage` / `empty-state`
 
 ### Recently completed
 
