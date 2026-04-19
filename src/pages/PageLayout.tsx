@@ -23,9 +23,17 @@ export function PageLayout({ title, subtitle, children }: PageLayoutProps) {
         </div>
 
         {(title || subtitle) && (
-          <header className="forge-panel surface-card-strong p-5 sm:p-6">
-            {title && <h1 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>}
-            {subtitle && <p className="mt-2 max-w-3xl text-sm text-zinc-400 sm:text-base">{subtitle}</p>}
+          <header className="forge-panel surface-card-strong overflow-hidden p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">Operations workspace</p>
+                {title && <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>}
+                {subtitle && <p className="mt-2 max-w-3xl text-sm text-zinc-400 sm:text-base">{subtitle}</p>}
+              </div>
+              <div className="rounded-xl border border-zinc-700/40 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-400">
+                Responsive, client-ready views across the portal
+              </div>
+            </div>
           </header>
         )}
 

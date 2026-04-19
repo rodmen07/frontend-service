@@ -12,6 +12,8 @@ export function ContactPage() {
   const [message, setMessage] = useState('')
   const [phase, setPhase] = useState<Phase>('idle')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const sending = phase === 'sending'
+  const messageLength = message.trim().length
 
   const validate = () => {
     const errors: Record<string, string> = {}
@@ -81,6 +83,11 @@ export function ContactPage() {
           </div>
         ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+          <div className="rounded-xl border border-zinc-700/50 bg-zinc-900/40 px-4 py-3 text-sm text-zinc-300">
+            <p className="font-medium text-zinc-100">Helpful context to include</p>
+            <p className="mt-1 text-zinc-400">Project type, current stack, target timeline, and the main blocker you want solved first.</p>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="name" className={labelClass}>Your name <span className="text-red-400">*</span></label>
@@ -113,27 +120,38 @@ export function ContactPage() {
             <textarea
               id="message"
               rows={5}
+              maxLength={4000}
               placeholder="Tell me a bit about your stack, what you're trying to solve, and your rough timeline..."
               value={message}
               onChange={(e) => { setMessage(e.target.value); setFieldErrors(fe => ({ ...fe, message: '' })) }}
               className={`${fieldClass(!!fieldErrors.message)} resize-none`}
+              aria-invalid={!!fieldErrors.message}
+              aria-describedby="message-help"
             />
+            <div className="mt-1 flex items-center justify-between gap-3 text-xs text-zinc-500" id="message-help">
+              <span>Minimum 10 characters</span>
+              <span>{messageLength} / 4000</span>
+            </div>
             {fieldErrors.message && <p className="mt-1 text-xs text-red-400">{fieldErrors.message}</p>}
           </div>
 
           {phase === 'error' && (
             <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              Something went wrong — please try again or reach out directly below.
+              Your message did not send successfully. Please try again, or use one of the direct contact options below.
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={phase === 'sending'}
-            className="btn-accent px-6 py-2.5 text-sm disabled:opacity-50"
-          >
-            {phase === 'sending' ? 'Sending…' : 'Send message →'}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={sending}
+              className="btn-accent inline-flex items-center gap-2 px-6 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {sending && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />}
+              <span>{sending ? 'Sending your note…' : 'Send message →'}</span>
+            </button>
+            <span className="text-xs text-zinc-500">Best for project scoping, audits, and architecture reviews.</span>
+          </div>
         </form>
         )}
       </section>

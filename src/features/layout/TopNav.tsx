@@ -1,23 +1,6 @@
 import { useTheme } from './ThemeContext'
 import { useAuth } from '../auth/AuthContext'
-
-type NavItem = { label: string; href: string; scrollTo?: string }
-
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Home',         href: '#/' },
-  { label: 'About',        href: '#/about' },
-  { label: 'Services',     href: '#/services' },
-  { label: 'Case Studies', href: '#/case-studies' },
-  { label: 'Pricing',      href: '#/pricing' },
-  { label: 'Patch Notes',  href: '#/patch-notes' },
-  { label: 'Status',       href: '#/', scrollTo: 'build-status' },
-  { label: 'Contact',      href: '#/contact' },
-  { label: 'Search',       href: '#/search' },
-  { label: 'Portal',       href: '#/portal' },
-  { label: 'Dashboard',    href: '#/crm/dashboard' },
-  { label: 'Reports',      href: '#/crm/reports' },
-  { label: 'Observaboard', href: '#/observaboard' },
-]
+import { ADMIN_NAV_ITEMS, PRIMARY_NAV_ITEMS, WORKSPACE_NAV_ITEMS, type NavItem } from './navItems'
 
 function TopNavComponent() {
   const hash = window.location.hash
@@ -39,46 +22,72 @@ function TopNavComponent() {
     }, 50)
   }
 
+  const renderItems = (items: NavItem[]) => (
+    items.map((item) => (
+      <a
+        key={item.label}
+        href={item.href}
+        onClick={handleClick(item)}
+        className={`rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition ${
+          isActive(item)
+            ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-orange-500/25 text-amber-100'
+            : 'border-zinc-600/40 bg-zinc-800/60 text-zinc-300 hover:border-zinc-500/50 hover:bg-zinc-700/60 hover:text-zinc-100'
+        }`}
+      >
+        {item.label}
+      </a>
+    ))
+  )
+
   return (
-    <nav className="sticky top-2 z-40 rounded-2xl border border-zinc-500/30 bg-zinc-900/75 p-3 shadow-xl shadow-black/40 backdrop-blur-xl">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 shrink-0 text-sm font-bold tracking-tight text-amber-300">RMCC</span>
-        <div className="h-4 w-px shrink-0 bg-zinc-700" />
-        {NAV_ITEMS.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            onClick={handleClick(item)}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-              isActive(item)
-                ? 'border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-orange-500/25 text-amber-100'
-                : 'border-zinc-600/40 bg-zinc-800/60 text-zinc-300 hover:border-zinc-500/50 hover:bg-zinc-700/60 hover:text-zinc-100'
-            }`}
+    <nav className="sticky top-2 z-40 rounded-2xl border border-zinc-500/30 bg-zinc-900/80 p-3 shadow-xl shadow-black/40 backdrop-blur-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-bold tracking-tight text-amber-300">RMCC</div>
+          <p className="mt-1 text-[11px] text-zinc-400">Client portal, dashboards, and delivery status</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {isClient && (
+            <span className="hidden items-center gap-2 rounded-lg border border-emerald-600/40 bg-emerald-900/20 px-2.5 py-1.5 text-xs text-emerald-300 sm:flex">
+              {claims?.username ?? claims?.email ?? claims?.sub?.slice(0, 8) ?? 'Client'}
+              <button
+                type="button"
+                onClick={() => { logout(); window.location.hash = '#/portal/login' }}
+                className="text-emerald-500 hover:text-emerald-300"
+              >
+                Sign out
+              </button>
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="rounded-lg border border-zinc-600/40 bg-zinc-800/60 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-500/50 hover:bg-zinc-700/60 hover:text-zinc-100"
           >
-            {item.label}
-          </a>
-        ))}
-        {isClient && (
-          <span className="flex items-center gap-2 rounded-lg border border-emerald-600/40 bg-emerald-900/20 px-2.5 py-1.5 text-xs text-emerald-300">
-            {claims?.username ?? claims?.email ?? claims?.sub.slice(0, 8)}
-            <button
-              type="button"
-              onClick={() => { logout(); window.location.hash = '#/portal/login' }}
-              className="text-emerald-500 hover:text-emerald-300"
-            >
-              Sign out
-            </button>
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="ml-auto rounded-lg border border-zinc-600/40 bg-zinc-800/60 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-500/50 hover:bg-zinc-700/60 hover:text-zinc-100"
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
       </div>
+
+      <div className="mt-3 space-y-2">
+        <div className="overflow-x-auto pb-1 [scrollbar-width:none]">
+          <div className="flex min-w-max items-center gap-2">
+            {renderItems(PRIMARY_NAV_ITEMS)}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto pb-1 [scrollbar-width:none]">
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            <span>Workspace</span>
+            <div className="h-px flex-1 bg-zinc-800" />
+          </div>
+          <div className="flex min-w-max items-center gap-2">
+            {renderItems([...WORKSPACE_NAV_ITEMS, ...ADMIN_NAV_ITEMS])}
+          </div>
+        </div>
+      </div>
+
       <div className="mt-2.5 h-0.5 overflow-hidden rounded-full bg-zinc-800/90">
         <div className="h-full w-full rounded-full bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400" />
       </div>

@@ -197,7 +197,9 @@ function SearchView() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const clearDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchCopy = getSearchStateCopy(query, results.length)
-  const sampleQueries = ['acme', 'renewal', 'onboarding']
+  const sampleQueries = ['acme', 'renewal', 'onboarding', 'quarterly review']
+  const resultCountLabel = `${results.length} match${results.length === 1 ? '' : 'es'}`
+  const groupCountLabel = `${groupKeys.length} categor${groupKeys.length === 1 ? 'y' : 'ies'}`
 
   const doSearch = async (q: string) => {
     const trimmedQuery = q.trim()
@@ -257,9 +259,19 @@ function SearchView() {
 
   return (
     <div className="space-y-6">
-      {/* Search input */}
-      <div className="space-y-3">
-        <div className="relative">
+      <div className="forge-panel surface-card-strong p-4 sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">Search workspace</p>
+            <h2 className="mt-1 text-lg font-semibold text-zinc-100">Find accounts, contacts, opportunities, and activities quickly</h2>
+            <p className="mt-1 max-w-2xl text-sm text-zinc-400">Use short client names, deal stages, or workflow keywords to surface related records across the CRM tools.</p>
+          </div>
+          <div className="rounded-xl border border-zinc-700/40 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-400">
+            Best for triage, renewals, and onboarding lookups
+          </div>
+        </div>
+
+        <div className="mt-4 relative">
           <input
             type="search"
             value={query}
@@ -285,20 +297,19 @@ function SearchView() {
           ) : null}
         </div>
 
-        {!query && (
-          <div className="flex flex-wrap gap-2">
-            {sampleQueries.map((sample) => (
-              <button
-                key={sample}
-                type="button"
-                onClick={() => handleInput(sample)}
-                className="fx-chip transition hover:border-amber-400/40 hover:text-zinc-100"
-              >
-                {sample}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-zinc-500">Try:</span>
+          {sampleQueries.map((sample) => (
+            <button
+              key={sample}
+              type="button"
+              onClick={() => handleInput(sample)}
+              className="fx-chip transition hover:border-amber-400/40 hover:text-zinc-100"
+            >
+              {sample}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Error */}
@@ -316,12 +327,16 @@ function SearchView() {
       )}
 
       {!loading && !error && query && results.length > 0 && (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="forge-panel surface-card-strong flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">{searchCopy.badge}</p>
             <p className="mt-1 text-sm text-zinc-400">{searchCopy.description}</p>
           </div>
-          <button className="btn-neutral px-3 py-2 text-xs" onClick={clearSearch}>Clear search</button>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-zinc-700/50 bg-zinc-900/60 px-2.5 py-1 text-xs text-zinc-300">{resultCountLabel}</span>
+            <span className="rounded-full border border-zinc-700/50 bg-zinc-900/60 px-2.5 py-1 text-xs text-zinc-300">{groupCountLabel}</span>
+            <button className="btn-neutral px-3 py-2 text-xs" onClick={clearSearch}>Clear search</button>
+          </div>
         </div>
       )}
 
@@ -347,15 +362,18 @@ function SearchView() {
       )}
 
       {!loading && !error && query && results.length > 0 && groupKeys.map(entityType => (
-        <div key={entityType} className="space-y-2">
-          <div className="flex items-center gap-2">
-            <EntityBadge type={entityType} />
-            <span className="text-xs text-zinc-500">{grouped[entityType].length} result{grouped[entityType].length !== 1 ? 's' : ''}</span>
+        <section key={entityType} className="forge-panel surface-card-strong space-y-3 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <EntityBadge type={entityType} />
+              <span className="text-xs text-zinc-500">{grouped[entityType].length} result{grouped[entityType].length !== 1 ? 's' : ''}</span>
+            </div>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Grouped view</span>
           </div>
-          <div className="space-y-2">
+          <div className="grid gap-2 lg:grid-cols-2">
             {grouped[entityType].map(r => <ResultCard key={r.id} result={r} />)}
           </div>
-        </div>
+        </section>
       ))}
     </div>
   )

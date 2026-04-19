@@ -125,6 +125,16 @@ Vite production base path is configured for this repo path (`/infraportal/`) in 
 
 ## Security and reliability hardening
 
+## Recent UI polish updates
+
+The latest infraportal polish pass improved the client-facing experience in a few key areas:
+
+- Shared navigation now uses clearer grouped sections across mobile and desktop layouts.
+- The contact page provides better submission guidance, live message feedback, and clearer sending states.
+- Search now presents a more structured query workspace with grouped result summaries.
+- The user dashboard highlights workspace status more clearly and improves overall scanability.
+
+
 - Added unit tests for core status/time behavior:
   - `src/utils/time.test.ts`
   - `src/features/site/useGitHubBuildStatus.test.ts`

@@ -356,40 +356,71 @@ export function UserDashboardPage() {
     }
   }, [fetchCounts])
 
+  const statusTone = status === 'error'
+    ? 'border-red-500/30 bg-red-500/10 text-red-200'
+    : status === 'loading'
+      ? 'border-amber-500/30 bg-amber-500/10 text-amber-200'
+      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+
+  const statusLabel = status === 'error' ? 'Attention needed' : status === 'loading' ? 'Refreshing data' : 'Data is up to date'
+
   return (
     <PageLayout title="User dashboard" subtitle="Cross-service stats and metrics">
       <AuthGate>
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-zinc-400 uppercase tracking-wider">View mode</label>
-              <select
-                value={viewMode}
-                onChange={(e) => setViewMode(e.target.value as 'admin' | 'user')}
-                className="rounded-lg border border-zinc-600 bg-zinc-900 px-2 py-1 text-xs text-zinc-100"
-              >
-                <option value="admin">Admin</option>
-                <option value="user">User</option>
-              </select>
+          <div className="forge-panel surface-card-strong p-4 sm:p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">Workspace summary</p>
+                <h2 className="mt-1 text-lg font-semibold text-zinc-100">Monitor account activity and reporting health from one place</h2>
+                <p className="mt-1 max-w-2xl text-sm text-zinc-400">Switch between a broad admin overview and a scoped user view for faster triage.</p>
+              </div>
+              <div className={`rounded-xl border px-3 py-2 text-xs ${statusTone}`}>
+                {statusLabel}
+              </div>
             </div>
-            {viewMode === 'user' && (
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <label className="text-xs text-zinc-400 uppercase tracking-wider">User</label>
+                <label className="text-xs uppercase tracking-wider text-zinc-400">View mode</label>
                 <select
-                  value={selectedUserId ?? ''}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value as 'admin' | 'user')}
                   className="rounded-lg border border-zinc-600 bg-zinc-900 px-2 py-1 text-xs text-zinc-100"
                 >
-                  <option value="">Select user</option>
-                  {userCandidates.map((userId) => (
-                    <option key={userId} value={userId}>{userId}</option>
-                  ))}
+                  <option value="admin">Admin</option>
+                  <option value="user">User</option>
                 </select>
               </div>
-            )}
+              {viewMode === 'user' && (
+                <div className="flex items-center gap-2">
+                  <label className="text-xs uppercase tracking-wider text-zinc-400">User</label>
+                  <select
+                    value={selectedUserId ?? ''}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="rounded-lg border border-zinc-600 bg-zinc-900 px-2 py-1 text-xs text-zinc-100"
+                  >
+                    <option value="">Select user</option>
+                    {userCandidates.map((userId) => (
+                      <option key={userId} value={userId}>{userId}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          {status === 'error' && error && (
+            <div className="forge-panel surface-card-strong flex flex-col gap-3 border border-red-500/30 bg-red-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-red-200">Dashboard refresh failed</p>
+                <p className="mt-1 text-sm text-red-100/90">{error}</p>
+              </div>
+              <button className="btn-accent btn-sm" onClick={fetchCounts}>Try again</button>
+            </div>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             {status === 'loading' ? (
               <>
                 <CardSkeleton />
@@ -410,11 +441,12 @@ export function UserDashboardPage() {
           </div>
 
           <div className="forge-panel surface-card-strong p-4">
-            <h3 className="text-sm font-semibold text-zinc-200">Core report metrics</h3>
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-zinc-200">Core report metrics</h3>
+              <p className="mt-1 text-xs text-zinc-500">Quick indicators available to the current view.</p>
+            </div>
             {status === 'loading' ? (
               <CoreMetricsSkeleton />
-            ) : status === 'error' ? (
-              <p className="text-sm text-red-400">{error}</p>
             ) : counts?.core_metrics.length ? (
               <div className="mt-2 flex flex-wrap gap-2">
                 {counts.core_metrics.map((m) => (
@@ -427,30 +459,32 @@ export function UserDashboardPage() {
           </div>
 
           <div className="forge-panel surface-card-strong p-4">
-            <h3 className="text-sm font-semibold text-zinc-200">Opportunity stage distribution</h3>
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-zinc-200">Opportunity stage distribution</h3>
+              <p className="mt-1 text-xs text-zinc-500">A quick breakdown of the active pipeline by stage.</p>
+            </div>
             {status === 'loading' ? (
               <OpportunityStageDistributionSkeleton />
-            ) : status === 'error' ? (
-              <p className="text-sm text-red-400">{error}</p>
             ) : (
               <StageDistribution stages={stageDistribution} />
             )}
           </div>
 
           <div className="forge-panel surface-card-strong p-4">
-            <h3 className="text-sm font-semibold text-zinc-200">Recent activities</h3>
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-zinc-200">Recent activities</h3>
+              <p className="mt-1 text-xs text-zinc-500">Latest actions captured across the connected workflows.</p>
+            </div>
             {status === 'loading' ? (
               <RecentActivitiesSkeleton />
-            ) : status === 'error' ? (
-              <p className="text-sm text-red-400">{error}</p>
             ) : (
               <RecentActivities rows={recentActivities} />
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button className="btn-accent btn-sm" onClick={fetchCounts} disabled={status === 'loading'}>
-              Refresh
+              {status === 'loading' ? 'Refreshing…' : 'Refresh dashboard'}
             </button>
             <button className="btn-neutral btn-sm" onClick={() => window.location.hash = '#/crm/reports'}>
               Manage reports
