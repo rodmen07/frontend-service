@@ -154,6 +154,7 @@ function EmptyState({
       <div className="mt-5 flex justify-center">
         <button className="btn-accent px-4 py-2 text-sm" onClick={onAction}>{actionLabel}</button>
       </div>
+      <p className="mt-3 text-xs text-zinc-500">Tip: widen the date range or clear filters to restore more results.</p>
     </div>
   )
 }
@@ -165,6 +166,16 @@ function actionBadge(action: string) {
   if (action === 'created') return 'text-emerald-400'
   if (action === 'deleted') return 'text-red-400'
   return 'text-amber-300'
+}
+
+function StatCard({ label, value, hint }: { label: string; value: string | number; hint: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-700/40 bg-zinc-900/50 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-zinc-100">{value}</p>
+      <p className="mt-1 text-xs text-zinc-500">{hint}</p>
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -182,15 +193,29 @@ function FilterBar({
   filters,
   onChange,
   onReset,
+  onApplyPreset,
   activeFilterCount,
 }: {
   filters: Filters
   onChange: (k: keyof Filters, v: string) => void
   onReset: () => void
+  onApplyPreset: (preset: Partial<Filters>) => void
   activeFilterCount: number
 }) {
   return (
     <div className="forge-panel surface-card-strong p-4">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">Audit workspace</p>
+          <h2 className="mt-1 text-sm font-semibold text-zinc-100">Filter the event stream by entity, action, actor, or time window</h2>
+          <p className="mt-1 text-xs text-zinc-500">Quick presets help you recover from empty results and focus on the highest-signal changes.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button className="btn-neutral px-3 py-2 text-xs" onClick={() => onApplyPreset({ action: 'created' })}>Created</button>
+          <button className="btn-neutral px-3 py-2 text-xs" onClick={() => onApplyPreset({ entity_type: 'opportunity' })}>Opportunities</button>
+          <button className="btn-neutral px-3 py-2 text-xs" onClick={() => onApplyPreset({ action: 'deleted' })}>Deleted</button>
+        </div>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div className="flex flex-col gap-1">
           <span className="text-xs font-medium text-zinc-400">Entity type</span>
@@ -293,6 +318,11 @@ function AuditView() {
     setFilters(f => ({ ...f, [k]: v }))
   }
 
+  const applyPreset = (preset: Partial<Filters>) => {
+    setPage(0)
+    setFilters(f => ({ ...f, ...preset }))
+  }
+
   const resetFilters = () => { setPage(0); setFilters(EMPTY_FILTERS) }
 
   const totalPages = result ? Math.ceil(result.total / PAGE_SIZE) : 0
@@ -303,8 +333,17 @@ function AuditView() {
         filters={filters}
         onChange={changeFilter}
         onReset={resetFilters}
+        onApplyPreset={applyPreset}
         activeFilterCount={activeFilterCount}
       />
+
+      {result && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatCard label="Visible events" value={result.data.length} hint="Current page results" />
+          <StatCard label="Total matches" value={result.total} hint={activeFilterCount > 0 ? 'Filtered audit history' : 'All recorded events'} />
+          <StatCard label="Active filters" value={activeFilterCount} hint={activeFilterCount > 0 ? 'Narrowed event stream' : 'No filters applied'} />
+        </div>
+      )}
 
       {/* Summary row */}
       {result && (

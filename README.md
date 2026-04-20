@@ -125,6 +125,13 @@ Vite production base path is configured for this repo path (`/infraportal/`) in 
 
 ## Security and reliability hardening
 
+## Latest audit and reporting polish
+
+This iteration improved the operations workflows in a few practical ways:
+
+- The audit log now gives faster context with summary cards, quick presets, and better empty-result recovery.
+- The reports workspace now offers clearer first-run guidance and a more polished management header.
+
 ## Recent UI polish updates
 
 The latest infraportal polish pass improved the client-facing experience in a few key areas:

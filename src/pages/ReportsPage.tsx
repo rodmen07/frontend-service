@@ -91,14 +91,20 @@ async function api<T>(url: string, opts: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
-function EmptyReportsState() {
+function EmptyReportsState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 gap-3">
-      <svg className="h-8 w-8 text-zinc-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75M6.75 3H5.25A2.25 2.25 0 003 5.25v13.5A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V5.25A2.25 2.25 0 0018.75 3H6.75z" />
-      </svg>
-      <p className="text-sm font-medium text-zinc-400">No saved reports yet</p>
-      <p className="text-xs text-zinc-600">Create new reports to see them listed here.</p>
+    <div className="forge-panel surface-card-strong p-6 text-center sm:p-8">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/25 bg-amber-500/10 text-amber-300">
+        <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75M6.75 3H5.25A2.25 2.25 0 003 5.25v13.5A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V5.25A2.25 2.25 0 0018.75 3H6.75z" />
+        </svg>
+      </div>
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">Reports workspace</p>
+      <p className="mt-2 text-lg font-semibold text-zinc-100">No saved reports yet</p>
+      <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">Create a report to track pipeline trends, review key metrics, and share exports with stakeholders.</p>
+      <div className="mt-5 flex justify-center">
+        <button className="btn-accent px-4 py-2 text-sm" onClick={onCreate}>Create your first report</button>
+      </div>
     </div>
   )
 }
@@ -444,28 +450,45 @@ function ReportsView() {
 
   if (loading) return <ReportsViewSkeleton />
   if (error) return (
-    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-      {error} <button className="ml-2 underline" onClick={load}>Retry</button>
+    <div className="forge-panel surface-card-strong flex flex-col gap-3 border border-red-500/30 bg-red-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-sm font-semibold text-red-200">Unable to load saved reports</p>
+        <p className="mt-1 text-sm text-red-100/90">{error}</p>
+      </div>
+      <button className="btn-accent px-3 py-2 text-sm" onClick={load}>Retry</button>
     </div>
   )
 
   return (
     <div className="space-y-6">
+      <div className="forge-panel surface-card-strong p-4 sm:p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-300/90">Reports workspace</p>
+            <h2 className="mt-1 text-lg font-semibold text-zinc-100">Manage reusable reporting views and quick exports</h2>
+            <p className="mt-1 max-w-2xl text-sm text-zinc-400">Save the metrics you revisit most often, then export them in a format that is easy to share.</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="btn-neutral text-xs" onClick={() => setModal({ mode: 'export' })}>Export</button>
+            <button className="btn-accent text-xs" onClick={() => setModal({ mode: 'create' })}>+ New Report</button>
+          </div>
+        </div>
+      </div>
+
       {/* Dashboard summary */}
       {summary && <DashboardCard summary={summary} />}
 
       {/* Table header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-zinc-200">Saved Reports</h2>
-        <div className="flex gap-2">
-          <button className="btn-neutral text-xs" onClick={() => setModal({ mode: 'export' })}>Export</button>
-          <button className="btn-accent text-xs" onClick={() => setModal({ mode: 'create' })}>+ New Report</button>
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-200">Saved Reports</h2>
+          <p className="mt-1 text-xs text-zinc-500">{reports.length} saved view{reports.length === 1 ? '' : 's'} available</p>
         </div>
       </div>
 
       {/* Reports table */}
       {reports.length === 0 ? (
-        <EmptyReportsState />
+        <EmptyReportsState onCreate={() => setModal({ mode: 'create' })} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-700/40">
           <table className="w-full text-sm">
