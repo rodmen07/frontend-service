@@ -155,7 +155,7 @@ The latest infraportal polish pass improved the client-facing experience in a fe
 - Remaining audit findings are tied to Vite major upgrades and should be addressed in a coordinated framework upgrade.
 
 
-| `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |<!-- PRODUCTIONIZER:START -->
+| `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ || `loading-skeleton` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |<!-- PRODUCTIONIZER:START -->
 ## Productionizer Agent
 
 Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each workflow run picks the next pending task from the matrix below, applies the fix, verifies with `tsc` + `eslint`, and opens a PR against this repo.
@@ -166,16 +166,16 @@ Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each wo
 
 ### Progress
 
-**12 / 30 tasks complete** (40%)
+**11 / 30 tasks complete** (36%)
 
-`████████████░░░░░░░░░░░░░░░░░░`
+`██████████░░░░░░░░░░░░░░░░░░░░`
 
 ### Task Matrix
 
 | Gap | Portal | CrmAdmin | Audit | Reports | Observaboard | Search | ServiceHealth | UserDashboard | PortalLogin | Contact |
 |-----|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 
-| `empty-state` | ✅ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |<!-- PRODUCTIONIZER:START -->
+| `empty-state` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |<!-- PRODUCTIONIZER:START -->
 ## Productionizer Agent
 
 Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each workflow run picks the next pending task from the matrix below, applies the fix, verifies with `tsc` + `eslint`, and opens a PR against this repo.
@@ -186,9 +186,9 @@ Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each wo
 
 ### Progress
 
-**12 / 30 tasks complete** (40%)
+**11 / 30 tasks complete** (36%)
 
-`████████████░░░░░░░░░░░░░░░░░░`
+`██████████░░░░░░░░░░░░░░░░░░░░`
 
 ### Task Matrix
 
@@ -201,26 +201,26 @@ Near-autonomous UI/UX improvement agent powered by **Gemini 2.5 Flash**. Each wo
 
 ### Next task
 
-`AuditPage` / `empty-state`
+`CrmAdminPage` / `empty-state`
 
 ### Recently completed
 
-- **CrmAdminPage** / `empty-state` — CrmAdminPage: Replaced all bare "no data" text and the simple EmptyState component with a new CustomEmptyState component featuring SVG icons, titles, descriptions, and optional CTAs/refresh actions, improving the empty state UX across all tabs.
 - **UserDashboardPage** / `loading-skeleton` — UserDashboardPage: replaced 'Loading...' texts and implicit loading states for cards, core metrics, opportunity distribution, and recent activities with dedicated skeleton components — provides a better user experience by previewing content layout.
 - **ServiceHealthPage** / `loading-skeleton` — ServiceHealthPage: Replaced 'Loading...' text and generic loading states with `ServiceHealthCardSkeleton` and `SummaryBarSkeleton` components, and made the initial data fetch asynchronous in `useEffect` to prevent cascading renders — this provides a more structured and visually appealing loading experience that matches the content layout.
 - **SearchPage** / `loading-skeleton` — SearchPage: replaced the search input spinner with a pulsing search icon and added a `SearchResultsSkeleton` for displaying during search result loading — provides a better visual cue for ongoing searches and previews content layout.
 - **ObservaboardPage** / `loading-skeleton` — ObservaboardPage: replaced `Spinner` with `ObservaboardTableSkeleton` — matches table layout, eliminates layout shift and provides a better loading experience.
+- **ReportsPage** / `loading-skeleton` — ReportsPage: replaced loading spinner with ReportsViewSkeleton, DashboardCardSkeleton, and ReportTableSkeleton components — provides a visual preview of the page layout during loading.
 
 ### Stop conditions
 
 The agent pauses automatically when:
 - ⏱ The configured time window (15 / 30 / 45 / 60 min) is exhausted
-- ⚠️ 5 or more open PRs are awaiting review
+- ⚠️ 25 or more open PRs are awaiting review
 - ❌ An unrecoverable error occurs
 
 ### Last run
 
-2026-04-17 19:34 UTC
+2026-04-25 17:18 UTC
 
 *Updated automatically by productionizer-bot · Do not edit between these markers*
 <!-- PRODUCTIONIZER:END -->
